@@ -1,0 +1,30 @@
+{
+  "name": "rulee-ts",
+  "version": "0.4.0",
+  "description": "UI-centered rule engine to manage your business rules with TypeScript",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.ts",
+  "scripts": {
+    "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+    "prepublishOnly": "npm run tsc"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mann-software/rulee-ts.git"
+  },
+  "keywords": [
+    "RuleEngine",
+    "TypeScript",
+    "business rules",
+    "dependency graph"
+  ],
+  "author": "Andre Mann",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/mann-software/rulee-ts/issues"
+  },
+  "homepage": "https://github.com/mann-software/rulee-ts#readme"
+}
