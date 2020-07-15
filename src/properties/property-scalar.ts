@@ -11,7 +11,7 @@ export interface PropertyScalar<T> extends AbstractProperty<T> {
     setValue(value: T | null): void;
     awaitValue(): Promise<T | null>;
     get<A>(id: AttributeId<A>): A | undefined;
-    isMandatory(): boolean;
+    isRequired(): boolean;
     isVisible(): boolean;
     isEmpty(): boolean;
     getLabel(): string;

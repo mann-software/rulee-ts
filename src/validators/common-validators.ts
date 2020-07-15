@@ -5,8 +5,8 @@ import { ScalarValidator } from "./validator";
 export const V = {
     conditional: <T>(validators: { condition: boolean, validator: ScalarValidator<T> }[]) => new ConditionalValidator(validators.map(v => ({ condition: v.condition, valideFcn: v.validator.validate }))),
     conditionalFcns: <T>(validators: { condition: boolean, valideFcn: (property: PropertyScalar<T>) => ValidationMessage | null }[]) => new ConditionalValidator(validators),
-    notEmpty: (msg: ValidationMessage) => new NotEmptyIfMandatoryValidator(() => msg),
-    notEmptyMsgProvider: (valiationMsgProvider: () => ValidationMessage) => new NotEmptyIfMandatoryValidator(valiationMsgProvider),
+    notEmpty: (msg: ValidationMessage) => new NotEmptyIfRequiredValidator(() => msg),
+    notEmptyMsgProvider: (valiationMsgProvider: () => ValidationMessage) => new NotEmptyIfRequiredValidator(valiationMsgProvider),
 }
 
 /**
@@ -22,7 +22,7 @@ export class ConditionalValidator<T> implements ScalarValidator<T> {
 
 }
 
-export class NotEmptyIfMandatoryValidator implements ScalarValidator<any> {
+export class NotEmptyIfRequiredValidator implements ScalarValidator<any> {
 
     /**
      * @param valiationMessageProvider as function for e.g. internationalization
@@ -30,7 +30,7 @@ export class NotEmptyIfMandatoryValidator implements ScalarValidator<any> {
     constructor (protected valiationMessageProvider: () => ValidationMessage) { }
 
     validate(property: PropertyScalar<any>): ValidationMessage | null {
-        if (!property.isEmpty() || !property.isMandatory()) {
+        if (!property.isEmpty() || !property.isRequired()) {
             return null;
         } else {
             return this.valiationMessageProvider();

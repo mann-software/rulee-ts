@@ -4,7 +4,7 @@ import { AbstractProperty } from "../properties/abstract-property";
 /**
  * Attributes are additional state information that can be derived from the values
  * 
- * E.g. Mandatory
+ * E.g. Required
  */
 export interface Attribute<A> {
     readonly id: AttributeId<A>;

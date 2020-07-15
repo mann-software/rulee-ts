@@ -18,7 +18,7 @@ export class PropertyScalarRuleBinding<T> {
     
     constructor(
         property: PropertyScalar<T>,
-        private notEmptyIfMandatoryValidator: ScalarValidator<any>,
+        private notEmptyIfRequiredValidator: ScalarValidator<any>,
         private addDependencies: (from: AbstractProperty<any>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => void
     ) {
         this.property = property as PropertyScalarImpl<T>;
@@ -66,7 +66,7 @@ export class PropertyScalarRuleBinding<T> {
     private defineAttributeFunction<A>(attribudeId: AttributeId<A>, deps: AbstractProperty<any>[], fcn: () => A) {
         alwaysAssertThat(!(A as any)[attribudeId.name], () => {
             const mapping: {[attrName: string]: string} = {
-                Mandatory: 'defineMandatoryIfVisible',
+                Required: 'defineRequiredIfVisible',
                 Visible: 'defineVisibility',
                 Label: 'defineLabel',
                 InfoText: 'defineInfoText'
@@ -113,25 +113,25 @@ export class PropertyScalarRuleBinding<T> {
 
     // ------------------
 
-    defineMandatoryIfVisible(mandatory: boolean | ((self: PropertyScalar<T>) => boolean)): PropertyScalarRuleBinding<T> {
-        if (mandatory === true) { // false is default -> no need to set
-            this.defineMandatoryIfVisibleFunction([], () => mandatory);
-        } else if (mandatory instanceof Function) {
-            this.defineMandatoryIfVisibleFunction([], () => mandatory(this.property));
+    defineRequiredIfVisible(required: boolean | ((self: PropertyScalar<T>) => boolean)): PropertyScalarRuleBinding<T> {
+        if (required === true) { // false is default -> no need to set
+            this.defineRequiredIfVisibleFunction([], () => required);
+        } else if (required instanceof Function) {
+            this.defineRequiredIfVisibleFunction([], () => required(this.property));
         }
         return this;
     }
 
-    // TODO defineMandatoryIfVisible1, 2 , etc
+    // TODO defineRequiredIfVisible1, 2 , etc
 
-    private defineMandatoryIfVisibleFunction(deps: AbstractProperty<any>[], fcn: () => boolean) {
-        this.addDependencies(deps, this.property, { mandatory: true });
-        this.property.defineMandatoryIfVisible({
-            id: A.Mandatory,
+    private defineRequiredIfVisibleFunction(deps: AbstractProperty<any>[], fcn: () => boolean) {
+        this.addDependencies(deps, this.property, { required: true });
+        this.property.defineRequiredIfVisible({
+            id: A.Required,
             dependencies: deps,
             getValue: fcn
         } as Attribute<boolean>);
-        this.property.addScalarValidator(this.notEmptyIfMandatoryValidator);
+        this.property.addScalarValidator(this.notEmptyIfRequiredValidator);
     }
     
     // ------------------

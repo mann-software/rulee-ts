@@ -53,7 +53,7 @@ export class PropertyScalarBuilder {
         const converter = new ChoiceValueConverter<T>(choices, emptyChoice);
         const emptyValueFcn = emptyChoice ? EmptyValueFcns.ChoiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.DefaultEmptyValueFcn;
         const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
-        prop.defineInitialValue(emptyChoice?.value ?? choices[0]?.value)
+        prop.defineInitialValue(emptyChoice?.value ?? choices[0]?.value);
         return prop;
     }
 

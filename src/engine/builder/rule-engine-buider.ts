@@ -25,7 +25,7 @@ export class RuleEngineBuilder {
     private dependencyGraph = new DependencyGraph();
     private ruleEngine = new RuleEngine(this.dependencyGraph, this.properties);
     
-    private notEmptyIfMandatoryValidator: ScalarValidator<any>;
+    private notEmptyIfRequiredValidator: ScalarValidator<any>;
 
     private propertyScalarBuilder = new PropertyScalarBuilder(
         <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[]) =>
@@ -53,9 +53,9 @@ export class RuleEngineBuilder {
     }
 
     constructor(options: RuleEngineBuilderOptions) {
-        this.notEmptyIfMandatoryValidator = options.emptyButMandatoryMessage instanceof Function 
-            ? V.notEmptyMsgProvider(options.emptyButMandatoryMessage)
-            : V.notEmpty(options.emptyButMandatoryMessage);
+        this.notEmptyIfRequiredValidator = options.emptyButRequiredMessage instanceof Function 
+            ? V.notEmptyMsgProvider(options.emptyButRequiredMessage)
+            : V.notEmpty(options.emptyButRequiredMessage);
     }
 
     private propertyScalar<T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[]): PropertyScalarImpl<T> {
@@ -70,7 +70,7 @@ export class RuleEngineBuilder {
     private bindPropertyScalar<T>(prop: PropertyScalar<T>): PropertyScalarRuleBinding<T> {
         return new PropertyScalarRuleBinding<T>(
             prop,
-            this.notEmptyIfMandatoryValidator,
+            this.notEmptyIfRequiredValidator,
             (from: AbstractProperty<any>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
         );
     }

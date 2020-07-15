@@ -4,7 +4,7 @@ export interface PropertyDependencyOptions {
     value?: boolean;
     validation?: boolean;
     visible?: boolean;
-    mandatory?: boolean;
+    required?: boolean;
 }
 
 export interface PropertyDependency {

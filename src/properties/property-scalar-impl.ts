@@ -15,7 +15,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     private currentValue?: T | null; // undefined if synchonous and not cached
 
-    protected initialValue?: T;
+    protected initialValue?: T | null;
     private placeholder?: string;
     private infoText?: string;
     private label?: string;
@@ -24,7 +24,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     
     protected attributeMap?: Map<AttributeId<any>, Attribute<any>>;
     protected visible?: Attribute<boolean>;
-    protected mandatory?: Attribute<boolean>;
+    protected required?: Attribute<boolean>;
 
     constructor(
         readonly id: PropertyId,
@@ -86,7 +86,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.scalarValidators.push(validator);
     }
 
-    defineInitialValue(value: T) {
+    defineInitialValue(value: T | null) {
         this.initialValue = value;
     }
 
@@ -102,8 +102,8 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.visible = visibility;
     }
 
-    defineMandatoryIfVisible(mandatoriness: Attribute<boolean>) {
-        this.mandatory = mandatoriness;
+    defineRequiredIfVisible(mandatoriness: Attribute<boolean>) {
+        this.required = mandatoriness;
     }
 
     defineAttribute(attribute: Attribute<any>) {
@@ -152,8 +152,8 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return this.attributeMap?.get(id)?.getValue();
     }
 
-    isMandatory(): boolean {
-        return !!this.mandatory && this.mandatory.getValue() && this.isVisible();
+    isRequired(): boolean {
+        return !!this.required && this.required.getValue() && this.isVisible();
     }
 
     isVisible(): boolean {
