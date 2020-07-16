@@ -28,3 +28,4 @@ obj/
 #Ignore files from npm
 node_modules/
 lib/
+coverage/

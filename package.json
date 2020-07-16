@@ -5,10 +5,15 @@
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.ts",
   "scripts": {
+    "test": "jest --coverage",
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "prepublishOnly": "npm run tsc"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.4",
+    "jest": "^26.1.0",
+    "jest-mock-extended": "^1.0.9",
+    "ts-jest": "^26.1.2",
     "typescript": "^3.9.6"
   },
   "repository": {

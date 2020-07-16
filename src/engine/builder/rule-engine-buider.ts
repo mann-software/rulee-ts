@@ -58,11 +58,14 @@ export class RuleEngineBuilder {
             : V.notEmpty(options.emptyButRequiredMessage);
     }
 
-    private propertyScalar<T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[]): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[], initialValue?: T | null): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine);
         this.properties.push(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
+        }
+        if (initialValue !== undefined) {
+            prop.defineInitialValue(initialValue);
         }
         return prop;
     }

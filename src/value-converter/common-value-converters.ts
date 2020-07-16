@@ -60,7 +60,7 @@ export class IntegerValueConverter implements ValueConverter<number> {
         return Number.isNaN(converted) ? null : converted;
     }
     asDisplayValue(value: number | null): string {
-        return value == null ? '' : value.toString();
+        return value == null ? '' : value.toFixed(0);
     }
 }
 
@@ -68,10 +68,12 @@ export class IntegerValueConverter implements ValueConverter<number> {
 
 export class BooleanConverter implements ValueConverter<boolean> {
 
-    constructor(private trueString: string, private falseString: string) {}
+    private loweredTrueString = this.trueString.toLowerCase();
+
+    constructor(private trueString: string, private falseString: string) { }
 
     fromDisplayValue(value: string | null): boolean | null {
-        return value === this.trueString;
+        return value?.toLowerCase() === this.loweredTrueString;
     }
     asDisplayValue(value: boolean | null): string {
         return value ? this.trueString : this.falseString;

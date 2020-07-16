@@ -1,6 +1,6 @@
 
 export interface Choice<T> {
-    value: T;
+    value: T | null;
     // TODO isVisible(properties): boolean ??
     displayValue: string;
 }

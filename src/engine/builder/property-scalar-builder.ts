@@ -20,7 +20,7 @@ import { EmptyValueFcn, EmptyValueFcns } from "../../provider/value-provider/emp
 export class PropertyScalarBuilder {
 
     constructor(
-        private propertyScalar: <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[]) => PropertyScalarImpl<T>,
+        private propertyScalar: <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[], initialValue?: T | null) => PropertyScalarImpl<T>,
         private bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>
     ) {}
 
@@ -37,14 +37,40 @@ export class PropertyScalarBuilder {
         return this.propertyScalar(id, new SimpleValueProvider<T>(), emptyValueFcn, valueConverter);
     }
 
-    stringProperty(id: PropertyId, valueConverter?: ValueConverter<string>): PropertyScalar<string> {
-        return this.propertyScalar(id, new SimpleValueProvider<string>(), EmptyValueFcns.DefaultEmptyValueFcn, valueConverter ?? C.string.identity);
+    stringProperty(id: PropertyId, options?: { 
+        valueConverter?: ValueConverter<string>,
+        initialValue?: string | null
+    }): PropertyScalar<string> {
+        return this.propertyScalar(id, new SimpleValueProvider<string>(),
+            EmptyValueFcns.DefaultEmptyValueFcn,
+            options?.valueConverter ?? C.string.identity,
+            undefined,
+            options?.initialValue !== undefined ? options?.initialValue : ''
+        );
     }
 
-    numberProperty(id: PropertyId, valueConverter?: ValueConverter<number>, zeroIsConsideredAsEmpty = false): PropertyScalar<number> {
+    numberProperty(id: PropertyId, options?: { 
+        valueConverter?: ValueConverter<number>,
+        zeroIsConsideredAsEmpty?: boolean,
+        initialValue?: number | null
+    }): PropertyScalar<number> {
         return this.propertyScalar(id, new SimpleValueProvider<number>(),
-            zeroIsConsideredAsEmpty ? EmptyValueFcns.DefaultEmptyValueFcn : EmptyValueFcns.NumberEmptyValueFcn,
-            valueConverter ?? C.number.default
+            options?.zeroIsConsideredAsEmpty ? EmptyValueFcns.DefaultEmptyValueFcn : EmptyValueFcns.NumberEmptyValueFcn,
+            options?.valueConverter ?? C.number.default,
+            undefined,
+            options?.initialValue !== undefined ? options?.initialValue : 0
+        );
+    }
+
+    booleanProperty(id: PropertyId, options?: { 
+        valueConverter?: ValueConverter<boolean>,
+        initialValue?: boolean | null
+    }): PropertyScalar<boolean> {
+        return this.propertyScalar(id, new SimpleValueProvider<boolean>(),
+            EmptyValueFcns.BooleanEmptyValueFcn,
+            options?.valueConverter ?? C.boolean.default,
+            undefined,
+            options?.initialValue !== undefined ? options?.initialValue : false
         );
     }
 
@@ -77,22 +103,29 @@ export class PropertyScalarBuilder {
         return this.propertyScalar(id, provider, emptyValueFcn, valueConverter);
     }
 
-    derivedProperty1<T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
-        dependency: D1, derive: (dep: D1) => T | null, inverse?: (dep: D1, val: T | null) => void, emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.DefaultEmptyValueFcn
+    derivedProperty1<T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>, dependency: D1, 
+        derivations: {
+            derive: (dep: D1) => T | null, 
+            inverse?: (dep: D1, val: T | null) => void
+        },
+        emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.DefaultEmptyValueFcn
     ): PropertyScalar<T> {
         const dependencies = [dependency];
-        const invFcn = inverse ? (deps: AbstractProperty<TD>[], val: T | null) => inverse(deps[0] as D1, val) : undefined;
-        const provider = new DerivedValueProvider<T>(dependencies, (deps) => derive(deps[0] as D1), invFcn);
+        const invFcn = derivations.inverse ? (deps: AbstractProperty<TD>[], val: T | null) => derivations.inverse!(deps[0] as D1, val) : undefined;
+        const provider = new DerivedValueProvider<T>(dependencies, (deps) => derivations.derive(deps[0] as D1), invFcn);
         return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies);
     }
 
     derivedProperty2<T, TD, D1 extends AbstractProperty<TD>, D2 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
-        dependency1: D1, dependency2: D2, derive: (dep1: D1, dep2: D2) => T | null, inverse?: (dep1: D1, dep2: D2, val: T | null) => void,
+        dependency1: D1, dependency2: D2, derivations: {
+            derive: (dep1: D1, dep2: D2) => T | null,
+            inverse?: (dep1: D1, dep2: D2, val: T | null) => void
+        },
         emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.DefaultEmptyValueFcn
     ): PropertyScalar<T> {
         const dependencies = [dependency1, dependency2];
-        const invFcn = inverse ? (deps: AbstractProperty<TD>[], val: T | null) => inverse(deps[0] as D1, deps[1] as D2, val) : undefined;
-        const provider = new DerivedValueProvider<T>(dependencies, (deps) => derive(deps[0] as D1, deps[1] as D2), invFcn);
+        const invFcn = derivations.inverse ? (deps: AbstractProperty<TD>[], val: T | null) => derivations.inverse!(deps[0] as D1, deps[1] as D2, val) : undefined;
+        const provider = new DerivedValueProvider<T>(dependencies, (deps) => derivations.derive(deps[0] as D1, deps[1] as D2), invFcn);
         return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies);
     }
 
