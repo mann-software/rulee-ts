@@ -47,13 +47,13 @@ export interface Validator {
     /**
      * get the properties that are validated
      */
-    getValidatedProperties(): AbstractProperty<any>[];
+    getValidatedProperties(): AbstractProperty<unknown>[];
     /**
      * get additional properties that are needed for validation but not considered as invalid if
      * the validation fails. E.g. to validate if a street name is valid, you need the postal code 
      * as addtional property for validation
      */
-    getAdditionalProperties(): AbstractProperty<any>[];
+    getAdditionalProperties(): AbstractProperty<unknown>[];
     /**
      * start validation process
      */

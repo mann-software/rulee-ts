@@ -6,7 +6,7 @@ import { mock } from 'jest-mock-extended';
 test('not empty if required validator', () => {
     const validationMessage = { type: ValidationError, text: 'Must not be empty' };
     const notEmptyIfRequiredValidator = V.notEmpty(validationMessage);
-    const propertyScalar = mock<PropertyScalar<any>>();
+    const propertyScalar = mock<PropertyScalar<unknown>>();
 
     propertyScalar.isEmpty.mockReturnValue(true);
     propertyScalar.isRequired.mockReturnValue(true);

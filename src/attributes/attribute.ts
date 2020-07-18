@@ -8,6 +8,6 @@ import { AbstractProperty } from "../properties/abstract-property";
  */
 export interface Attribute<A> {
     readonly id: AttributeId<A>;
-    readonly dependencies: AbstractProperty<any>[];
+    readonly dependencies: AbstractProperty<unknown>[];
     getValue(): A;
 }

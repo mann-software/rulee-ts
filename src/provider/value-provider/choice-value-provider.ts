@@ -4,7 +4,7 @@ export class ChoiceValueProvider<T> implements ValueProvider<T> {
 
     private value: T | null = null;
 
-    constructor(private emptyChoiceValue: T | null) { }
+    constructor(private readonly emptyChoiceValue: T | null) { }
 
     getValue(): T | null {
         return this.value;

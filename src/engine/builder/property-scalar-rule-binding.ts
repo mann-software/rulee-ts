@@ -14,12 +14,12 @@ export enum TextInterpreter {
 
 export class PropertyScalarRuleBinding<T> {
 
-    private property: PropertyScalarImpl<T>;
+    private readonly property: PropertyScalarImpl<T>;
     
     constructor(
         property: PropertyScalar<T>,
-        private notEmptyIfRequiredValidator: ScalarValidator<any>,
-        private addDependencies: (from: AbstractProperty<any>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => void
+        private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>,
+        private readonly addDependencies: (from: AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => void
     ) {
         this.property = property as PropertyScalarImpl<T>;
     }
@@ -56,15 +56,15 @@ export class PropertyScalarRuleBinding<T> {
         if (value instanceof Function) {
             this.defineAttributeFunction(attribudeId, [], () => value(this.property));
         } else {
-            this.defineAttributeFunction(attribudeId, [], () => value as A);
+            this.defineAttributeFunction(attribudeId, [], () => value);
         }
         return this;
     }
 
     // TODO define1, 2 , etc
 
-    private defineAttributeFunction<A>(attribudeId: AttributeId<A>, deps: AbstractProperty<any>[], fcn: () => A) {
-        alwaysAssertThat(!(A as any)[attribudeId.name], () => {
+    private defineAttributeFunction<A>(attribudeId: AttributeId<A>, deps: AbstractProperty<unknown>[], fcn: () => A) {
+        alwaysAssertThat(!A[attribudeId.name], () => {
             const mapping: {[attrName: string]: string} = {
                 Required: 'defineRequiredIfVisible',
                 Visible: 'defineVisibility',
@@ -92,17 +92,17 @@ export class PropertyScalarRuleBinding<T> {
         return this;
     }
 
-    defineVisibility1<D1 extends AbstractProperty<any>>(dep1: D1, isVisible: (self: PropertyScalar<T>, dep1: D1) => boolean): PropertyScalarRuleBinding<T> {
+    defineVisibility1<D1 extends AbstractProperty<unknown>>(dep1: D1, isVisible: (self: PropertyScalar<T>, dep1: D1) => boolean): PropertyScalarRuleBinding<T> {
         this.defineVisibilityFunction([dep1], () => isVisible(this.property, dep1));
         return this;
     }
 
-    defineVisibility2<D1 extends AbstractProperty<any>, D2 extends AbstractProperty<any>>(dep1: D1, dep2: D2, isVisible: (self: PropertyScalar<T>, dep1: D1, dep2: D2) => boolean): PropertyScalarRuleBinding<T> {
+    defineVisibility2<D1 extends AbstractProperty<unknown>, D2 extends AbstractProperty<unknown>>(dep1: D1, dep2: D2, isVisible: (self: PropertyScalar<T>, dep1: D1, dep2: D2) => boolean): PropertyScalarRuleBinding<T> {
         this.defineVisibilityFunction([dep1, dep2], () => isVisible(this.property, dep1, dep2));
         return this;
     }
 
-    private defineVisibilityFunction(deps: AbstractProperty<any>[], fcn: () => boolean) {
+    private defineVisibilityFunction(deps: AbstractProperty<unknown>[], fcn: () => boolean) {
         this.addDependencies(deps, this.property, { visible: true });
         this.property.defineVisibility({
             id: A.Visible,
@@ -124,7 +124,7 @@ export class PropertyScalarRuleBinding<T> {
 
     // TODO defineRequiredIfVisible1, 2 , etc
 
-    private defineRequiredIfVisibleFunction(deps: AbstractProperty<any>[], fcn: () => boolean) {
+    private defineRequiredIfVisibleFunction(deps: AbstractProperty<unknown>[], fcn: () => boolean) {
         this.addDependencies(deps, this.property, { required: true });
         this.property.defineRequiredIfVisible({
             id: A.Required,
@@ -175,7 +175,7 @@ export class PropertyScalarRuleBinding<T> {
      * provide a list of other properties that will reset the current property if one of them changed
      * @param resetIfOneOfTheseChanged list with properties that - if changed - will reset the current prop
      */
-    setToInitialValueOnOtherPropertyChanged(...otherProperties: AbstractProperty<any>[]) {
+    setToInitialValueOnOtherPropertyChanged(...otherProperties: AbstractProperty<unknown>[]) {
         alwaysAssertThat(!this.property.isReadOnly(), () => `${this.property.id}: Can only set properties to initial value, that are not read only`);
         // TODO 
         return this;

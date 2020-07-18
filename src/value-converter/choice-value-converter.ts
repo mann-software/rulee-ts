@@ -3,7 +3,7 @@ import { Choice } from "../properties/choice";
 
 export class ChoiceValueConverter<T> implements ValueConverter<T> {
 
-    constructor(private choices: Choice<T>[], private emptyChoice?: Choice<T>) { }
+    constructor(private readonly choices: Choice<T>[], private readonly emptyChoice?: Choice<T>) { }
 
     fromDisplayValue(value: string | null): T | null {
         const choice = this.choices.find(c => c.displayValue === value);

@@ -6,13 +6,13 @@ import { PropertyTemplate } from "../../properties/factory/property-template";
 
 export class SimpleListProvider<T extends AbstractProperty<D>, D> implements ListProvider<T, D> {
 
-    private list: { prop: T, index: ListIndexImpl }[] = [];
+    private readonly list: { prop: T; index: ListIndexImpl }[] = [];
     private nxtId = 0;
 
     constructor(
-        private id: PropertyId,
-        private propertyTemplate: PropertyTemplate<T, D>,
-        private getSelected: (idx: number) => boolean
+        private readonly id: PropertyId,
+        private readonly propertyTemplate: PropertyTemplate<T, D>,
+        private readonly getSelected: (idx: number) => boolean
     ) { }
 
     getList(): T[] {

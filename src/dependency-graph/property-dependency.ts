@@ -8,7 +8,7 @@ export interface PropertyDependencyOptions {
 }
 
 export interface PropertyDependency {
-    from: AbstractProperty<any>;
-    to: AbstractProperty<any>;
+    from: AbstractProperty<unknown>;
+    to: AbstractProperty<unknown>;
     options: PropertyDependencyOptions;
 }

@@ -18,7 +18,7 @@ export interface ListOfProperties<T extends AbstractProperty<D>, D> extends Abst
      * @param property property whose data will be added
      * @param atIndex optional index
      */
-    addProperty(options?: { property?: T, atIndex?: number }): T;
+    addProperty(options?: { property?: T; atIndex?: number }): T;
 
     /**
      * Removes the property with the given index. Supported if not read-only.

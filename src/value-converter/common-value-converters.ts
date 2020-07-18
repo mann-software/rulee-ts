@@ -13,7 +13,7 @@ export class StringValueConverter implements ValueConverter<string> {
 
 export class UpperCaseStringValueConverter implements ValueConverter<string> {
     fromDisplayValue(value: string | null): string | null {
-        return value && value.toUpperCase();
+        return value?.toUpperCase() ?? null;
     }
     asDisplayValue(value: string | null): string {
         return value ?? '';
@@ -68,9 +68,9 @@ export class IntegerValueConverter implements ValueConverter<number> {
 
 export class BooleanConverter implements ValueConverter<boolean> {
 
-    private loweredTrueString = this.trueString.toLowerCase();
+    private readonly loweredTrueString = this.trueString.toLowerCase();
 
-    constructor(private trueString: string, private falseString: string) { }
+    constructor(private readonly trueString: string, private readonly falseString: string) { }
 
     fromDisplayValue(value: string | null): boolean | null {
         return value?.toLowerCase() === this.loweredTrueString;

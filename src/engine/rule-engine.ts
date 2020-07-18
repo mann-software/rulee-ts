@@ -7,15 +7,15 @@ import { ValueChangeListener } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
 import { Logger } from "../util/logger/logger";
 
-export class RuleEngine implements RuleEngineUpdateHandler<any> {
+export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
 
-    private dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
-    private snapshots = new Map<string, Snapshot>();
-    private propertiesThatRequireAnEagerUpdate: AbstractProperty<any>[] = [];
+    private readonly dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
+    private readonly snapshots = new Map<string, Snapshot>();
+    private propertiesThatRequireAnEagerUpdate: AbstractProperty<unknown>[] = [];
     
-    constructor (private dependencyGraph: DependencyGraph, private properties: AbstractPropertyWithInternals<any>[]) {}
+    constructor (private readonly dependencyGraph: DependencyGraph, private readonly properties: AbstractPropertyWithInternals<unknown>[]) {}
 
-    takeSnapShot(key: string = 'default'): Snapshot {
+    takeSnapShot(key = 'default'): Snapshot {
         const snap = {
             key,
             data: this.properties.map(p => p.exportData())
@@ -24,10 +24,10 @@ export class RuleEngine implements RuleEngineUpdateHandler<any> {
         return snap;
     }
 
-    restoreSnapShot(key: string = 'default'): void {
+    restoreSnapShot(key = 'default'): void {
         const snap = this.snapshots.get(key);
         if (snap) {
-            snap.data.forEach((d: any, i: number) => this.properties[i].importData(d))
+            snap.data.forEach((d: unknown, i: number) => this.properties[i].importData(d))
         }
     }
     
@@ -88,12 +88,12 @@ export class RuleEngine implements RuleEngineUpdateHandler<any> {
 
     // -----------------------------------------------------------------------
 
-    needsAnUpdate(mightHaveChanged: AbstractProperty<any>): void {
+    needsAnUpdate(mightHaveChanged: AbstractProperty<unknown>): void {
         this.dependencyGraph.traverseDepthFirst(
             mightHaveChanged.id, 
             property => {
                 property.needsAnUpdate(false);
-                if ((property as AbstractPropertyWithInternals<any>).internallyRequiresEagerUpdate()
+                if ((property as AbstractPropertyWithInternals<unknown>).internallyRequiresEagerUpdate()
                     && this.propertiesThatRequireAnEagerUpdate.every(p => p.id !== property.id)
                 ) {
                     this.propertiesThatRequireAnEagerUpdate.push(property);
@@ -104,29 +104,29 @@ export class RuleEngine implements RuleEngineUpdateHandler<any> {
         setTimeout(() => {
             const eagerProps = this.propertiesThatRequireAnEagerUpdate;
             this.propertiesThatRequireAnEagerUpdate = [];
-            eagerProps.forEach((prop: AbstractProperty<any>) => this.updateValue(prop));
+            eagerProps.forEach((prop: AbstractProperty<unknown>) => void this.updateValue(prop));
         });
     }
 
-    updateValue(property: AbstractProperty<any>): Promise<void> {
+    updateValue(property: AbstractProperty<unknown>): Promise<void> {
         const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
         if (asyncDeps?.length) {
             return Promise.all(asyncDeps.map(pd => this.updateValue(pd.from)))
-                .then(() => (property as AbstractPropertyWithInternals<any>).internallyUpdate())
-                .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<any>))
+                .then(() => (property as AbstractPropertyWithInternals<unknown>).internallyUpdate())
+                .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
                 .catch(e => Logger.error(`Error updating ${property.id}: `, e));
         } else {
-            return (property as AbstractPropertyWithInternals<any>).internallyUpdate()
-                .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<any>))
+            return (property as AbstractPropertyWithInternals<unknown>).internallyUpdate()
+                .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
                 .catch(e => Logger.error(`Error updating ${property.id}`, e));
         }
     }
 
-    private hasBeenUpdated(property: AbstractPropertyWithInternals<any>) {
+    private hasBeenUpdated(property: AbstractPropertyWithInternals<unknown>) {
         property.hasBeenUpdated();
         this.dependencyGraph.traverseDepthFirst(
             property.id,
-            (prop, dep) => (prop as AbstractPropertyWithInternals<any>).dependencyHasBeenUpdated(dep),
+            (prop, dep) => (prop as AbstractPropertyWithInternals<unknown>).dependencyHasBeenUpdated(dep),
             dependency => !dependency.options.value
         );
     }

@@ -9,7 +9,7 @@ export const Label = { name: 'Label' } as AttributeId<string>;
 export const InfoText = { name: 'InfoText' } as AttributeId<string>;
 
 // Important: If this is changed, also change defineAttributeFunction!
-export const A = {
+export const A: { [attrName: string]: AttributeId<unknown> } = {
     Required,
     Visible,
     Label,

@@ -2,25 +2,23 @@ import { AbstractProperty } from "./abstract-property";
 import { AbstractPropertyImpl } from "./abstract-property-internals";
 import { GroupOfProperties } from "./group-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
-import { GroupAggregator } from "../provider/aggregator/group-aggregator";
 
 /**
  * Manages an ordered set of properties
  */
-export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<any> }, A extends { [id: string]: GroupAggregator<any> }, D> extends AbstractPropertyImpl<D> implements GroupOfProperties<T, A, D> {
+export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<unknown> }, D> extends AbstractPropertyImpl<D> implements GroupOfProperties<T, D> {
 
     constructor(
         readonly id: string,
         readonly properties: T,
-        public aggregations: A,
-        private exportFcn: (props: T) => D | null,
-        private importFcn: (props: T, data: D | null) => void,
+        private readonly exportFcn: (props: T) => D | null,
+        private readonly importFcn: (props: T, data: D | null) => void,
         updateHandler: RuleEngineUpdateHandler<D>
     ) {
         super(updateHandler);
     }
 
-    propertiesAsList(): AbstractProperty<any>[] {
+    propertiesAsList(): AbstractProperty<unknown>[] {
         return Object.keys(this.properties).map(propKey => this.properties[propKey]);
     }
 
@@ -31,7 +29,7 @@ export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<an
     protected internallySyncUpdate(): void {
         throw new Error("Method not implemented.");
     }
-    protected internallyAsyncUpdate<V>(): { asyncPromise: Promise<V>; resolve: (value: V) => void; } {
+    protected internallyAsyncUpdate<V>(): { asyncPromise: Promise<V>; resolve: (value: V) => void } {
         throw new Error("Method not implemented.");
     }
 

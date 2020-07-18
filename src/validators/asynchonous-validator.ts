@@ -9,8 +9,8 @@ export abstract class AsynchronousSingleValidator<T, R> implements Validator {
     private lastValidationResult = ValidationPassed;
 
     constructor(
-        private validatedProperties: PropertyScalar<T>[], 
-        private furtherProperties: PropertyScalar<T>[]
+        private readonly validatedProperties: PropertyScalar<T>[], 
+        private readonly furtherProperties: PropertyScalar<T>[]
     ) { }
 
     getValidatedProperties(): AbstractProperty<T>[] {
@@ -32,11 +32,11 @@ export abstract class AsynchronousSingleValidator<T, R> implements Validator {
      * Provide an error messsage for all validated properties in case the validation processing failed
      * @param error error thrown during async processing
      */
-    abstract getMessageOnError(error: any): ValidationMessage;
+    abstract getMessageOnError(error: Error): ValidationMessage;
 
     async validate(): Promise<ValidationResult> {
         if (!this.needsValidation(this.validatedProperties, this.furtherProperties)) {
-            return Promise.resolve(this.lastValidationResult);
+            return this.lastValidationResult;
         }
         try {
             const result = await this.process(this.validatedProperties, this.furtherProperties);
@@ -44,7 +44,7 @@ export abstract class AsynchronousSingleValidator<T, R> implements Validator {
             if (msgs == null || msgs instanceof Array) {
                 this.lastValidationResult = {
                     getMessages: (propertyId) => {
-                        return msgs as ValidationMessage[];
+                        return msgs;
                     }
                 }
             } else {

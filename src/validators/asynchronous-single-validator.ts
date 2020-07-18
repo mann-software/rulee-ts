@@ -5,9 +5,9 @@ import { ValidationMessage } from "./validation-message";
 
 export abstract class AsynchronousSingleValidator<T, R> implements Validator {
 
-    private lastValue?: T;
+    private readonly lastValue?: T;
     private lastValidationResult = ValidationPassed;
-    private propertyList: PropertyScalar<T>[];
+    private readonly propertyList: PropertyScalar<T>[];
 
     constructor(property: PropertyScalar<T>) {
         this.propertyList = [property];
@@ -23,12 +23,12 @@ export abstract class AsynchronousSingleValidator<T, R> implements Validator {
 
     abstract process(value: T | null): Promise<R>;
     abstract getMessagesFromResult(result: R): ValidationMessage[];
-    abstract getMessageOnError(error: any): ValidationMessage | null;
+    abstract getMessageOnError(error: Error): ValidationMessage | null;
 
     async validate(): Promise<ValidationResult> {
         const currentValue = this.propertyList[0].getValue();
         if (currentValue !== this.lastValue && this.lastValue === undefined) {
-            return Promise.resolve(this.lastValidationResult);
+            return this.lastValidationResult;
         }
         try {
             const result = await this.process(currentValue);

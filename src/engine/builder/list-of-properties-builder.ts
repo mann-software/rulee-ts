@@ -13,7 +13,7 @@ export enum SelectionMode {
 export class ListOfPropertiesBuilder {
 
     constructor(
-        private propertyList: <T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>
+        private readonly propertyList: <T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>
     ) {}
 
     createList<T extends AbstractProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, selectionMode?: SelectionMode): ListOfProperties<T, D> {

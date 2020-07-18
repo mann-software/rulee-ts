@@ -17,20 +17,20 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     protected initialValue?: T | null;
     private placeholder?: string;
-    private infoText?: string;
+    private readonly infoText?: string;
     private label?: string;
 
     protected scalarValidators: ScalarValidator<T>[] = [];
     
-    protected attributeMap?: Map<AttributeId<any>, Attribute<any>>;
+    protected attributeMap?: Map<AttributeId<unknown>, Attribute<any>>;
     protected visible?: Attribute<boolean>;
     protected required?: Attribute<boolean>;
 
     constructor(
         readonly id: PropertyId,
-        private valueProvider: ValueProvider<T>,
-        private emptyValueFcn: EmptyValueFcn<T>,
-        private valueConverter: ValueConverter<T>,
+        private readonly valueProvider: ValueProvider<T>,
+        private readonly emptyValueFcn: EmptyValueFcn<T>,
+        private readonly valueConverter: ValueConverter<T>,
         updateHandler: RuleEngineUpdateHandler<T>
     ) {
         super(updateHandler);
@@ -46,7 +46,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         }
     }
 
-    protected internallyAsyncUpdate(): { asyncPromise: Promise<any>, resolve: (value: any) => void } {
+    protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
         return {
             asyncPromise: this.valueProvider.getValue() as Promise<T | null>,
             resolve: value => this.currentValue = value
@@ -106,7 +106,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.required = mandatoriness;
     }
 
-    defineAttribute(attribute: Attribute<any>) {
+    defineAttribute(attribute: Attribute<unknown>) {
         if (!this.attributeMap) {
             this.attributeMap = new Map();
         }

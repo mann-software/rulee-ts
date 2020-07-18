@@ -4,9 +4,9 @@ import { AbstractProperty } from "../../properties/abstract-property";
 export class DerivedValueProvider<T> implements ValueProvider<T> {
 
     constructor(
-        private dependencies: AbstractProperty<any>[],
-        private get: (dependencies: AbstractProperty<any>[]) => T | null,
-        private set?: (dependencies: AbstractProperty<any>[], value: T | null) => void
+        private readonly dependencies: AbstractProperty<unknown>[],
+        private readonly get: (dependencies: AbstractProperty<unknown>[]) => T | null,
+        private readonly set?: (dependencies: AbstractProperty<unknown>[], value: T | null) => void
     ) {}
 
     getValue(): T | null {

@@ -3,8 +3,7 @@ import { ValidationMessage } from "./validation-message";
 import { ScalarValidator } from "./validator";
 
 export const V = {
-    conditional: <T>(validators: { condition: boolean, validator: ScalarValidator<T> }[]) => new ConditionalValidator(validators.map(v => ({ condition: v.condition, valideFcn: v.validator.validate }))),
-    conditionalFcns: <T>(validators: { condition: boolean, valideFcn: (property: PropertyScalar<T>) => ValidationMessage | null }[]) => new ConditionalValidator(validators),
+    conditionalFcns: <T>(validators: { condition: boolean; valideFcn: (property: PropertyScalar<T>) => ValidationMessage | null }[]) => new ConditionalValidator(validators),
     notEmpty: (msg: ValidationMessage) => new NotEmptyIfRequiredValidator(() => msg),
     notEmptyMsgProvider: (valiationMsgProvider: () => ValidationMessage) => new NotEmptyIfRequiredValidator(valiationMsgProvider),
 }
@@ -14,7 +13,7 @@ export const V = {
  */
 export class ConditionalValidator<T> implements ScalarValidator<T> {
 
-    constructor (protected validators: { condition: boolean, valideFcn: (property: PropertyScalar<T>) => ValidationMessage | null}[]) { }
+    constructor (protected validators: { condition: boolean; valideFcn: (property: PropertyScalar<T>) => ValidationMessage | null}[]) { }
 
     validate(property: PropertyScalar<T>): ValidationMessage | null {
         return this.validators.find(v => v.condition)?.valideFcn(property) ?? null;
@@ -22,14 +21,14 @@ export class ConditionalValidator<T> implements ScalarValidator<T> {
 
 }
 
-export class NotEmptyIfRequiredValidator implements ScalarValidator<any> {
+export class NotEmptyIfRequiredValidator implements ScalarValidator<unknown> {
 
     /**
      * @param valiationMessageProvider as function for e.g. internationalization
      */
     constructor (protected valiationMessageProvider: () => ValidationMessage) { }
 
-    validate(property: PropertyScalar<any>): ValidationMessage | null {
+    validate(property: PropertyScalar<unknown>): ValidationMessage | null {
         if (!property.isEmpty() || !property.isRequired()) {
             return null;
         } else {

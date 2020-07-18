@@ -14,6 +14,6 @@ export class PropertyArrayList<T> extends PropertyScalarImpl<T[]> {
     }
 
     removeElement(el: T): void {
-
+        // TODO
     }
 }

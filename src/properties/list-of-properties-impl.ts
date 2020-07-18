@@ -12,9 +12,9 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
     
     constructor(
         readonly id: string,
-        private listProvider: ListProvider<T, D>,
+        private readonly listProvider: ListProvider<T, D>,
         private selectedIndices: number[],
-        private isMultiSelect: boolean = false,
+        private readonly isMultiSelect: boolean = false,
         updateHandler: RuleEngineUpdateHandler<(D | null)[]>,
     ) {
         super(updateHandler);
@@ -28,7 +28,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         throw new Error("Method not implemented.");
     }
 
-    protected internallyAsyncUpdate<V>(): { asyncPromise: Promise<V>; resolve: (value: V) => void; } {
+    protected internallyAsyncUpdate<V>(): { asyncPromise: Promise<V>; resolve: (value: V) => void } {
         throw new Error("Method not implemented.");
     }
 
@@ -36,7 +36,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         return [];
     }
 
-    addProperty(options?: { property?: T, atIndex?: number }): T {
+    addProperty(options?: { property?: T; atIndex?: number }): T {
         const prop = this.listProvider.addProperty(options?.atIndex);
         if (options?.property) {
             prop.importData(options.property.exportData());

@@ -8,24 +8,24 @@ export type VisNodeGroup = 'default' | 'async' | 'readonly' | 'async-readonly';
 export interface VisJsNode {
     id: number;
     label: string;
-    group: VisNodeGroup
+    group: VisNodeGroup;
 }
 
 export interface VisJsEdge {
     from: number;
     to: number;
     title: string;
-    dashes?: boolean | number[], // true or sth like [5, 5, 3, 3]
+    dashes?: boolean | number[]; // true or sth like [5, 5, 3, 3]
     arrows?: {
         to?: {
-            enabled: boolean,
-            type: string
-        },
+            enabled: boolean;
+            type: string;
+        };
         from?: {
-            enabled: boolean,
-            type: string
-        }
-    }
+            enabled: boolean;
+            type: string;
+        };
+    };
 }
 
 /**
@@ -45,12 +45,12 @@ type AsyncEdgesMap = Map<PropertyId, PropertyDependency[]>;
 
 export class DependencyGraph {
 
-    private edgesMap: EdgesMap = new Map();
-    private asyncEdgesMap: AsyncEdgesMap = new Map();
+    private readonly edgesMap: EdgesMap = new Map<string, OutgoingMap>();
+    private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, PropertyDependency[]>();
 
     // --------
 
-    addDependency(from: AbstractProperty<any>, to: AbstractProperty<any>, options: PropertyDependencyOptions) {
+    addDependency(from: AbstractProperty<unknown>, to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         Logger.debug(`${from.id} -> ${to.id}: ${Object.keys(options).join(', ')}`);
         let outgoing = this.edgesMap.get(from.id);
         if (!outgoing) {
@@ -63,17 +63,17 @@ export class DependencyGraph {
         outgoing.set(to.id, { from, to, options: existingOptions });
     }
 
-    addDependencies(from: AbstractProperty<any>[], to: AbstractProperty<any>, options: PropertyDependencyOptions) {
-        from.forEach((prop: AbstractProperty<any>) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
+    addDependencies(from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
+        from.forEach((prop: AbstractProperty<unknown>) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
     }
 
-    addDependents(from: AbstractProperty<any>, to: AbstractProperty<any>[], options: PropertyDependencyOptions) {
-        to.forEach((prop: AbstractProperty<any>) => this.addDependency(from, prop, options)); // could be optimized by not using addDependency
+    addDependents(from: AbstractProperty<unknown>, to: AbstractProperty<unknown>[], options: PropertyDependencyOptions) {
+        to.forEach((prop: AbstractProperty<unknown>) => this.addDependency(from, prop, options)); // could be optimized by not using addDependency
     }
     
     // --------
 
-    traverseDepthFirst(start: PropertyId, apply: (prop: AbstractProperty<any>, dependency: PropertyDependency) => void, filter?: (dependency: PropertyDependency) => boolean) {
+    traverseDepthFirst(start: PropertyId, apply: (prop: AbstractProperty<unknown>, dependency: PropertyDependency) => void, filter?: (dependency: PropertyDependency) => boolean) {
         const outgoing = this.edgesMap.get(start);
         if (outgoing) {
             outgoing.forEach((dependency, to) => {
@@ -91,15 +91,15 @@ export class DependencyGraph {
     
     // --------
 
-    analyse() {;
+    analyse() {
         const visited = new Set<PropertyId>();
-        this.edgesMap.forEach((_, propertyId) => {
+        this.edgesMap.forEach((outgoing, propertyId) => {
             this.analyseRecursive(visited, propertyId);
         });
         // TODO find cylces with depth first search and stack
     }
     
-    private analyseRecursive(visited: Set<PropertyId>, current: PropertyId, lastAsync?: AbstractProperty<any>) {
+    private analyseRecursive(visited: Set<PropertyId>, current: PropertyId, lastAsync?: AbstractProperty<unknown>) {
         if (visited.has(current)) {
             return;
         }
@@ -116,7 +116,7 @@ export class DependencyGraph {
         }
     }
 
-    private addToAsyncMap(property: AbstractProperty<any>, previousAsyncProperty?: AbstractProperty<any>) {
+    private addToAsyncMap(property: AbstractProperty<unknown>, previousAsyncProperty?: AbstractProperty<unknown>) {
         if (previousAsyncProperty != null) {
             let edges = this.asyncEdgesMap.get(property.id);
             if (!edges) {
@@ -138,7 +138,7 @@ export class DependencyGraph {
     /**
      * just wrap the result of this fcn in a vis.js DataSet
      */
-    createVisJsDataLink(allProperties: AbstractProperty<any>[]) {
+    createVisJsDataLink(allProperties: AbstractProperty<unknown>[]) {
         const nodes: VisJsNode[] = [];
         const edges: VisJsEdge[] = [];
 
@@ -180,9 +180,9 @@ export class DependencyGraph {
         return { nodes, edges, options };
     }
 
-    private createVisJsNodes(allProperties: AbstractProperty<any>[], nodes: VisJsNode[]) {
+    private createVisJsNodes(allProperties: AbstractProperty<unknown>[], nodes: VisJsNode[]) {
         const propertyIdVisJsNodeMap = new Map<PropertyId, VisJsNode>();
-        allProperties.forEach((property: AbstractProperty<any>) => {
+        allProperties.forEach((property: AbstractProperty<unknown>) => {
             const node: VisJsNode = {
                 id: 1 + propertyIdVisJsNodeMap.size,
                 label: property.id,
@@ -194,7 +194,7 @@ export class DependencyGraph {
         return propertyIdVisJsNodeMap;
     }
 
-    private propertyToVisNodeGroup(property: AbstractProperty<any>): VisNodeGroup {
+    private propertyToVisNodeGroup(property: AbstractProperty<unknown>): VisNodeGroup {
         if (property.isAsynchronous()) {
             if (property.isReadOnly()) {
                 return 'async-readonly';
@@ -214,7 +214,7 @@ export class DependencyGraph {
                     from: map.get(dependency.from.id)!.id,
                     to: map.get(dependency.to.id)!.id,
                     dashes: !dependency.options.value,
-                    title: Object.keys(dependency.options).filter(k => !!(dependency.options as any)[k]).join(', '),
+                    title: Object.entries(dependency.options).filter(keyVal => !!keyVal[1]).map(keyVal => !keyVal[0]).join(', '),
                     arrows: {
                         to: {
                             enabled: true,

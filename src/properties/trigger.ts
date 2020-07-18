@@ -8,7 +8,7 @@ export class Trigger {
 
     constructor(public label?: string) { }
 
-    private listeners: TriggerListener[] = [];
+    private readonly listeners: TriggerListener[] = [];
 
     trigger(): Promise<void> {
         return Promise.all(this.listeners.map(listener => listener.onTriggered())).then(() => {

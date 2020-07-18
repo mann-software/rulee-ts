@@ -3,9 +3,9 @@ import { ValueProvider } from "./value-provider";
 export class ObjectValueProvider<O, T> implements ValueProvider<T> {
 
     constructor(
-        private obj: O, 
-        private get: (obj: O) => T | null, 
-        private set: (obj: O, val: T | null) => void
+        private readonly obj: O, 
+        private readonly get: (obj: O) => T | null, 
+        private readonly set: (obj: O, val: T | null) => void
     ) { }
 
     getValue(): T | null {

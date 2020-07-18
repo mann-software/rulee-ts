@@ -12,7 +12,6 @@ import { AbstractPropertyWithInternals } from "../../properties/abstract-propert
 import { PropertyScalarBuilder } from "./property-scalar-builder";
 import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
-import { GroupAggregator } from "../../provider/aggregator/group-aggregator";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { RuleEngineBuilderOptions } from "./rule-engine-builder-options";
 import { ScalarValidator } from "../../validators/validator";
@@ -21,14 +20,14 @@ import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
 
 export class RuleEngineBuilder {
 
-    private properties: AbstractPropertyWithInternals<any>[] = [];
-    private dependencyGraph = new DependencyGraph();
-    private ruleEngine = new RuleEngine(this.dependencyGraph, this.properties);
+    private readonly properties: AbstractPropertyWithInternals<unknown>[] = [];
+    private readonly dependencyGraph = new DependencyGraph();
+    private readonly ruleEngine = new RuleEngine(this.dependencyGraph, this.properties);
     
-    private notEmptyIfRequiredValidator: ScalarValidator<any>;
+    private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>;
 
-    private propertyScalarBuilder = new PropertyScalarBuilder(
-        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[]) =>
+    private readonly propertyScalarBuilder = new PropertyScalarBuilder(
+        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[]) =>
             this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies),
         <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop)
     );
@@ -37,16 +36,16 @@ export class RuleEngineBuilder {
         return this.propertyScalarBuilder;
     }
 
-    private groupOfPropertiesBuilder = new GroupOfPropertiesBuilder(
-        <T extends { [id: string]: AbstractProperty<any> }, A extends { [id: string]: GroupAggregator<any> }, D>(id: string, properties: T, aggregations: A, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
-            this.groupOfProperties(id, properties, aggregations, exportFcn, importFcn)
+    private readonly groupOfPropertiesBuilder = new GroupOfPropertiesBuilder(
+        <T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
+            this.groupOfProperties(id, properties, exportFcn, importFcn)
     );
 
     get group() {
         return this.groupOfPropertiesBuilder;
     }
 
-    private triggerBuilder = new TriggerBuilder();
+    private readonly triggerBuilder = new TriggerBuilder();
 
     get trigger() {
         return this.triggerBuilder;
@@ -58,7 +57,7 @@ export class RuleEngineBuilder {
             : V.notEmpty(options.emptyButRequiredMessage);
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<any>[], initialValue?: T | null): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine);
         this.properties.push(prop);
         if (dependencies) {
@@ -74,18 +73,18 @@ export class RuleEngineBuilder {
         return new PropertyScalarRuleBinding<T>(
             prop,
             this.notEmptyIfRequiredValidator,
-            (from: AbstractProperty<any>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
+            (from: AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
         );
     }
 
-    private groupOfProperties<T extends { [id: string]: AbstractProperty<any> }, A extends { [id: string]: GroupAggregator<any> }, D>(id: string, properties: T, aggregations: A, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
-        const prop = new GroupOfPropertiesImpl(id, properties, aggregations, exportFcn, importFcn, this.ruleEngine);
+    private groupOfProperties<T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
+        const prop = new GroupOfPropertiesImpl(id, properties, exportFcn, importFcn, this.ruleEngine);
         this.properties.push(prop);
         this.addDependencies(this.dependencyGraph, prop.propertiesAsList(), prop, { value: true });
         return prop;
     }
 
-    private addDependencies(dependencyGraph: DependencyGraph, from: AbstractProperty<any>[], to: AbstractProperty<any>, options: PropertyDependencyOptions) {
+    private addDependencies(dependencyGraph: DependencyGraph, from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         if (from.length) {
             dependencyGraph.addDependencies(from, to, options);
         }

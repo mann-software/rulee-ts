@@ -6,11 +6,22 @@
   "module": "lib/esm/index.ts",
   "scripts": {
     "test": "jest --coverage",
+    "lint": "eslint . --ext .ts --fix",
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "prepublishOnly": "npm run tsc"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && npm run test"
+    }
+  },
   "devDependencies": {
     "@types/jest": "^26.0.4",
+    "@typescript-eslint/eslint-plugin": "^3.6.1",
+    "@typescript-eslint/parser": "^3.6.1",
+    "eslint": "^7.4.0",
+    "eslint-plugin-jest": "^23.18.0",
+    "husky": "^4.2.5",
     "jest": "^26.1.0",
     "jest-mock-extended": "^1.0.9",
     "ts-jest": "^26.1.2",

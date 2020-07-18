@@ -1,4 +1,3 @@
-
 export class LoggerInstance {
     
     static readonly TRACE = 1;

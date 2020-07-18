@@ -5,7 +5,7 @@ interface ComplexType {
     a?: {
         c?: {
             d?: number;
-        },
+        };
         f?: boolean;
     };
     b: string;
