@@ -23,6 +23,7 @@ export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<un
     }
 
     internallyInit() {
+        super.internallyInit();
         // TODO
     }
 

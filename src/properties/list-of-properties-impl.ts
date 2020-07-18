@@ -21,6 +21,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
     }
 
     internallyInit(): void {
+        super.internallyInit();
         throw new Error("Method not implemented.");
     }   
     

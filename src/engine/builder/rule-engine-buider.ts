@@ -27,8 +27,8 @@ export class RuleEngineBuilder {
     private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>;
 
     private readonly propertyScalarBuilder = new PropertyScalarBuilder(
-        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[]) =>
-            this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies),
+        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null) =>
+            this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue),
         <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop)
     );
 

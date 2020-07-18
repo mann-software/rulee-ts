@@ -37,6 +37,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     }
 
     internallyInit() {
+        super.internallyInit();
         this.setToInitialValue();
     }
 
@@ -49,7 +50,10 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
         return {
             asyncPromise: this.valueProvider.getValue() as Promise<T | null>,
-            resolve: value => this.currentValue = value
+            resolve: value => {
+                console.log(`${this.id} - ${value}`)
+                this.currentValue = value;
+            }
         }
     }
 
@@ -65,7 +69,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         if (!this.isReadOnly()) {
             this.valueProvider.setValue(initialValue);
         }
-        Logger.trace(() => `PropertyScalarImpl.setToInitialValue ${this.id}`);
+        Logger.debug(() => `PropertyScalarImpl.setToInitialValue ${this.id}: ${initialValue}`);
     }
 
     protected getSpecialisedValidationResult() {

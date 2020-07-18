@@ -22,11 +22,11 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private manuallyTriggered?: boolean;
     private triggerListener?: TriggerListener;
 
-    private needsToRecompute = true;
+    private needsToRecompute?: boolean;
     private recomputingCount?: number;
     private currentRecomputing?: Promise<void>;
 
-    private needsToRevalidate = true;
+    private needsToRevalidate?: boolean;
     private isAboutToStartValidation?: boolean;
     private validationCounter?: number;
     private readonly validators: Validator[] = [];
@@ -40,7 +40,11 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private readonly valueChangeListeners: ValueChangeListener[] = [];
 
     abstract id: string;
-    abstract internallyInit(): void;
+
+    internallyInit(): void {
+        this.needsToRecompute = true;
+        this.needsToRevalidate = true;
+    }
 
     // ---------------------------------------------------------------------------------------
     // -- handing internallyUpdate -----------------------------------------------------------
@@ -98,6 +102,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -----------------------------------------------------------------------------------
 
     internallyUpdate(): Promise<void> {
+        if (this.needsToRecompute === undefined) {
+            throw new Error(`The rule ${this.id} has not been initialised. Please call the method create() of your RuleEngineBuilder`);
+        }
         if (!this.needsToRecompute || (!this.automaticallyUpdate && !this.manuallyTriggered)) {
             return this.currentRecomputing ?? Promise.resolve();
         }

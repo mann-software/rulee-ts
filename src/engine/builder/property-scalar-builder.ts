@@ -132,12 +132,28 @@ export class PropertyScalarBuilder {
     }
 
     derivedAsyncProperty1<T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
-        dependency: D1, deriveAsync: (dep: D1) => Promise<T | null>, inverseAsync?: (dep: D1, val: T | null) => void,
+        dependency: D1, derivations: {
+            deriveAsync: (dep: D1) => Promise<T | null>;
+            inverseAsync?: (dep: D1, val: T | null) => Promise<unknown>;
+        },
         emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
     ): PropertyScalar<T> {
         const dependencies = [dependency];
-        const invFcn = this.invFcn(inverseAsync && ((deps: AbstractProperty<TD>[], val: T | null) => inverseAsync(deps[0] as D1, val)));
-        const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => deriveAsync(deps[0] as D1), invFcn);
+        const invFcn = this.asycInvFcn(derivations.inverseAsync && ((deps: AbstractProperty<TD>[], val: T | null) => derivations.inverseAsync!(deps[0] as D1, val)));
+        const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => derivations.deriveAsync(deps[0] as D1), invFcn);
+        return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies);
+    }
+
+    derivedAsyncProperty2<T, TD, D1 extends AbstractProperty<TD>, D2 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
+        dependency1: D1, dependency2: D2, derivations: {
+            deriveAsync: (dep: D1, dep2: D2) => Promise<T | null>;
+            inverseAsync?: (dep: D1, dep2: D2, val: T | null) => Promise<unknown>;
+        },
+        emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
+    ): PropertyScalar<T> {
+        const dependencies = [dependency1, dependency2];
+        const invFcn = this.asycInvFcn(derivations.inverseAsync && ((deps: AbstractProperty<TD>[], val: T | null) => derivations.inverseAsync!(deps[0] as D1, deps[1] as D2, val)));
+        const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => derivations.deriveAsync(deps[0] as D1, deps[1] as D2), invFcn);
         return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies);
     }
 
@@ -148,6 +164,12 @@ export class PropertyScalarBuilder {
     private invFcn<T, TD>(fcn?: (deps: AbstractProperty<TD>[], val: T | null) => void) {
         if (fcn) {
             return fcn as (deps: AbstractProperty<unknown>[], val: T | null) => void;
+        }
+    }
+
+    private asycInvFcn<T, TD>(fcn?: (deps: AbstractProperty<TD>[], val: T | null) => Promise<unknown>) {
+        if (fcn) {
+            return fcn as (deps: AbstractProperty<unknown>[], val: T | null) => Promise<void>;
         }
     }
 

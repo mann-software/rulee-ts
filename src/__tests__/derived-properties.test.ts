@@ -2,7 +2,7 @@ import { ruleEngineBuilderFactory } from "./utils/test-utils";
 import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
 
-let ruleEngineBuilder: RuleEngineBuilder = ruleEngineBuilderFactory();
+let ruleEngineBuilder: RuleEngineBuilder;
 
 beforeEach(() => {
     ruleEngineBuilder = ruleEngineBuilderFactory();
