@@ -138,7 +138,7 @@ export class DependencyGraph {
     /**
      * just wrap the result of this fcn in a vis.js DataSet
      */
-    createVisJsDataLink(allProperties: AbstractProperty<unknown>[]) {
+    createVisJsData(allProperties: AbstractProperty<unknown>[]) {
         const nodes: VisJsNode[] = [];
         const edges: VisJsEdge[] = [];
 

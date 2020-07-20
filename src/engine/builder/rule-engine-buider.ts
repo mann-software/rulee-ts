@@ -8,7 +8,7 @@ import { ValueConverter } from "../../value-converter/value-converter";
 import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { ValueProvider } from "../../provider/value-provider/value-provider";
 import { DependencyGraph } from "../../dependency-graph/dependency-graph";
-import { AbstractPropertyWithInternals } from "../../properties/abstract-property-internals";
+import { AbstractPropertyWithInternals } from "../../properties/abstract-property-impl";
 import { PropertyScalarBuilder } from "./property-scalar-builder";
 import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
@@ -20,9 +20,13 @@ import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
 
 export class RuleEngineBuilder {
 
-    private readonly properties: AbstractPropertyWithInternals<unknown>[] = [];
+    private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
-    private readonly ruleEngine = new RuleEngine(this.dependencyGraph, this.properties);
+    private readonly ruleEngine = new RuleEngine(this.dependencyGraph, this.propertyMap);
+
+    private get properties() {
+        return Object.values(this.propertyMap);
+    }
     
     private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>;
 
@@ -59,7 +63,7 @@ export class RuleEngineBuilder {
 
     private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine);
-        this.properties.push(prop);
+        this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
         }
@@ -79,7 +83,7 @@ export class RuleEngineBuilder {
 
     private groupOfProperties<T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
         const prop = new GroupOfPropertiesImpl(id, properties, exportFcn, importFcn, this.ruleEngine);
-        this.properties.push(prop);
+        this.addProperty(prop);
         this.addDependencies(this.dependencyGraph, prop.propertiesAsList(), prop, { value: true });
         return prop;
     }
@@ -90,14 +94,21 @@ export class RuleEngineBuilder {
         }
     }
 
-    create() {
+    private addProperty(property: AbstractPropertyWithInternals<unknown>) {
+        if (this.propertyMap[property.id]) {
+            throw new Error(`A Property with the id ${property.id} is already defined`);
+        }
+        this.propertyMap[property.id] = property;
+    }
+
+    initialise() {
         this.dependencyGraph.analyse();
         this.properties.forEach(prop => prop.internallyInit())
         return this.ruleEngine;
     }
 
     asVisJsDataLink() {
-        return this.dependencyGraph.createVisJsDataLink(this.properties);
+        return this.dependencyGraph.createVisJsData(this.properties);
     }
 
     generateNetworkGraphHtmlPage() {
@@ -131,7 +142,7 @@ export class RuleEngineBuilder {
     }
 
     generateFactory(): string {
-        // const engine = this.create();
+        // const engine = this.initialise();
         // const serialized = RuleEngine.serialize(engine);
         // TODO generate rule-engine-factory.ts with serialzed rule engine internally
         return '';

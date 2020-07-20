@@ -1,6 +1,6 @@
 {
   "name": "rulee-ts",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "UI-centered rule engine to manage your business rules with TypeScript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.ts",
@@ -8,7 +8,8 @@
     "test": "jest --coverage",
     "lint": "eslint . --ext .ts --fix",
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
-    "prepublishOnly": "npm run tsc"
+    "create-index": "barrelsby --delete --directory './src' --exclude '.*-impl\\.ts' '.*\\.spec\\.ts' '.*__tests__.*'",
+    "prepublishOnly": "npm run create-index && npm run tsc"
   },
   "husky": {
     "hooks": {
@@ -19,6 +20,7 @@
     "@types/jest": "^26.0.4",
     "@typescript-eslint/eslint-plugin": "^3.6.1",
     "@typescript-eslint/parser": "^3.6.1",
+    "barrelsby": "^2.2.0",
     "eslint": "^7.4.0",
     "eslint-plugin-jest": "^23.18.0",
     "husky": "^4.2.5",

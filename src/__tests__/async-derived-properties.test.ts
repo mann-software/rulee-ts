@@ -24,7 +24,7 @@ beforeEach(() => {
         )
     });
 
-    ruleEngineBuilder.create();
+    ruleEngineBuilder.initialise();
 });
 
 test('async derived properties work', () => {
@@ -68,7 +68,7 @@ test('async derived properties work', () => {
     }, 350);
 });
 
-test('async derived properties only execute if needed', () => {
+test('async derived properties are only processing if needed', () => {
 
     void propC.awaitValue().then(() => {
         // the next time it resolves immediately since no dependeny changed
@@ -99,4 +99,42 @@ test('async derived properties only execute if needed', () => {
         expect(propB.isProcessing()).toBe(true);
         expect(propC.isProcessing()).toBe(false);
     }, 350);
+});
+
+test('async derived properties are only processing if needed - part II', () => {
+
+    // when awaiting value of propB, propC will not be derived
+    void propB.awaitValue();
+
+    // propB should be processing
+    expect(propB.isProcessing()).toBe(true);
+    expect(propC.isProcessing()).toBe(false);
+
+    return executeAfterTime(() => {
+        // propC is should not be processing since its value was not requested
+        expect(propB.isProcessing()).toBe(false);
+        expect(propC.isProcessing()).toBe(false);
+    }, 150);
+});
+
+test('requesting the current value should start async processing if needed', () => {
+
+    expect(propB.isProcessing()).toBe(false);
+    const valB = propB.getValue();
+    expect(propB.isProcessing()).toBe(true);
+    expect(valB).toBe(null);
+
+    return executeAfterTime(() => {
+        expect(propB.isProcessing()).toBe(false);
+        expect(propB.getValue()).toBe(3);
+    }, 150);
+});
+
+test('awaiting a display value also works', () => {
+
+    return propB.awaitDisplayValue().then(displayValue => {
+        expect(displayValue).toBe('3');
+        expect(propB.getDisplayValue()).toBe(displayValue);
+        expect(propB.isProcessing()).toBe(false);
+    });
 });

@@ -1,4 +1,4 @@
-import { AbstractPropertyImpl } from "./abstract-property-internals";
+import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { ListOfProperties } from "./list-of-properties";
 import { AbstractProperty } from "./abstract-property";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";

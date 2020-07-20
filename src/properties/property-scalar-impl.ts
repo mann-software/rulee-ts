@@ -8,7 +8,7 @@ import { ScalarValidator } from "../validators/validator";
 import { ValidationMessage } from "../validators/validation-message";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
 import { Logger } from "../util/logger/logger";
-import { AbstractPropertyImpl } from "./abstract-property-internals";
+import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { EmptyValueFcn } from "../provider/value-provider/empty-value-fcn";
 
 export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements PropertyScalar<T> {

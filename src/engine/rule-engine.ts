@@ -2,7 +2,7 @@ import { DependencyGraph } from "../dependency-graph/dependency-graph";
 import { RuleEngineDescription } from "./rule-engine-description";
 import { AbstractProperty } from "../properties/abstract-property";
 import { RuleEngineUpdateHandler } from "./rule-engine-update-handler";
-import { AbstractPropertyWithInternals } from "../properties/abstract-property-internals";
+import { AbstractPropertyWithInternals } from "../properties/abstract-property-impl";
 import { ValueChangeListener } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
 import { Logger } from "../util/logger/logger";
@@ -12,8 +12,12 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
     private readonly dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
     private readonly snapshots = new Map<string, Snapshot>();
     private propertiesThatRequireAnEagerUpdate: AbstractProperty<unknown>[] = [];
+
+    private get properties() {
+        return Object.values(this.propertyMap);
+    }
     
-    constructor (private readonly dependencyGraph: DependencyGraph, private readonly properties: AbstractPropertyWithInternals<unknown>[]) {}
+    constructor (private readonly dependencyGraph: DependencyGraph, private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }) {}
 
     takeSnapShot(key = 'default'): Snapshot {
         const snap = {
@@ -79,7 +83,9 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
     }
 
     private createDataLinkKey<D>(propertyA: AbstractProperty<D>, propertyB: AbstractProperty<D>) {
-        return `${propertyA.id}<->${propertyB.id}`;
+        return propertyA.id < propertyB.id
+            ? `${propertyA.id}<->${propertyB.id}`
+            : `${propertyB.id}<->${propertyA.id}`;
     }
 
     transferData<D>(fromProperty: AbstractProperty<D>, toProperty: AbstractProperty<D>): void {

@@ -4,7 +4,7 @@ import { PropertyScalar } from "../properties/property-scalar";
 import { ValidationMessage } from "./validation-message";
 import { PropertyId } from "../properties/property-id";
 
-export abstract class AsynchronousSingleValidator<T, R> implements Validator {
+export abstract class AsynchronousValidator<T, R> implements Validator {
 
     private lastValidationResult = ValidationPassed;
 

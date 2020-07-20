@@ -1,27 +1,31 @@
 import { ruleEngineBuilderFactory } from "./utils/test-utils";
 import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
+import { PropertyScalar } from "../properties/property-scalar";
 
 let ruleEngineBuilder: RuleEngineBuilder;
+let propA: PropertyScalar<number>;
+let propB: PropertyScalar<number>;
+let propC: PropertyScalar<number>;
 
 beforeEach(() => {
     ruleEngineBuilder = ruleEngineBuilderFactory();
-});
-
-test('synchronously derived properties work', () => {
-    const propA = ruleEngineBuilder.scalar.numberProperty('PROP_A', { initialValue: 0 });
-
-    const propB = ruleEngineBuilder.scalar.derivedProperty1('PROP_B', C.number.default, propA, {
+    propA = ruleEngineBuilder.scalar.numberProperty('PROP_A', { initialValue: 0 });
+    
+    propB = ruleEngineBuilder.scalar.derivedProperty1('PROP_B', C.number.default, propA, {
         derive: (propA) => (propA.getValue() ?? 0) * 2
     });
-
-    const propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
+    
+    propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
         derive: (propA, propB) => (propA.getValue() ?? 0)  + (propB.getValue() ?? 0),
         inverse: (propA, propB, val) => val ? propA.setValue(val / 3) : propA.setValue(0)
     });
+    
+    // it is important to actually initialise the rule engine
+    ruleEngineBuilder.initialise();
+});
 
-    // important to actually create the rule engine
-    ruleEngineBuilder.create();
+test('synchronously derived properties work', () => {
 
     expect(propA.isReadOnly()).toBe(false);
     expect(propB.isReadOnly()).toBe(true); // has no inverse function, thus, readonly

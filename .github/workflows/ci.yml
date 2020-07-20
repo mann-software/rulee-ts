@@ -1,0 +1,19 @@
+name: ci-workflow
+on:
+  push:
+    branches:
+      - master
+jobs:
+  ci-job:
+    name: ci-job
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@master
+    - name: Set up Node.js
+      uses: actions/setup-node@master
+      with:
+        node-version: '12'
+    - run: npm ci
+    - run: npm run lint
+    - run: npm run test 
