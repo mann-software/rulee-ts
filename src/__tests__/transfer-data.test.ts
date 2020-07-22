@@ -17,12 +17,12 @@ beforeEach(() => {
     ruleEngineBuilder = ruleEngineBuilderFactory();
     propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
     propB = ruleEngineBuilder.scalar.stringProperty('PROP_B', { initialValue: '42' });
-    propBNumber = ruleEngineBuilder.scalar.numberProperty('PROP_B_NUMBER');
+    propBNumber = ruleEngineBuilder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
     propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
-        derive: (propA, propB) => (propA.getValue() ?? '').length  + (propB.getValue() ?? '').length
+        derive: (propA, propB) => propA.getNonNullValue().length + propB.getNonNullValue().length
     });
     propD = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_D', C.number.default, propB, {
-        deriveAsync: (propA) => valueAfterTime((propA.getValue() ?? '').length, 40)
+        deriveAsync: (propA) => valueAfterTime(propA.getNonNullValue().length, 40)
     });
     
     ruleEngine = ruleEngineBuilder.initialise();

@@ -46,6 +46,12 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         this.needsToRevalidate = true;
     }
 
+    private checkInitialised() {
+        if (this.needsToRecompute === undefined) {
+            throw new Error(`The rule ${this.id} has not been initialised. Please call the method initialise() of your RuleEngineBuilder`);
+        }
+    }
+
     // ---------------------------------------------------------------------------------------
     // -- handing internallyUpdate -----------------------------------------------------------
     // ---------------------------------------------------------------------------------------
@@ -65,6 +71,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
      * @param thenFcn applied after update has finished
      */
     protected awaitAsyncUpdate(): Promise<void> {
+        this.checkInitialised();
         if (this.needsToRecompute && this.automaticallyUpdate) {
             return this.updateHandler.updateValue(this);
         } else if (this.currentRecomputing) {
@@ -78,6 +85,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
      * Checks if an update needs to be triggered
      */
     protected checkUpdate(): void {
+        this.checkInitialised();
         if (this.needsToRecompute && this.automaticallyUpdate) {
             void this.updateHandler.updateValue(this);
         }
@@ -102,9 +110,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -----------------------------------------------------------------------------------
 
     internallyUpdate(): Promise<void> {
-        if (this.needsToRecompute === undefined) {
-            throw new Error(`The rule ${this.id} has not been initialised. Please call the method initialise() of your RuleEngineBuilder`);
-        }
         if (!this.needsToRecompute || (!this.automaticallyUpdate && !this.manuallyTriggered)) {
             return this.currentRecomputing ?? Promise.resolve();
         }
@@ -190,6 +195,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // ---------------------------------------------------------------------------------------
 
     needsAnUpdate(notifyOthers?: boolean): void {
+        this.checkInitialised();
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
         this.needsToRecompute = true;
         this.needsToRevalidate = true;

@@ -17,6 +17,7 @@ import { RuleEngineBuilderOptions } from "./rule-engine-builder-options";
 import { ScalarValidator } from "../../validators/validator";
 import { V } from "../../validators/common-validators";
 import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
+import { AttributeId } from "../../attributes/attribute-id";
 
 export class RuleEngineBuilder {
 
@@ -99,6 +100,10 @@ export class RuleEngineBuilder {
             throw new Error(`A Property with the id ${property.id} is already defined`);
         }
         this.propertyMap[property.id] = property;
+    }
+
+    defineCustomAttribute<A>(name: string): AttributeId<A> {
+        return { name };
     }
 
     initialise() {

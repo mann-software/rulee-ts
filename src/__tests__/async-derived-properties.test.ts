@@ -15,12 +15,12 @@ beforeEach(() => {
     propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
 
     propB = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_B', C.number.default, propA, {
-        deriveAsync: (propA) => valueAfterTime((propA.getDisplayValue() ?? '??').length, 100)
+        deriveAsync: (propA) => valueAfterTime((propA.getDisplayValue() ?? '??').length, 1000)
     });
 
     propC = ruleEngineBuilder.scalar.derivedAsyncProperty2('PROB_C', C.boolean.default, propA, propB, {
         deriveAsync: (propA, propB) => valueAfterTime(
-            (propA.getDisplayValue() === 'abc' && propB.getDisplayValue() === '3') || null, 200
+            (propA.getDisplayValue() === 'abc' && propB.getDisplayValue() === '3') || null, 2000
         )
     });
 
@@ -57,7 +57,7 @@ test('async derived properties work', () => {
         expect(propC.isProcessing()).toBe(true);
         expect(propB.getValue()).toBe(3);
         expect(propC.getValue()).toBe(null);
-    }, 150);
+    }, 1500);
 
     // both props finished
     return executeAfterTime(() => {
@@ -65,7 +65,7 @@ test('async derived properties work', () => {
         expect(propC.isProcessing()).toBe(false);
         expect(propB.getValue()).toBe(3);
         expect(propC.getValue()).toBe(true);
-    }, 350);
+    }, 3500);
 });
 
 test('async derived properties are only processing if needed', () => {
@@ -98,7 +98,7 @@ test('async derived properties are only processing if needed', () => {
         // was triggered second time
         expect(propB.isProcessing()).toBe(true);
         expect(propC.isProcessing()).toBe(false);
-    }, 350);
+    }, 3500);
 });
 
 test('async derived properties are only processing if needed - part II', () => {
@@ -114,7 +114,7 @@ test('async derived properties are only processing if needed - part II', () => {
         // propC is should not be processing since its value was not requested
         expect(propB.isProcessing()).toBe(false);
         expect(propC.isProcessing()).toBe(false);
-    }, 150);
+    }, 1500);
 });
 
 test('requesting the current value should start async processing if needed', () => {
@@ -127,7 +127,7 @@ test('requesting the current value should start async processing if needed', () 
     return executeAfterTime(() => {
         expect(propB.isProcessing()).toBe(false);
         expect(propB.getValue()).toBe(3);
-    }, 150);
+    }, 1500);
 });
 
 test('awaiting a display value also works', () => {

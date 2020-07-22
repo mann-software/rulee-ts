@@ -2,9 +2,11 @@ import { ValueProvider } from "./value-provider";
 
 export class ChoiceValueProvider<T> implements ValueProvider<T> {
 
-    private value: T | null = null;
+    private value: T | null;
 
-    constructor(private readonly emptyChoiceValue: T | null) { }
+    constructor(emptyChoiceValue?: T | null) {
+        this.value = emptyChoiceValue ?? null;
+    }
 
     getValue(): T | null {
         return this.value;

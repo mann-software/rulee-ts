@@ -1,11 +1,11 @@
-name: ci-workflow
+name: ci-cd-workflow
 on:
   push:
     branches:
       - master
 jobs:
-  ci-job:
-    name: ci-job
+  ci-cd-job:
+    name: ci-cd-job
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -16,4 +16,7 @@ jobs:
         node-version: '12'
     - run: npm ci
     - run: npm run lint
-    - run: npm run test 
+    - run: npm run test
+    - uses: JS-DevTools/npm-publish@v1
+      with:
+        token: ${{ secrets.NPM_AUTH_TOKEN }}

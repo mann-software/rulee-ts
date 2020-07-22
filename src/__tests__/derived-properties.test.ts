@@ -13,11 +13,11 @@ beforeEach(() => {
     propA = ruleEngineBuilder.scalar.numberProperty('PROP_A', { initialValue: 0 });
     
     propB = ruleEngineBuilder.scalar.derivedProperty1('PROP_B', C.number.default, propA, {
-        derive: (propA) => (propA.getValue() ?? 0) * 2
+        derive: (propA) => propA.getNonNullValue() * 2
     });
     
     propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
-        derive: (propA, propB) => (propA.getValue() ?? 0)  + (propB.getValue() ?? 0),
+        derive: (propA, propB) => propA.getNonNullValue()  + propB.getNonNullValue(),
         inverse: (propA, propB, val) => val ? propA.setValue(val / 3) : propA.setValue(0)
     });
     

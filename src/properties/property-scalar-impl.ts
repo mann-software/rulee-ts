@@ -17,7 +17,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     protected initialValue?: T | null;
     private placeholder?: string;
-    private readonly infoText?: string;
+    private infoText?: string;
     private label?: string;
 
     protected scalarValidators: ScalarValidator<T>[] = [];
@@ -102,6 +102,10 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.placeholder = placeholder;
     }
 
+    defineInfoText(infoText: string) {
+        this.infoText = infoText;
+    }
+
     defineVisibility(visibility: Attribute<boolean>) {
         this.visible = visibility;
     }
@@ -134,6 +138,10 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return this.awaitValue().then(current => {
             return this.valueConverter.asDisplayValue(current);
         });
+    }
+
+    getNonNullValue() {
+        return this.getValue() ?? this.valueConverter.getNullFallbackValue();
     }
 
     getValue(): T | null {

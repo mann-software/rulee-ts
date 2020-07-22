@@ -9,6 +9,9 @@ export class StringValueConverter implements ValueConverter<string> {
     asDisplayValue(value: string | null): string {
         return value ?? '';
     }
+    getNullFallbackValue() {
+        return '';
+    }
 }
 
 export class UpperCaseStringValueConverter implements ValueConverter<string> {
@@ -17,6 +20,9 @@ export class UpperCaseStringValueConverter implements ValueConverter<string> {
     }
     asDisplayValue(value: string | null): string {
         return value ?? '';
+    }
+    getNullFallbackValue() {
+        return '';
     }
 }
 
@@ -32,6 +38,9 @@ export class NumberValueConverter implements ValueConverter<number> {
     }
     asDisplayValue(value: number | null): string {
         return value == null ? '' : value.toLocaleString();
+    }
+    getNullFallbackValue() {
+        return 0;
     }
 }
 
@@ -49,6 +58,9 @@ export class PrecisionNumberValueConverter implements ValueConverter<number> {
     asDisplayValue(value: number | null): string {
         return value == null ? '' : value.toFixed(this.precision);
     }
+    getNullFallbackValue() {
+        return 0;
+    }
 }
 
 export class IntegerValueConverter implements ValueConverter<number> {
@@ -61,6 +73,9 @@ export class IntegerValueConverter implements ValueConverter<number> {
     }
     asDisplayValue(value: number | null): string {
         return value == null ? '' : value.toFixed(0);
+    }
+    getNullFallbackValue() {
+        return 0;
     }
 }
 
@@ -77,6 +92,9 @@ export class BooleanConverter implements ValueConverter<boolean> {
     }
     asDisplayValue(value: boolean | null): string {
         return value ? this.trueString : this.falseString;
+    }
+    getNullFallbackValue() {
+        return false;
     }
 }
 

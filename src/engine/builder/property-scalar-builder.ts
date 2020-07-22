@@ -58,7 +58,7 @@ export class PropertyScalarBuilder {
             options?.zeroIsConsideredAsEmpty ? EmptyValueFcns.defaultEmptyValueFcn : EmptyValueFcns.numberEmptyValueFcn,
             options?.valueConverter ?? C.number.default,
             undefined,
-            options?.initialValue !== undefined ? options?.initialValue : 0
+            options?.initialValue !== undefined ? options?.initialValue : (options?.zeroIsConsideredAsEmpty ? 0 : null)
         );
     }
 
@@ -70,7 +70,7 @@ export class PropertyScalarBuilder {
             EmptyValueFcns.booleanEmptyValueFcn,
             options?.valueConverter ?? C.boolean.default,
             undefined,
-            options?.initialValue !== undefined ? options?.initialValue : false
+            options?.initialValue
         );
     }
 

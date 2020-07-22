@@ -142,7 +142,7 @@ export class PropertyScalarRuleBinding<T> {
     }
 
     defineLabel(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBinding<T> {
-        this.property.defineLabel(text);
+        this.property.defineLabel(this.interpreteText(text, textInterpreter));
         return this;
     }
 
@@ -152,8 +152,13 @@ export class PropertyScalarRuleBinding<T> {
     }
 
     defineInfoText(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBinding<T> {
-        // TODO 
+        this.property.defineInfoText(this.interpreteText(text, textInterpreter));
         return this;
+    }
+
+    private interpreteText(text: string, textInterpreter?: TextInterpreter) {
+        // TODO interprete the text
+        return text;
     }
     
     // ------------------

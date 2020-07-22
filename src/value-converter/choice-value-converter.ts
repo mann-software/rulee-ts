@@ -18,4 +18,13 @@ export class ChoiceValueConverter<T> implements ValueConverter<T> {
             return choice?.displayValue ?? '';
         }
     }
+
+    getNullFallbackValue() {
+        const fallback = this.emptyChoice?.value ?? this.choices[0]?.value;
+        if (fallback) {
+            return fallback;
+        } else {
+            throw new Error('No fallback available');
+        }
+    }
 }

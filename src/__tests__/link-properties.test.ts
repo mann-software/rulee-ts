@@ -3,7 +3,6 @@ import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
 import { RuleEngine } from "../engine/rule-engine";
-import { valueAfterTime } from "./utils/timing-utils";
 
 let ruleEngineBuilder: RuleEngineBuilder;
 let propA: PropertyScalar<string>;
@@ -16,7 +15,7 @@ beforeEach(() => {
     propA = ruleEngineBuilder.scalar.stringProperty('PROP_A');
     propB = ruleEngineBuilder.scalar.stringProperty('PROP_B');
     propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
-        derive: (propA, propB) => (propA.getValue() ?? '').length  + (propB.getValue() ?? '').length
+        derive: (propA, propB) => propA.getNonNullValue().length  + propB.getNonNullValue().length
     });
     
     ruleEngine = ruleEngineBuilder.initialise();
