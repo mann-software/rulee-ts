@@ -74,6 +74,18 @@ export class PropertyScalarBuilder {
         );
     }
 
+    dateProperty(id: PropertyId, options?: { 
+        valueConverter?: ValueConverter<Date>;
+        initialValue?: Date | null;
+    }): PropertyScalar<Date> {
+        return this.propertyScalar(id, new SimpleValueProvider<Date>(),
+            EmptyValueFcns.defaultEmptyValueFcn,
+            options?.valueConverter ?? C.date.iso,
+            undefined,
+            options?.initialValue
+        );
+    }
+
     choicesProperty<T>(id: PropertyId, choices: Choice<T>[], emptyChoice?: Choice<T>): PropertyScalar<T> {
         const provider = new ChoiceValueProvider<T>(emptyChoice?.value ?? null);
         const converter = new ChoiceValueConverter<T>(choices, emptyChoice);
