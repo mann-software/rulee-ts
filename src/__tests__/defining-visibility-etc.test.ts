@@ -1,7 +1,7 @@
-import { ruleEngineBuilderFactory } from "./utils/test-utils";
+import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
 
 test('defining visibility', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
+    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
     const propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', {
         initialValue: 'ABC'
     });
@@ -18,8 +18,6 @@ test('defining visibility', () => {
     ruleEngineBuilder.scalar.bind(propE).defineVisibility2(propA, propD, (self, propA, propD) => {
         return !!self.getValue() && !!propA.getValue() && !!propD.getValue()
     });
-
-    ruleEngineBuilder.initialise();
 
     expect(propA.getValue()).toBe('ABC');
     expect(propA.isVisible()).toBe(true);
@@ -38,7 +36,7 @@ test('defining visibility', () => {
 });
 
 test('defining "requiredIfVisible"', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
+    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
     const propA = ruleEngineBuilder.scalar.choicesProperty('PROP_A', [
         { value: 0, displayValue: 'Not visible, not required' },
         { value: 1, displayValue: 'Visible, but not required' },
@@ -47,7 +45,6 @@ test('defining "requiredIfVisible"', () => {
     ruleEngineBuilder.scalar.bind(propA)
         .defineVisibility(self => self.getValue() !== 0)
         .defineRequiredIfVisible(self => self.getValue() !== 1);
-    ruleEngineBuilder.initialise();
 
     expect(propA.getValue()).toBe(0);
     expect(propA.getDisplayValue()).toBe('Not visible, not required');
@@ -68,12 +65,12 @@ test('defining "requiredIfVisible"', () => {
     expect(propA.getValue()).toBe(2);
     expect(propA.getDisplayValue()).toBe('Visible and required');
     expect(propA.isVisible()).toBe(true);
-    // visible is trueand required is according to definition also true
+    // visible is true and required is according to definition also true
     expect(propA.isRequired()).toBe(true);
 });
 
 test('defining a custom attribute', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
+    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
     // you can create any attribute you require and attach it to properties 
     const customAttribute = ruleEngineBuilder.defineCustomAttribute<Date>('lastModified');
 
@@ -82,13 +79,12 @@ test('defining a custom attribute', () => {
     });
     // attach your custom attribute to a property like the other predefined attributes, e.g. visible
     ruleEngineBuilder.scalar.bind(propA).define(customAttribute, self => new Date(2020, 0, self.getValue() ?? 1));
-    ruleEngineBuilder.initialise();
 
     expect(propA.get(customAttribute)).toEqual(new Date(2020, 0, 12));
 });
 
 test('defining placeholder, labels and infotext', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
+    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
     const propA = ruleEngineBuilder.scalar.booleanProperty('PROP_A');
     const propB = ruleEngineBuilder.scalar.booleanProperty('PROP_B');
 
@@ -96,8 +92,6 @@ test('defining placeholder, labels and infotext', () => {
         .defineLabel('Label A')
         .defineInfoText('Info A');
     ruleEngineBuilder.scalar.bind(propB).defineLabelAndPlaceholder('Label and Placeholder');
-
-    ruleEngineBuilder.initialise();
 
     expect(propA.getLabel()).toBe('Label A');
     expect(propA.getPlaceholder()).toBe('');

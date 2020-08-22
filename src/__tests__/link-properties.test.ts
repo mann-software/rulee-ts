@@ -1,4 +1,4 @@
-import { ruleEngineBuilderFactory } from "./utils/test-utils";
+import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
 import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
@@ -11,14 +11,12 @@ let propC: PropertyScalar<number>;
 let ruleEngine: RuleEngine;
 
 beforeEach(() => {
-    ruleEngineBuilder = ruleEngineBuilderFactory();
+    [ruleEngineBuilder, ruleEngine] = ruleEngineAndBuilderFactory();
     propA = ruleEngineBuilder.scalar.stringProperty('PROP_A');
     propB = ruleEngineBuilder.scalar.stringProperty('PROP_B');
     propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
         derive: (propA, propB) => propA.getNonNullValue().length  + propB.getNonNullValue().length
     });
-    
-    ruleEngine = ruleEngineBuilder.initialise();
 });
 
 test('linking a property initially transfers the data', () => {

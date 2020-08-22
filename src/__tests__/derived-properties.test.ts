@@ -1,4 +1,4 @@
-import { ruleEngineBuilderFactory } from "./utils/test-utils";
+import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
 import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
@@ -9,7 +9,7 @@ let propB: PropertyScalar<number>;
 let propC: PropertyScalar<number>;
 
 beforeEach(() => {
-    ruleEngineBuilder = ruleEngineBuilderFactory();
+    [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
     propA = ruleEngineBuilder.scalar.numberProperty('PROP_A', { initialValue: 0 });
     
     propB = ruleEngineBuilder.scalar.derivedProperty1('PROP_B', C.number.default, propA, {
@@ -20,9 +20,6 @@ beforeEach(() => {
         derive: (propA, propB) => propA.getNonNullValue()  + propB.getNonNullValue(),
         inverse: (propA, propB, val) => val ? propA.setValue(val / 3) : propA.setValue(0)
     });
-    
-    // it is important to actually initialise the rule engine
-    ruleEngineBuilder.initialise();
 });
 
 test('synchronously derived properties work', () => {

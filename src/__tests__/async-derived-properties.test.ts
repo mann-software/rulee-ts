@@ -1,4 +1,4 @@
-import { ruleEngineBuilderFactory } from "./utils/test-utils";
+import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
 import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
 import { valueAfterTime, executeAfterTime } from "./utils/timing-utils";
@@ -10,12 +10,12 @@ let propB: PropertyScalar<number>;
 let propC: PropertyScalar<boolean>;
 
 beforeEach(() => {
-    ruleEngineBuilder = ruleEngineBuilderFactory();
+    [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
 
     propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
 
     propB = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_B', C.number.default, propA, {
-        deriveAsync: (propA) => valueAfterTime((propA.getDisplayValue() ?? '??').length, 1000)
+        deriveAsync: (propA) => valueAfterTime(propA.getDisplayValue().length, 1000)
     });
 
     propC = ruleEngineBuilder.scalar.derivedAsyncProperty2('PROB_C', C.boolean.default, propA, propB, {
@@ -23,8 +23,6 @@ beforeEach(() => {
             (propA.getDisplayValue() === 'abc' && propB.getDisplayValue() === '3') || null, 2000
         )
     });
-
-    ruleEngineBuilder.initialise();
 });
 
 test('async derived properties work', () => {

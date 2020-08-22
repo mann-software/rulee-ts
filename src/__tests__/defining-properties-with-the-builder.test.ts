@@ -1,9 +1,9 @@
-import { ruleEngineBuilderFactory } from "./utils/test-utils";
+import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
 import { C } from "../value-converter/common-value-converters";
 import { EmptyValueFcns } from "../provider/value-provider/empty-value-fcn";
 
 test('define number properties', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
+    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
 
     // A: you can use simpleProperty or specialised numberProperty - the following are equivalent
     const numberProp = ruleEngineBuilder.scalar.simpleProperty('NUMBER_PROP', C.number.default, EmptyValueFcns.numberEmptyValueFcn);
@@ -20,8 +20,6 @@ test('define number properties', () => {
     });
     ruleEngineBuilder.scalar.bind(numberPropZeroIsEmpty).defineInitialValue(0);
 
-    ruleEngineBuilder.initialise();
-
     // A
     expect(numberProp.getValue()).toBe(numberPropShort.getValue());
     expect(numberProp.getDisplayValue()).toBe(numberPropShort.getDisplayValue());
@@ -31,29 +29,8 @@ test('define number properties', () => {
     expect(numberPropZeroIsEmpty.getDisplayValue()).toBe(numberPropZeroIsEmptyShort.getDisplayValue());
 });
 
-test('need to call RuleEngineBuilder.initialise() else error is thrown', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
-    const prop = ruleEngineBuilder.scalar.booleanProperty('PROP');
-    // forgot to call: ruleEngineBuilder.initialise()
-    expect(() => prop.getValue()).toThrowError();
-});
-
-test('need to call RuleEngineBuilder.initialise() else error is thrown - 2', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
-    const prop = ruleEngineBuilder.scalar.booleanProperty('PROP');
-    // forgot to call: ruleEngineBuilder.initialise()
-    expect(() => prop.awaitValue()).toThrowError();
-});
-
-test('need to call RuleEngineBuilder.initialise() else error is thrown - 3', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
-    const prop = ruleEngineBuilder.scalar.booleanProperty('PROP');
-    // forgot to call: ruleEngineBuilder.initialise()
-    expect(() => prop.setValue(false)).toThrowError();
-});
-
 test('no duplicated property id´s else error is thrown', () => {
-    const ruleEngineBuilder = ruleEngineBuilderFactory();
+    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
     ruleEngineBuilder.scalar.booleanProperty('PROP');
     expect(() => ruleEngineBuilder.scalar.numberProperty('PROP')).toThrowError();
 });

@@ -18,12 +18,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         updateHandler: RuleEngineUpdateHandler<(D | null)[]>,
     ) {
         super(updateHandler);
-    }
-
-    internallyInit(): void {
-        super.internallyInit();
-        throw new Error("Method not implemented.");
-    }   
+    } 
     
     protected internallySyncUpdate(): void {
         throw new Error("Method not implemented.");

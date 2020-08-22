@@ -41,12 +41,14 @@ export class PropertyScalarRuleBinding<T> {
     // ------------------
 
     /**
-     * define a initial value - only possible if the property ist not readonly
+     * Defines a initial value and also sets the property to this value - only possible if the property is not readonly
+     * 
      * @param value initial value
      */
     defineInitialValue(value: T): PropertyScalarRuleBinding<T> {
         alwaysAssertThat(!this.property.isReadOnly(), () => `${this.property.id}: Can not define initial value on read only property`);
         this.property.defineInitialValue(value);
+        this.property.setToInitialValue();
         return this;
     }
     

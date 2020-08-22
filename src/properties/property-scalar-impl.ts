@@ -36,11 +36,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         super(updateHandler);
     }
 
-    internallyInit() {
-        super.internallyInit();
-        this.setToInitialValue();
-    }
-
     protected internallySyncUpdate(): void {
         if (this.valueProvider.shouldBeCached()) {
             this.currentValue = this.valueProvider.getValue() as (T | null);

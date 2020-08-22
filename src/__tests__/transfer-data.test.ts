@@ -1,4 +1,4 @@
-import { ruleEngineBuilderFactory } from "./utils/test-utils";
+import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
 import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
@@ -14,7 +14,7 @@ let propD: PropertyScalar<number>;
 let ruleEngine: RuleEngine;
 
 beforeEach(() => {
-    ruleEngineBuilder = ruleEngineBuilderFactory();
+    [ruleEngineBuilder, ruleEngine] = ruleEngineAndBuilderFactory();
     propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
     propB = ruleEngineBuilder.scalar.stringProperty('PROP_B', { initialValue: '42' });
     propBNumber = ruleEngineBuilder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
@@ -24,8 +24,6 @@ beforeEach(() => {
     propD = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_D', C.number.default, propB, {
         deriveAsync: (propA) => valueAfterTime(propA.getNonNullValue().length, 40)
     });
-    
-    ruleEngine = ruleEngineBuilder.initialise();
 });
 
 test('transfer data', () => {

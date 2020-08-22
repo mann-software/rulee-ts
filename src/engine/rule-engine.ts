@@ -6,8 +6,13 @@ import { AbstractPropertyWithInternals } from "../properties/abstract-property-i
 import { ValueChangeListener } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
 import { Logger } from "../util/logger/logger";
+import { RuleEngineBuilderOptions } from "./builder/rule-engine-builder-options";
+import { RuleEngineBuilder } from "./builder/rule-engine-buider";
 
 export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
+
+    private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
+    private readonly dependencyGraph = new DependencyGraph();
 
     private readonly dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
     private readonly snapshots = new Map<string, Snapshot>();
@@ -16,8 +21,14 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
     private get properties() {
         return Object.values(this.propertyMap);
     }
-    
-    constructor (private readonly dependencyGraph: DependencyGraph, private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }) {}
+
+    /**
+     * Creates a rule builder to define your business rules
+     * @param options for the builder
+     */
+    builder(options: RuleEngineBuilderOptions) {
+        return new RuleEngineBuilder(options, this, this.dependencyGraph, this.propertyMap);
+    }
 
     takeSnapShot(key = 'default'): Snapshot {
         const snap = {
@@ -117,7 +128,7 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
     updateValue(property: AbstractProperty<unknown>): Promise<void> {
         const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
         if (asyncDeps?.length) {
-            return Promise.all(asyncDeps.map(pd => this.updateValue(pd.from)))
+            return Promise.all(asyncDeps.map(asyncDep => this.updateValue(asyncDep)))
                 .then(() => (property as AbstractPropertyWithInternals<unknown>).internallyUpdate())
                 .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
                 .catch(e => Logger.error(`Error updating ${property.id}: `, e));

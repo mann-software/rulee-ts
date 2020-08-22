@@ -21,10 +21,6 @@ import { AttributeId } from "../../attributes/attribute-id";
 
 export class RuleEngineBuilder {
 
-    private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
-    private readonly dependencyGraph = new DependencyGraph();
-    private readonly ruleEngine = new RuleEngine(this.dependencyGraph, this.propertyMap);
-
     private get properties() {
         return Object.values(this.propertyMap);
     }
@@ -56,7 +52,12 @@ export class RuleEngineBuilder {
         return this.triggerBuilder;
     }
 
-    constructor(options: RuleEngineBuilderOptions) {
+    constructor(
+        options: RuleEngineBuilderOptions,
+        private readonly ruleEngine: RuleEngine,
+        private readonly dependencyGraph: DependencyGraph,
+        private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }
+    ) {
         this.notEmptyIfRequiredValidator = options.emptyButRequiredMessage instanceof Function 
             ? V.notEmptyMsgProvider(options.emptyButRequiredMessage)
             : V.notEmpty(options.emptyButRequiredMessage);
@@ -71,6 +72,7 @@ export class RuleEngineBuilder {
         if (initialValue !== undefined) {
             prop.defineInitialValue(initialValue);
         }
+        prop.setToInitialValue();
         return prop;
     }
 
@@ -104,12 +106,6 @@ export class RuleEngineBuilder {
 
     defineCustomAttribute<A>(name: string): AttributeId<A> {
         return { name };
-    }
-
-    initialise() {
-        this.dependencyGraph.analyse();
-        this.properties.forEach(prop => prop.internallyInit())
-        return this.ruleEngine;
     }
 
     asVisJsDataLink() {

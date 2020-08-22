@@ -37,16 +37,15 @@ type EdgesMap = Map<PropertyId, OutgoingMap>;
 
 /**
  * For async dependencies the rule engine needs to know which async processing needs to be done first.
- * An async dependency can also be indirectly connectly with sync dependencies. These maps contain only
- * the direct and indirect dependencies of async properties, no sync dependencies.
- * However dependencies (async properties -> sync properties) are in the map
+ * An async dependency can also be indirectly connectly with sync dependencies. The map contains
+ * the direct and indirect dependencies of async properties for every property
  */
-type AsyncEdgesMap = Map<PropertyId, PropertyDependency[]>;
+type AsyncEdgesMap = Map<PropertyId, AbstractProperty<unknown>[]>;
 
 export class DependencyGraph {
 
     private readonly edgesMap: EdgesMap = new Map<string, OutgoingMap>();
-    private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, PropertyDependency[]>();
+    private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, AbstractProperty<unknown>[]>();
 
     // --------
 
@@ -58,9 +57,18 @@ export class DependencyGraph {
             this.edgesMap.set(from.id, outgoing);
         }
         const existing = outgoing.get(to.id);
-        const existingOptions = existing ? existing.options : {} as PropertyDependencyOptions;
-        Object.assign(existingOptions, options);
-        outgoing.set(to.id, { from, to, options: existingOptions });
+        const mergedOptions = existing ? { ...existing.options, ...options } : options;
+        outgoing.set(to.id, { from, to, options: mergedOptions });
+
+        if (from.isAsynchronous()) {
+            this.traverseDepthFirst(from.id, prop => {
+                if (!this.asyncEdgesMap.has(prop.id)) {
+                    this.asyncEdgesMap.set(prop.id, [from]);
+                } else {
+                    this.asyncEdgesMap.get(prop.id)?.push(from);
+                }
+            }, dep => !dep.from.isAsynchronous() || dep.from.id === from.id);
+        }
     }
 
     addDependencies(from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
@@ -91,46 +99,8 @@ export class DependencyGraph {
     
     // --------
 
-    analyse() {
-        const visited = new Set<PropertyId>();
-        this.edgesMap.forEach((outgoing, propertyId) => {
-            this.analyseRecursive(visited, propertyId);
-        });
+    findCyclicDependencies() {
         // TODO find cylces with depth first search and stack
-    }
-    
-    private analyseRecursive(visited: Set<PropertyId>, current: PropertyId, lastAsync?: AbstractProperty<unknown>) {
-        if (visited.has(current)) {
-            return;
-        }
-        visited.add(current);
-        const outgoing = this.edgesMap.get(current);
-        if (outgoing && outgoing.size > 0) {
-            outgoing.forEach((edge) => {
-                if (edge.from.isAsynchronous()) {
-                    lastAsync = edge.from; // set current as lastAsync
-                }
-                this.addToAsyncMap(edge.to, lastAsync);
-                this.analyseRecursive(visited, edge.to.id, lastAsync);
-            });
-        }
-    }
-
-    private addToAsyncMap(property: AbstractProperty<unknown>, previousAsyncProperty?: AbstractProperty<unknown>) {
-        if (previousAsyncProperty != null) {
-            let edges = this.asyncEdgesMap.get(property.id);
-            if (!edges) {
-                edges = [];
-                this.asyncEdgesMap.set(property.id, edges);
-            }
-            if (edges.every(pd => pd.from !== previousAsyncProperty)) {
-                edges.push({
-                    from: previousAsyncProperty,
-                    to: property, 
-                    options: { }
-                });
-            }
-        }
     }
     
     // --------

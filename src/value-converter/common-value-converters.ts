@@ -131,7 +131,7 @@ export class IsoDateConverter implements ValueConverter<Date> {
 
             const splitted = value.split('-');
             if (splitted.length > 3 || splitted.some(split => !digitsOnly.test(split))) {
-                // not numbers or empty part like '01..20' or '1q.8.20'
+                // not numbers or empty part like '20--01' or '2q-01-01'
                 return null;
             }
             if (splitted.length === 1) {
@@ -140,7 +140,7 @@ export class IsoDateConverter implements ValueConverter<Date> {
                     return null;
                 }
                 // expect formats without dots like these:
-                // 01 => 01.07.2020 (month and year of current date)
+                // 01 => 2020-07-01 (month and year of current date)
                 // 0701 => 2020-07-01 (year of current date)
                 // 200701 => 2020-07-01 (year of current century)
                 // 20200701 => 2020-07-01

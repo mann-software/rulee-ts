@@ -22,11 +22,6 @@ export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<un
         return Object.keys(this.properties).map(propKey => this.properties[propKey]);
     }
 
-    internallyInit() {
-        super.internallyInit();
-        // TODO
-    }
-
     protected internallySyncUpdate(): void {
         throw new Error("Method not implemented.");
     }
