@@ -2,6 +2,7 @@ import { PropertyId } from "../properties/property-id";
 import { AbstractProperty } from "../properties/abstract-property";
 import { PropertyDependency, PropertyDependencyOptions } from "./property-dependency";
 import { Logger } from "../util/logger/logger";
+import { assertThat } from "../util/assertions/assertions";
 
 export type VisNodeGroup = 'default' | 'async' | 'readonly' | 'async-readonly';
 
@@ -62,22 +63,19 @@ export class DependencyGraph {
 
         const asyncDeps = from.isAsynchronous() ? [from] : this.asyncEdgesMap.get(from.id);
         if (asyncDeps?.length) {
-            this.traverseDepthFirst(from.id, prop => {
-                if (!this.asyncEdgesMap.has(prop.id)) {
-                    this.asyncEdgesMap.set(prop.id, asyncDeps);
-                } else {
-                    this.asyncEdgesMap.get(prop.id)?.push(...asyncDeps);
-                }
-            }, dep => !dep.from.isAsynchronous() || dep.from.id === from.id);
+            // Due to the design of rule-definitions, the to-property will always have no dependents, yet
+            // In case this breaks in future, recursively add 'asyncDeps' to all dependents of 'from' until
+            // the the current dependent is asynchronous its self or it has no further dependents
+            assertThat(
+                () => !this.edgesMap.has(to.id),
+                () => `DependencyGraph: The property ${to.id} has no dependents, yet`
+            );
+            this.asyncEdgesMap.get(to.id)?.push(...asyncDeps) ?? this.asyncEdgesMap.set(to.id, asyncDeps);
         }
     }
 
     addDependencies(from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         from.forEach((prop: AbstractProperty<unknown>) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
-    }
-
-    addDependents(from: AbstractProperty<unknown>, to: AbstractProperty<unknown>[], options: PropertyDependencyOptions) {
-        to.forEach((prop: AbstractProperty<unknown>) => this.addDependency(from, prop, options)); // could be optimized by not using addDependency
     }
     
     // --------
