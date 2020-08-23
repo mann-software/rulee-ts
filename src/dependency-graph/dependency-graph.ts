@@ -60,12 +60,13 @@ export class DependencyGraph {
         const mergedOptions = existing ? { ...existing.options, ...options } : options;
         outgoing.set(to.id, { from, to, options: mergedOptions });
 
-        if (from.isAsynchronous()) {
+        const asyncDeps = from.isAsynchronous() ? [from] : this.asyncEdgesMap.get(from.id);
+        if (asyncDeps?.length) {
             this.traverseDepthFirst(from.id, prop => {
                 if (!this.asyncEdgesMap.has(prop.id)) {
-                    this.asyncEdgesMap.set(prop.id, [from]);
+                    this.asyncEdgesMap.set(prop.id, asyncDeps);
                 } else {
-                    this.asyncEdgesMap.get(prop.id)?.push(from);
+                    this.asyncEdgesMap.get(prop.id)?.push(...asyncDeps);
                 }
             }, dep => !dep.from.isAsynchronous() || dep.from.id === from.id);
         }
