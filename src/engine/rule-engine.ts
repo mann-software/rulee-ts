@@ -6,8 +6,8 @@ import { AbstractPropertyWithInternals } from "../properties/abstract-property-i
 import { ValueChangeListener } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
 import { Logger } from "../util/logger/logger";
-import { RuleEngineBuilderOptions } from "./builder/rule-engine-builder-options";
-import { RuleEngineBuilder } from "./builder/rule-engine-buider";
+import { RuleBuilderOptions } from "./builder/rule-builder-options";
+import { RuleBuilder } from "./builder/rule-builder";
 
 export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
 
@@ -26,8 +26,8 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
      * Creates a rule builder to define your business rules
      * @param options for the builder
      */
-    builder(options: RuleEngineBuilderOptions) {
-        return new RuleEngineBuilder(options, this, this.dependencyGraph, this.propertyMap);
+    builder(options: RuleBuilderOptions) {
+        return new RuleBuilder(options, this, this.dependencyGraph, this.propertyMap);
     }
 
     takeSnapShot(key = 'default'): Snapshot {

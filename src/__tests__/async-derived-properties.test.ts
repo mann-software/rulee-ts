@@ -1,24 +1,24 @@
-import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
-import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
+import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
+import { RuleBuilder } from "../engine/builder/rule-builder";
 import { C } from "../value-converter/common-value-converters";
 import { valueAfterTime, executeAfterTime } from "./utils/timing-utils";
 import { PropertyScalar } from "../properties/property-scalar";
 
-let ruleEngineBuilder: RuleEngineBuilder;
+let ruleBuilder: RuleBuilder;
 let propA: PropertyScalar<string>;
 let propB: PropertyScalar<number>;
 let propC: PropertyScalar<boolean>;
 
 beforeEach(() => {
-    [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
+    [ruleBuilder] = ruleBuilderAndEngineFactory();
 
-    propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
+    propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
 
-    propB = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_B', C.number.default, propA, {
+    propB = ruleBuilder.scalar.derivedAsyncProperty1('PROP_B', C.number.default, propA, {
         deriveAsync: (propA) => valueAfterTime(propA.getDisplayValue().length, 1000)
     });
 
-    propC = ruleEngineBuilder.scalar.derivedAsyncProperty2('PROB_C', C.boolean.default, propA, propB, {
+    propC = ruleBuilder.scalar.derivedAsyncProperty2('PROB_C', C.boolean.default, propA, propB, {
         deriveAsync: (propA, propB) => valueAfterTime(
             (propA.getDisplayValue() === 'abc' && propB.getDisplayValue() === '3') || null, 2000
         )

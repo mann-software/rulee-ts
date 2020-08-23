@@ -13,13 +13,13 @@ import { PropertyScalarBuilder } from "./property-scalar-builder";
 import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
-import { RuleEngineBuilderOptions } from "./rule-engine-builder-options";
+import { RuleBuilderOptions } from "./rule-builder-options";
 import { ScalarValidator } from "../../validators/validator";
 import { V } from "../../validators/common-validators";
 import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 
-export class RuleEngineBuilder {
+export class RuleBuilder {
 
     private get properties() {
         return Object.values(this.propertyMap);
@@ -53,7 +53,7 @@ export class RuleEngineBuilder {
     }
 
     constructor(
-        options: RuleEngineBuilderOptions,
+        options: RuleBuilderOptions,
         private readonly ruleEngine: RuleEngine,
         private readonly dependencyGraph: DependencyGraph,
         private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }

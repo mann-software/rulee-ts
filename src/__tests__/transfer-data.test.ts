@@ -1,11 +1,11 @@
-import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
-import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
+import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
+import { RuleBuilder } from "../engine/builder/rule-builder";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
 import { RuleEngine } from "../engine/rule-engine";
 import { valueAfterTime } from "./utils/timing-utils";
 
-let ruleEngineBuilder: RuleEngineBuilder;
+let ruleBuilder: RuleBuilder;
 let propA: PropertyScalar<string>;
 let propB: PropertyScalar<string>;
 let propBNumber: PropertyScalar<number>;
@@ -14,14 +14,14 @@ let propD: PropertyScalar<number>;
 let ruleEngine: RuleEngine;
 
 beforeEach(() => {
-    [ruleEngineBuilder, ruleEngine] = ruleEngineAndBuilderFactory();
-    propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
-    propB = ruleEngineBuilder.scalar.stringProperty('PROP_B', { initialValue: '42' });
-    propBNumber = ruleEngineBuilder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
-    propC = ruleEngineBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
+    [ruleBuilder, ruleEngine] = ruleBuilderAndEngineFactory();
+    propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
+    propB = ruleBuilder.scalar.stringProperty('PROP_B', { initialValue: '42' });
+    propBNumber = ruleBuilder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
+    propC = ruleBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
         derive: (propA, propB) => propA.getNonNullValue().length + propB.getNonNullValue().length
     });
-    propD = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_D', C.number.default, propB, {
+    propD = ruleBuilder.scalar.derivedAsyncProperty1('PROP_D', C.number.default, propB, {
         deriveAsync: (propA) => valueAfterTime(propA.getNonNullValue().length, 40)
     });
 });

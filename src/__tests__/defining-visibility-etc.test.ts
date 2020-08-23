@@ -1,21 +1,21 @@
-import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
+import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
 
 test('defining visibility', () => {
-    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
-    const propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', {
+    const [ruleBuilder] = ruleBuilderAndEngineFactory();
+    const propA = ruleBuilder.scalar.stringProperty('PROP_A', {
         initialValue: 'ABC'
     });
-    const propB = ruleEngineBuilder.scalar.numberProperty('PROP_B', { zeroIsConsideredAsEmpty: true });
-    const propC = ruleEngineBuilder.scalar.numberProperty('PROP_C');
-    const propD = ruleEngineBuilder.scalar.booleanProperty('PROP_D', {
+    const propB = ruleBuilder.scalar.numberProperty('PROP_B', { zeroIsConsideredAsEmpty: true });
+    const propC = ruleBuilder.scalar.numberProperty('PROP_C');
+    const propD = ruleBuilder.scalar.booleanProperty('PROP_D', {
         initialValue: null
     });
-    const propE = ruleEngineBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
+    const propE = ruleBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
 
-    ruleEngineBuilder.scalar.bind(propB).defineVisibility(false);
-    ruleEngineBuilder.scalar.bind(propC).defineInitialValue(3).defineVisibility(self => self.getNonNullValue() > 0);
-    ruleEngineBuilder.scalar.bind(propD).defineVisibility1(propA, (self, propA) => !!propA.getValue());
-    ruleEngineBuilder.scalar.bind(propE).defineVisibility2(propA, propD, (self, propA, propD) => {
+    ruleBuilder.scalar.bind(propB).defineVisibility(false);
+    ruleBuilder.scalar.bind(propC).defineInitialValue(3).defineVisibility(self => self.getNonNullValue() > 0);
+    ruleBuilder.scalar.bind(propD).defineVisibility1(propA, (self, propA) => !!propA.getValue());
+    ruleBuilder.scalar.bind(propE).defineVisibility2(propA, propD, (self, propA, propD) => {
         return !!self.getValue() && !!propA.getValue() && !!propD.getValue()
     });
 
@@ -36,13 +36,13 @@ test('defining visibility', () => {
 });
 
 test('defining "requiredIfVisible"', () => {
-    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
-    const propA = ruleEngineBuilder.scalar.choicesProperty('PROP_A', [
+    const [ruleBuilder] = ruleBuilderAndEngineFactory();
+    const propA = ruleBuilder.scalar.choicesProperty('PROP_A', [
         { value: 0, displayValue: 'Not visible, not required' },
         { value: 1, displayValue: 'Visible, but not required' },
         { value: 2, displayValue: 'Visible and required' }
     ]);
-    ruleEngineBuilder.scalar.bind(propA)
+    ruleBuilder.scalar.bind(propA)
         .defineVisibility(self => self.getValue() !== 0)
         .defineRequiredIfVisible(self => self.getValue() !== 1);
 
@@ -70,28 +70,28 @@ test('defining "requiredIfVisible"', () => {
 });
 
 test('defining a custom attribute', () => {
-    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
+    const [ruleBuilder] = ruleBuilderAndEngineFactory();
     // you can create any attribute you require and attach it to properties 
-    const customAttribute = ruleEngineBuilder.defineCustomAttribute<Date>('lastModified');
+    const customAttribute = ruleBuilder.defineCustomAttribute<Date>('lastModified');
 
-    const propA = ruleEngineBuilder.scalar.numberProperty('PropA', {
+    const propA = ruleBuilder.scalar.numberProperty('PropA', {
         initialValue: 12
     });
     // attach your custom attribute to a property like the other predefined attributes, e.g. visible
-    ruleEngineBuilder.scalar.bind(propA).define(customAttribute, self => new Date(2020, 0, self.getValue() ?? 1));
+    ruleBuilder.scalar.bind(propA).define(customAttribute, self => new Date(2020, 0, self.getValue() ?? 1));
 
     expect(propA.get(customAttribute)).toEqual(new Date(2020, 0, 12));
 });
 
 test('defining placeholder, labels and infotext', () => {
-    const [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
-    const propA = ruleEngineBuilder.scalar.booleanProperty('PROP_A');
-    const propB = ruleEngineBuilder.scalar.booleanProperty('PROP_B');
+    const [ruleBuilder] = ruleBuilderAndEngineFactory();
+    const propA = ruleBuilder.scalar.booleanProperty('PROP_A');
+    const propB = ruleBuilder.scalar.booleanProperty('PROP_B');
 
-    ruleEngineBuilder.scalar.bind(propA)
+    ruleBuilder.scalar.bind(propA)
         .defineLabel('Label A')
         .defineInfoText('Info A');
-    ruleEngineBuilder.scalar.bind(propB).defineLabelAndPlaceholder('Label and Placeholder');
+    ruleBuilder.scalar.bind(propB).defineLabelAndPlaceholder('Label and Placeholder');
 
     expect(propA.getLabel()).toBe('Label A');
     expect(propA.getPlaceholder()).toBe('');

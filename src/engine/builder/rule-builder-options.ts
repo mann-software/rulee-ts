@@ -1,5 +1,5 @@
 import { ValidationMessage } from "../../validators/validation-message";
 
-export interface RuleEngineBuilderOptions {
+export interface RuleBuilderOptions {
     emptyButRequiredMessage: (() => ValidationMessage) | ValidationMessage;
 }

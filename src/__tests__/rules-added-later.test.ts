@@ -1,17 +1,17 @@
-import { ruleEngineAndBuilderFactory } from "./utils/test-utils";
-import { RuleEngineBuilder } from "../engine/builder/rule-engine-buider";
+import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
+import { RuleBuilder } from "../engine/builder/rule-builder";
 import { C } from "../value-converter/common-value-converters";
 import { valueAfterTime } from "./utils/timing-utils";
 
-let ruleEngineBuilder: RuleEngineBuilder;
+let ruleBuilder: RuleBuilder;
 
 beforeEach(() => {
-    [ruleEngineBuilder] = ruleEngineAndBuilderFactory();
+    [ruleBuilder] = ruleBuilderAndEngineFactory();
 });
 
 test('add further rules later on while already in use - simple setup', () => {
-    const propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'A'});
-    const propB = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_B', C.string.identity, propA, {
+    const propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'A'});
+    const propB = ruleBuilder.scalar.derivedAsyncProperty1('PROP_B', C.string.identity, propA, {
         deriveAsync: (propA) => valueAfterTime(`B: ${propA.getDisplayValue()}`, 2000)
     });
 
@@ -20,7 +20,7 @@ test('add further rules later on while already in use - simple setup', () => {
     expect(propB.isProcessing()).toBe(true);
 
     // while propLaterOn is processing, define another rule that (indirectly) depends on propB
-    const propLaterOn = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_LATER_ON', C.string.identity, propB, {
+    const propLaterOn = ruleBuilder.scalar.derivedAsyncProperty1('PROP_LATER_ON', C.string.identity, propB, {
         deriveAsync: (propB) => valueAfterTime(propB.getDisplayValue(), 50)
     });
 
@@ -39,16 +39,16 @@ test('add further rules later on while already in use - simple setup', () => {
 });
 
 test('add further rules later on while already in use - complex setup', () => {
-    const propA = ruleEngineBuilder.scalar.stringProperty('PROP_A', { initialValue: 'A'});
-    const propB = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_B', C.string.identity, propA, {
+    const propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'A'});
+    const propB = ruleBuilder.scalar.derivedAsyncProperty1('PROP_B', C.string.identity, propA, {
         deriveAsync: (propA) => valueAfterTime(`B: ${propA.getDisplayValue()}`, 2000)
     });
-    const propC = ruleEngineBuilder.scalar.derivedProperty1('PROP_C', C.string.identity, propB, {
+    const propC = ruleBuilder.scalar.derivedProperty1('PROP_C', C.string.identity, propB, {
         derive: (propB) => `C: ${propB.getDisplayValue()}`
     });
 
-    const propAA = ruleEngineBuilder.scalar.stringProperty('PROP_AA', { initialValue: 'AA'});
-    const propBB = ruleEngineBuilder.scalar.derivedAsyncProperty1('PROP_BB', C.string.identity, propAA, {
+    const propAA = ruleBuilder.scalar.stringProperty('PROP_AA', { initialValue: 'AA'});
+    const propBB = ruleBuilder.scalar.derivedAsyncProperty1('PROP_BB', C.string.identity, propAA, {
         deriveAsync: (propAA) => valueAfterTime(`BB: ${propAA.getDisplayValue()}`, 1000)
     });
 
@@ -58,7 +58,7 @@ test('add further rules later on while already in use - complex setup', () => {
     expect(propBB.isProcessing()).toBe(false);
 
     // while propB is processing, define another rule that (indirectly) depends on propB
-    const propLaterOn = ruleEngineBuilder.scalar.derivedAsyncProperty2('PROP_LATER_ON', C.string.identity, propC, propBB, {
+    const propLaterOn = ruleBuilder.scalar.derivedAsyncProperty2('PROP_LATER_ON', C.string.identity, propC, propBB, {
         deriveAsync: (propC, propBB) => valueAfterTime(`${propC.getDisplayValue()}|${propBB.getDisplayValue()}`, 50)
     });
 
