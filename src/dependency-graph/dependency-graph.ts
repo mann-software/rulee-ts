@@ -99,8 +99,36 @@ export class DependencyGraph {
     
     // --------
 
-    findCyclicDependencies() {
-        // TODO find cylces with depth first search and stack
+    /**
+     * Checks for cyclic dependencies and returns the first cyclic path found.
+     * Return null if there are no cyclic dependencies
+     */
+    findCyclicDependencies(): PropertyId[] | null {
+        const visited = new Set<PropertyId>();
+        for(const propId in this.edgesMap.keys()) {
+            const cyclicPath = this.findCyclicDependenciesRecursive(propId, [], visited);
+            if (cyclicPath) {
+                return cyclicPath;
+            }
+        }
+        return null;
+    }
+
+    private findCyclicDependenciesRecursive(current: PropertyId, path: PropertyId[], visited: Set<PropertyId>): PropertyId[] | null {
+        if (visited.has(current)) {
+            const currentIndex = path.indexOf(current);
+            if (currentIndex >= 0) {
+                const cylicPath = path.slice(currentIndex)
+                cylicPath.push(current);
+                return cylicPath;
+            }
+        } else {
+            visited.add(current);
+            path.push(current);
+            const outgoing = this.edgesMap.get(current);
+            outgoing?.forEach(dep => this.findCyclicDependenciesRecursive(dep.to.id, path, visited));
+        }
+        return null;
     }
     
     // --------
