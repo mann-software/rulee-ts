@@ -16,11 +16,12 @@ import { ConstantValueProvider } from "../../provider/value-provider/constant-va
 import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { EmptyValueFcn, EmptyValueFcns } from "../../provider/value-provider/empty-value-fcn";
+import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 
 export class PropertyScalarBuilder {
 
     constructor(
-        private readonly propertyScalar: <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null) => PropertyScalarImpl<T>,
+        private readonly propertyScalar: <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) => PropertyScalarImpl<T>,
         private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>
     ) {}
 
@@ -148,26 +149,28 @@ export class PropertyScalarBuilder {
         dependency: D1, derivations: {
             deriveAsync: (dep: D1) => Promise<T | null>;
             inverseAsync?: (dep: D1, val: T | null) => Promise<unknown>;
+            backpressureConfig?: BackpressureConfig;
         },
         emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
     ): PropertyScalar<T> {
         const dependencies = [dependency];
         const invFcn = this.asycInvFcn(derivations.inverseAsync && ((deps: AbstractProperty<TD>[], val: T | null) => derivations.inverseAsync!(deps[0] as D1, val)));
         const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => derivations.deriveAsync(deps[0] as D1), invFcn);
-        return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies);
+        return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies, undefined, derivations.backpressureConfig);
     }
 
     derivedAsyncProperty2<T, TD, D1 extends AbstractProperty<TD>, D2 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
         dependency1: D1, dependency2: D2, derivations: {
             deriveAsync: (dep: D1, dep2: D2) => Promise<T | null>;
             inverseAsync?: (dep: D1, dep2: D2, val: T | null) => Promise<unknown>;
+            backpressureConfig?: BackpressureConfig;
         },
         emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
     ): PropertyScalar<T> {
         const dependencies = [dependency1, dependency2];
         const invFcn = this.asycInvFcn(derivations.inverseAsync && ((deps: AbstractProperty<TD>[], val: T | null) => derivations.inverseAsync!(deps[0] as D1, deps[1] as D2, val)));
         const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => derivations.deriveAsync(deps[0] as D1, deps[1] as D2), invFcn);
-        return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies);
+        return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies, undefined, derivations.backpressureConfig);
     }
 
     bind<T>(prop: PropertyScalar<T>): PropertyScalarRuleBinding<T> {

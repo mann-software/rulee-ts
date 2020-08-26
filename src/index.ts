@@ -28,7 +28,7 @@ export * from "./properties/property-scalar";
 export * from "./properties/trigger";
 export * from "./properties/value-change-listener";
 export * from "./properties/backpressure/backpressure-type";
-export * from "./properties/backpressure/backpressure";
+export * from "./properties/backpressure/backpressure-config";
 export * from "./properties/data-link/data-link";
 export * from "./properties/factory/list-index";
 export * from "./properties/factory/property-template";

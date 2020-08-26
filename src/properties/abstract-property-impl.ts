@@ -7,6 +7,9 @@ import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
 import { ValidationMessage } from "../validators/validation-message";
 import { Validator } from "../validators/validator";
 import { PropertyDependency } from "../dependency-graph/property-dependency";
+import { BackpressureConfig } from "./backpressure/backpressure-config";
+import { assertThat } from "../util/assertions/assertions";
+import { AssertionError } from "../util/assertions/assertion-error";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractProperty<D> {
     internallyUpdate(): Promise<void>;
@@ -33,8 +36,11 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
 
     constructor(
-        protected updateHandler: RuleEngineUpdateHandler<D>
-    ) { }
+        protected updateHandler: RuleEngineUpdateHandler<D>,
+        backpressureConfig?: BackpressureConfig
+    ) {
+        this.backpressureConfig = backpressureConfig;
+    }
 
     private readonly valueChangeListeners: ValueChangeListener[] = [];
 
@@ -116,6 +122,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     private handleBackpressure(recomputingCount: number, currentRecomputing: Promise<void>): Promise<void> {
+        if (!this.backpressureConfig) {
+            throw new AssertionError('AbstractPropertyImpl: backpressureConfig needs to be defined');
+        }
         switch (this.backpressureConfig.type) {
             case 'switch' as BackpressureType:
                 if (this.backpressureConfig.debounceTime) {
@@ -140,7 +149,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 return Promise.resolve();
             }
         };
-        if (this.backpressureConfig.debounceTime) {
+        if (this.backpressureConfig?.debounceTime) {
             setTimeout(() => {
                 void updateIfFirst()
             }, this.backpressureConfig.debounceTime);
@@ -314,7 +323,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         return this.validators.some(v => v.isAsynchronous());
     }
 
-    readonly backpressureConfig = { debounceTime: 40, type: 'switch' as BackpressureType };
+    backpressureConfig?: BackpressureConfig;
 
     abstract isProcessing(): boolean;
     abstract isReadOnly(): boolean;

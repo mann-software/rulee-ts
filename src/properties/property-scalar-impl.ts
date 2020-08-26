@@ -10,6 +10,7 @@ import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
 import { Logger } from "../util/logger/logger";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { EmptyValueFcn } from "../provider/value-provider/empty-value-fcn";
+import { BackpressureConfig } from "./backpressure/backpressure-config";
 
 export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements PropertyScalar<T> {
 
@@ -31,9 +32,10 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         private readonly valueProvider: ValueProvider<T>,
         private readonly emptyValueFcn: EmptyValueFcn<T>,
         private readonly valueConverter: ValueConverter<T>,
-        updateHandler: RuleEngineUpdateHandler<T>
+        updateHandler: RuleEngineUpdateHandler<T>,
+        backpressureConfig?: BackpressureConfig,
     ) {
-        super(updateHandler);
+        super(updateHandler, backpressureConfig);
     }
 
     protected internallySyncUpdate(): void {
@@ -64,7 +66,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         if (!this.isReadOnly()) {
             this.valueProvider.setValue(initialValue);
         }
-        Logger.debug(() => `PropertyScalarImpl.setToInitialValue ${this.id}: ${initialValue}`);
+        Logger.trace(() => `PropertyScalarImpl.setToInitialValue ${this.id}: ${initialValue}`);
     }
 
     protected getSpecialisedValidationResult() {

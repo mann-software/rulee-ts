@@ -1,6 +1,6 @@
 import { BackpressureType } from "./backpressure-type";
 
-export interface Backpressure {
+export interface BackpressureConfig {
     type: BackpressureType;
     debounceTime?: number;
 }

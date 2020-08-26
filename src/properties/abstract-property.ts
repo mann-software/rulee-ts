@@ -2,7 +2,7 @@ import { PropertyId } from "./property-id";
 import { ValueChangeListener } from "./value-change-listener";
 import { Trigger } from "./trigger";
 import { DataLink } from "./data-link/data-link";
-import { Backpressure } from "./backpressure/backpressure";
+import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { ValidationMessage } from "../validators/validation-message";
 
 export interface AbstractProperty<D> extends DataLink<D> {
@@ -46,10 +46,13 @@ export interface AbstractProperty<D> extends DataLink<D> {
     isAsynchronous(): boolean;
 
     /**
-     * Returns the config that contains the info on how to
-     * cope with backpressure.
+     * The config that defines how to cope with backpressure.
+     * The default config object of the rule builder is frozen,
+     * but you can set another config object.
+     * 
+     * Defined iff property is asynchronous
      */
-    readonly backpressureConfig: Backpressure;
+    backpressureConfig?: BackpressureConfig;
 
     /**
      * Indicates that the property is currently processing

@@ -18,6 +18,7 @@ import { ScalarValidator } from "../../validators/validator";
 import { V } from "../../validators/common-validators";
 import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
+import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 
 export class RuleBuilder {
 
@@ -26,10 +27,11 @@ export class RuleBuilder {
     }
     
     private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>;
+    private readonly defaultBackpressureConfig: BackpressureConfig;
 
     private readonly propertyScalarBuilder = new PropertyScalarBuilder(
-        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null) =>
-            this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue),
+        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) =>
+            this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig),
         <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop)
     );
 
@@ -61,10 +63,15 @@ export class RuleBuilder {
         this.notEmptyIfRequiredValidator = options.emptyButRequiredMessage instanceof Function 
             ? V.notEmptyMsgProvider(options.emptyButRequiredMessage)
             : V.notEmpty(options.emptyButRequiredMessage);
+
+        this.defaultBackpressureConfig = Object.freeze(options.defaultBackpressureConfig ?? { 
+            type: "switch",
+            debounceTime: 40
+        });
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null): PropertyScalarImpl<T> {
-        const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine);
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig): PropertyScalarImpl<T> {
+        const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, backpressureConfig ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
