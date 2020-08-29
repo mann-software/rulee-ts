@@ -115,12 +115,13 @@ test('async derived properties are only processing if needed - part II', () => {
     }, 1500);
 });
 
-test('requesting the current value should start async processing if needed', () => {
+test('getValue should NOT start async processing but awaitValue should do if needed', () => {
 
     expect(propB.isProcessing()).toBe(false);
-    const valB = propB.getValue();
+    propB.getValue();
+    expect(propB.isProcessing()).toBe(false);
+    void propB.awaitValue();
     expect(propB.isProcessing()).toBe(true);
-    expect(valB).toBe(null);
 
     return executeAfterTime(() => {
         expect(propB.isProcessing()).toBe(false);
@@ -128,11 +129,9 @@ test('requesting the current value should start async processing if needed', () 
     }, 1500);
 });
 
-test('awaiting a display value also works', () => {
-
-    return propB.awaitDisplayValue().then(displayValue => {
-        expect(displayValue).toBe('3');
-        expect(propB.getDisplayValue()).toBe(displayValue);
-        expect(propB.isProcessing()).toBe(false);
-    });
+test('awaiting a display value also works', async () => {
+    const displayValue = await propB.awaitDisplayValue();
+    expect(displayValue).toBe('3');
+    expect(propB.getDisplayValue()).toBe(displayValue);
+    expect(propB.isProcessing()).toBe(false);
 });

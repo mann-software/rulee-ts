@@ -16,7 +16,7 @@ test('add further rules later on while already in use - simple setup', () => {
     });
 
     // now already use existing rule propB
-    propB.getValue();
+    void propB.awaitValue();
     expect(propB.isProcessing()).toBe(true);
 
     // while propLaterOn is processing, define another rule that (indirectly) depends on propB
@@ -53,7 +53,7 @@ test('add further rules later on while already in use - complex setup', () => {
     });
 
     // now already use existing rule propB
-    propB.getValue();
+    void propB.awaitValue();
     expect(propB.isProcessing()).toBe(true);
     expect(propBB.isProcessing()).toBe(false);
 

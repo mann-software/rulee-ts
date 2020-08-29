@@ -131,10 +131,9 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.setValue(this.valueConverter.fromDisplayValue(value));
     }
 
-    awaitDisplayValue(): Promise<string> {
-        return this.awaitValue().then(current => {
-            return this.valueConverter.asDisplayValue(current);
-        });
+    async awaitDisplayValue(): Promise<string> {
+        const current = await this.awaitValue();
+        return this.valueConverter.asDisplayValue(current);
     }
 
     getNonNullValue() {
@@ -142,7 +141,9 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     }
 
     getValue(): T | null {
-        this.checkUpdate();
+        if (!this.isAsynchronous()) {
+            this.checkUpdate();
+        }
         return this.getCurrentValue();
     }
 

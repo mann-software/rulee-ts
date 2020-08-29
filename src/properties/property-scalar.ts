@@ -22,8 +22,7 @@ export interface PropertyScalar<T> extends AbstractProperty<T> {
      */
     getNonNullValue(): T;
     /**
-     * Gets the current value. If the property is asynchronous, it will
-     * trigger an update if the property needs an update.
+     * Gets the current value
      */
     getValue(): T | null;
     setValue(value: T | null): void;

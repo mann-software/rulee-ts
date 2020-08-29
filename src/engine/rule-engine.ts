@@ -131,11 +131,11 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
             return Promise.all(asyncDeps.map(asyncDep => this.updateValue(asyncDep)))
                 .then(() => (property as AbstractPropertyWithInternals<unknown>).internallyUpdate())
                 .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
-                .catch(e => Logger.error(`Error updating ${property.id}: `, e));
+                .catch(e => Logger.error(`RuleEngine: Error while updating ${property.id} or its async dependencies`, e));
         } else {
             return (property as AbstractPropertyWithInternals<unknown>).internallyUpdate()
                 .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
-                .catch(e => Logger.error(`Error updating ${property.id}`, e));
+                .catch(e => Logger.error(`RuleEngine: Error while updating ${property.id}`, e));
         }
     }
 
