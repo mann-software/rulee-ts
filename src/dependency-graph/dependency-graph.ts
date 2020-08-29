@@ -51,7 +51,7 @@ export class DependencyGraph {
     // --------
 
     addDependency(from: AbstractProperty<unknown>, to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
-        Logger.debug(`${from.id} -> ${to.id}: ${Object.keys(options).join(', ')}`);
+        Logger.trace(`${from.id} -> ${to.id}: ${Object.keys(options).join(', ')}`);
         let outgoing = this.edgesMap.get(from.id);
         if (!outgoing) {
             outgoing = new Map();

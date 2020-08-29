@@ -123,7 +123,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     // ------------------
 
     getDisplayValue(): string {
-        const current = this.getCurrentValue();
+        const current = this.getValue();
         return this.valueConverter.asDisplayValue(current);
     }
 
@@ -142,7 +142,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     getValue(): T | null {
         if (!this.isAsynchronous()) {
-            this.checkUpdate();
+            this.checkAndTriggerUpdate();
         }
         return this.getCurrentValue();
     }
@@ -154,8 +154,9 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         }
     }
 
-    awaitValue(): Promise<T | null> {
-        return this.awaitAsyncUpdate().then(() => this.getCurrentValue());
+    async awaitValue(): Promise<T | null> {
+        await this.awaitAsyncUpdate();
+        return this.getCurrentValue();
     }
 
     get<A>(id: AttributeId<A>): A | undefined {
@@ -171,7 +172,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     }
 
     isEmpty() {
-        return this.emptyValueFcn(this.getCurrentValue());
+        return this.emptyValueFcn(this.getValue());
     }
 
     getLabel(): string {
@@ -203,7 +204,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     // ------------------
 
     exportData(): T | null {
-        return this.getCurrentValue();
+        return this.getValue();
     }
 
     importData(data: T | null): void {

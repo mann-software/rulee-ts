@@ -11,7 +11,7 @@ export interface AbstractProperty<D> extends DataLink<D> {
     /**
      * Method to call if the property changed or even might have changed.
      * The property will be updated by the rule engine. 
-     * Usually no need to call by user of ruleengine, except for this case:
+     * Usually no need to call this method for the user of ruleengine, except for this case:
      * Call the method if the value changed by not setting it via the ruleengine to
      * inform the ruleengine it has changed
      */

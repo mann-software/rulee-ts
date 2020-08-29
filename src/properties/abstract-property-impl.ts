@@ -8,7 +8,6 @@ import { ValidationMessage } from "../validators/validation-message";
 import { Validator } from "../validators/validator";
 import { PropertyDependency } from "../dependency-graph/property-dependency";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
-import { assertThat } from "../util/assertions/assertions";
 import { AssertionError } from "../util/assertions/assertion-error";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractProperty<D> {
@@ -75,9 +74,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     /**
-     * Checks if an update needs to be triggered
+     * Checks if an update is needed and triggers the update if it is the case.
      */
-    protected checkUpdate(): void {
+    protected checkAndTriggerUpdate(): void {
         if (this.needsToRecompute !== false && this.automaticallyUpdate) {
             void this.updateHandler.updateValue(this);
         }
@@ -132,8 +131,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 } else {
                     return this.handleAsyncUpdate(recomputingCount, true);
                 }
-            case 'exhaust' as BackpressureType:
-                return currentRecomputing.then(() => this.handleAsyncUpdate(recomputingCount, true));
             case 'skip' as BackpressureType:
             default:
                 return currentRecomputing;
@@ -285,6 +282,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     registerValueChangedListener(changed: ValueChangeListener): void {
         this.valueChangeListeners.push(changed);
+        if (changed.needsAnUpdate && (this.needsToRecompute !== false || this.needsToRevalidate !== false)) {
+            changed.needsAnUpdate();
+        }
     }
 
     deregisterValueChangedListener(changed: ValueChangeListener): void {
