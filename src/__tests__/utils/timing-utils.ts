@@ -5,10 +5,19 @@ export const valueAfterTime = <T>(value: T, timeMs: number) => {
     });
 }
 
-export const executeAfterTime = <T>(fcn: () => T, timeMs: number) => {
-    return new Promise<T>(resolve => {
-        setTimeout(() => {
-            resolve(fcn());
-        }, timeMs);
+export const executeAfterTime = <T>(exe: (() => T) | Promise<T>, timeMs: number) => {
+    return new Promise<T>((resolve, reject) => {
+        try {
+            setTimeout(() => {
+                if (exe instanceof Promise) {
+                    void exe.then(val => resolve(val)).catch(err => { throw err; });
+                } else {
+                    resolve(exe());
+                }
+            }, timeMs);
+        } catch (err) {
+            console.error('executeAfterTime', err);
+            reject(err);
+        }
     });
 }

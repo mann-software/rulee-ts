@@ -122,20 +122,19 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
             const eagerProps = this.propertiesThatRequireAnEagerUpdate;
             this.propertiesThatRequireAnEagerUpdate = [];
             eagerProps.forEach((prop: AbstractProperty<unknown>) => void this.updateValue(prop));
-        });
+        }, 0);
     }
 
-    updateValue(property: AbstractProperty<unknown>): Promise<void> {
-        const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
-        if (asyncDeps?.length) {
-            return Promise.all(asyncDeps.map(asyncDep => this.updateValue(asyncDep)))
-                .then(() => (property as AbstractPropertyWithInternals<unknown>).internallyUpdate())
-                .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
-                .catch(e => Logger.error(`RuleEngine: Error while updating ${property.id} or its async dependencies`, e));
-        } else {
-            return (property as AbstractPropertyWithInternals<unknown>).internallyUpdate()
-                .then(() => this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>))
-                .catch(e => Logger.error(`RuleEngine: Error while updating ${property.id}`, e));
+    async updateValue(property: AbstractProperty<unknown>): Promise<void> {
+        try {
+            const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
+            if (asyncDeps?.length) {
+                await Promise.all(asyncDeps.map(asyncDep => this.updateValue(asyncDep)));
+            }
+            await (property as AbstractPropertyWithInternals<unknown>).internallyUpdate();
+            this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>);
+        } catch (err) {
+            (property as AbstractPropertyWithInternals<unknown>).errorWhileUpdating(err);
         }
     }
 

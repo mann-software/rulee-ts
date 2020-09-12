@@ -13,8 +13,14 @@ import { AssertionError } from "../util/assertions/assertion-error";
 export interface AbstractPropertyWithInternals<D> extends AbstractProperty<D> {
     internallyUpdate(): Promise<void>;
     hasBeenUpdated(): void;
+    errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
     internallyRequiresEagerUpdate(): boolean;
+}
+
+interface UpdatedListener {
+    resolve: () => void;
+    reject: (reason?: any) => void;
 }
 
 export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInternals<D> {
@@ -25,7 +31,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     private needsToRecompute?: boolean; // needsToRecompute iff true or undefined
     private recomputingCount?: number;
-    private currentRecomputing?: Promise<void>;
+    private currentRecomputing?: Promise<void>; // the current recompting of update process
+    private updatedListeners?: UpdatedListener[];
 
     private needsToRevalidate?: boolean; // needsToRevalidate iff true or undefined
     private isAboutToStartValidation?: boolean; // isAboutToStartValidation iff true
@@ -66,11 +73,29 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     protected awaitAsyncUpdate(): Promise<void> {
         if (this.needsToRecompute !== false && this.automaticallyUpdate) {
             return this.updateHandler.updateValue(this);
-        } else if (this.currentRecomputing) {
-            return this.currentRecomputing;
+        } else {
+            return this.updatedPromise();
+        }
+    }
+
+    private updatedPromise() {
+        if (this.currentRecomputing) {
+            return new Promise<void>((resolve, reject) => {
+                const ul = { resolve, reject } as UpdatedListener;
+                if(!this.updatedListeners) {
+                    this.updatedListeners = [ul]
+                } else {
+                    this.updatedListeners.push(ul);
+                }
+            });
         } else {
             return Promise.resolve();
         }
+    }
+
+    private nextRecomputingCount() {
+        this.recomputingCount = ((this.recomputingCount ?? 0) % Number.MAX_SAFE_INTEGER) + 1;
+        return this.recomputingCount;
     }
 
     /**
@@ -102,17 +127,15 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     internallyUpdate(): Promise<void> {
         if (this.needsToRecompute === false || (!this.automaticallyUpdate && !this.manuallyTriggered)) {
-            return this.currentRecomputing ?? Promise.resolve();
+            return this.updatedPromise();
         }
         this.needsToRecompute = false;
         delete this.manuallyTriggered;
         if (this.isAsynchronous()) {
-            const count = ((this.recomputingCount ?? 0) % Number.MAX_SAFE_INTEGER) + 1;
-            this.recomputingCount = count;
             if (this.currentRecomputing) {
-                return this.handleBackpressure(count, this.currentRecomputing);
+                return this.handleBackpressure();
             } else {
-                return this.handleAsyncUpdate(count, false);
+                return this.handleAsyncUpdate(this.nextRecomputingCount(), false);
             }
         } else {
             this.internallySyncUpdate();
@@ -120,53 +143,47 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         }
     }
 
-    private handleBackpressure(recomputingCount: number, currentRecomputing: Promise<void>): Promise<void> {
+    private handleBackpressure(): Promise<void> {
         if (!this.backpressureConfig) {
             throw new AssertionError('AbstractPropertyImpl: backpressureConfig needs to be defined');
         }
         switch (this.backpressureConfig.type) {
             case 'switch' as BackpressureType:
                 if (this.backpressureConfig.debounceTime) {
-                    return this.handleAsyncUpdateWithDebounceTime(recomputingCount, currentRecomputing);
+                    return this.handleAsyncUpdateWithDebounceTime(this.backpressureConfig.debounceTime);
                 } else {
-                    return this.handleAsyncUpdate(recomputingCount, true);
+                    return this.handleAsyncUpdate(this.nextRecomputingCount(), true);
                 }
             case 'skip' as BackpressureType:
             default:
-                return currentRecomputing;
+                return this.updatedPromise();
         }
     }
 
-    private handleAsyncUpdateWithDebounceTime(recomputingCount: number, currentRecomputing: Promise<void>): Promise<void> {
-        const updateIfFirst = () => {
-            if (this.recomputingCount === recomputingCount) {
-                this.recomputingCount++;
-                return this.handleAsyncUpdate(this.recomputingCount, true);
-            } else {
-                return Promise.resolve();
-            }
-        };
-        if (this.backpressureConfig?.debounceTime) {
-            setTimeout(() => {
-                void updateIfFirst()
-            }, this.backpressureConfig.debounceTime);
-        }
-        return currentRecomputing.then(() => updateIfFirst());
+    private async handleAsyncUpdateWithDebounceTime(debounceTime: number): Promise<void> {
+        const recomputingCount = this.nextRecomputingCount();
+        await Promise.race([
+            this.currentRecomputing,
+            new Promise(resolve => setTimeout(() => resolve(), debounceTime))
+        ]);
+        return this.handleAsyncUpdate(recomputingCount, true);
     }
 
     private handleAsyncUpdate(recomputingCount: number, wasAlreadyProcessing: boolean): Promise<void> {
         if (recomputingCount !== this.recomputingCount) {
             Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount} is skipped (${this.recomputingCount})`);
-            return this.currentRecomputing ?? Promise.resolve();
+            return this.updatedPromise();
         }
         Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount}`);
         const update = this.internallyAsyncUpdate<unknown>();
         this.currentRecomputing = update.asyncPromise.then((value) => {
             Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount} / ${this.recomputingCount}`);
             if (recomputingCount === this.recomputingCount) {
-                update.resolve(value);
-                this.currentRecomputing = undefined;
                 Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: updated`);
+                this.currentRecomputing = undefined;
+                update.resolve(value);
+                this.updatedListeners?.forEach(ul => ul.resolve());
+                delete this.updatedListeners;
             } else if (this.currentRecomputing) { // there is already a new computing
                 return this.currentRecomputing;
             }
@@ -179,7 +196,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 }
             });
         }
-        return this.currentRecomputing;
+        return this.updatedPromise();
     }
     
     // ---------------------------------------------------------------------------------------
@@ -190,19 +207,31 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
         this.needsToRecompute = true;
         this.needsToRevalidate = true;
+
+        // chain is controlled by RuleEngine Class, it will set notifyOthers to false
+        if (notifyOthers !== false) {
+            this.updateHandler.needsAnUpdate(this);
+        }
+
         this.tellValueChangeListeners(listener => {
             if (listener.needsAnUpdate) {
                 listener.needsAnUpdate()
             }
         });
-        // chain is controlled by RuleEngine Class, it will set notifyOthers to false
-        if (notifyOthers !== false) {
-            this.updateHandler.needsAnUpdate(this);
-        }
     }
 
     hasBeenUpdated() {
         this.tellValueChangeListeners(listener => listener.updated());
+    }
+
+    errorWhileUpdating(error: any): void {
+        this.updatedListeners?.forEach(ul => ul.reject(error));
+        delete this.updatedListeners;
+        this.tellValueChangeListeners(listener => {
+            if (listener.updateFailed) {
+                listener.updateFailed(error);
+            }
+        });
     }
 
     dependencyHasBeenUpdated(dependency: PropertyDependency) {

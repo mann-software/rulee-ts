@@ -1,2 +1,2 @@
 
-export type BackpressureType = 'switch' | 'exhaust' | 'skip';
+export type BackpressureType = 'switch' | 'skip';
