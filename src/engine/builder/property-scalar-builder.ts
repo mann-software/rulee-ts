@@ -5,8 +5,8 @@ import { AbstractProperty } from "../../properties/abstract-property";
 import { ValueConverter } from "../../value-converter/value-converter";
 import { SimpleValueProvider } from "../../provider/value-provider/simple-value-provider";
 import { Choice } from "../../properties/choice";
-import { ChoiceValueConverter } from "../../value-converter/choice-value-converter";
-import { ChoiceValueProvider } from "../../provider/value-provider/choice-value-provider";
+import { ChoiceValueConverter } from "../../value-converter/choices/choice-value-converter";
+import { ChoiceValueProvider } from "../../provider/value-provider/choices/choice-value-provider";
 import { ValueProvider } from "../../provider/value-provider/value-provider";
 import { ObjectValueProvider } from "../../provider/value-provider/object-value-provider";
 import { C } from "../../value-converter/common-value-converters";
@@ -17,13 +17,18 @@ import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { EmptyValueFcn, EmptyValueFcns } from "../../provider/value-provider/empty-value-fcn";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
+import { ChoiceListConverter } from "../../value-converter/choices/choice-list-converter";
+import { assertThat } from "../../util/assertions/assertions";
 
 export class PropertyScalarBuilder {
 
     constructor(
         private readonly propertyScalar: <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) => PropertyScalarImpl<T>,
-        private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>
-    ) {}
+        private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
+        private readonly defaultEmptyChoice: Choice<any> | undefined,
+    ) {
+        assertThat(() => !defaultEmptyChoice || defaultEmptyChoice.value === null, () => 'value of defaultEmptyChoice must be null to match every Choice<T>')
+    }
 
     defineTemplate<T>(prefix: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId) => PropertyScalar<T>): PropertyTemplate<PropertyScalar<T>, T> {
         return (id: string) => factory(this, `${prefix}_${id}`);
@@ -88,11 +93,42 @@ export class PropertyScalarBuilder {
     }
 
     choicesProperty<T>(id: PropertyId, choices: Choice<T>[], emptyChoice?: Choice<T>): PropertyScalar<T> {
+        if (!emptyChoice) {
+            emptyChoice = this.defaultEmptyChoice
+        }
         const provider = new ChoiceValueProvider<T>(emptyChoice?.value ?? null);
-        const converter = new ChoiceValueConverter<T>(choices, emptyChoice);
+        const converter = new ChoiceValueConverter<T>(() => choices, emptyChoice);
         const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
         const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
-        prop.defineInitialValue(emptyChoice?.value ?? choices[0]?.value);
+        prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choices[0]?.value);
+        prop.setToInitialValue();
+        return prop;
+    }
+
+    derivedChoicesProperty1<T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, dependency: D1, derivations: {
+        derive: (dep: D1) => Choice<T>[] | null;
+    }, emptyChoice?: Choice<T>): PropertyScalar<T> {
+        const choicesSourceProperty = this.derivedProperty1(`${id}__choices__`, new ChoiceListConverter<T>(), dependency, derivations);
+        return this.choicesPropertyWithPropertySource(id, choicesSourceProperty, emptyChoice);
+    }
+
+    asyncChoicesProperty1<T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, dependency: D1, derivations: {
+        deriveAsync: (dep: D1) => Promise<Choice<T>[] | null>;
+        backpressureConfig?: BackpressureConfig;
+    }, emptyChoice?: Choice<T>): PropertyScalar<T> {
+        const choicesSourceProperty = this.derivedAsyncProperty1(`${id}__choices__`, new ChoiceListConverter<T>(), dependency, derivations);
+        return this.choicesPropertyWithPropertySource(id, choicesSourceProperty, emptyChoice);
+    }
+
+    choicesPropertyWithPropertySource<T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, emptyChoice?: Choice<T>): PropertyScalar<T> {
+        if (!emptyChoice) {
+            emptyChoice = this.defaultEmptyChoice
+        }
+        const provider = new ChoiceValueProvider<T>(emptyChoice?.value ?? null);
+        const converter = new ChoiceValueConverter<T>(() => choicesSource.getNonNullValue(), emptyChoice);
+        const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
+        const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
+        prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
         prop.setToInitialValue();
         return prop;
     }

@@ -19,6 +19,7 @@ import { V } from "../../validators/common-validators";
 import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
+import { Choice } from "../../properties/choice";
 
 export class RuleBuilder {
 
@@ -27,32 +28,12 @@ export class RuleBuilder {
     }
     
     private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>;
+    private readonly defaultEmptyChoice: Choice<any> | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
 
-    private readonly propertyScalarBuilder = new PropertyScalarBuilder(
-        <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) =>
-            this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig),
-        <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop)
-    );
-
-    get scalar() {
-        return this.propertyScalarBuilder;
-    }
-
-    private readonly groupOfPropertiesBuilder = new GroupOfPropertiesBuilder(
-        <T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
-            this.groupOfProperties(id, properties, exportFcn, importFcn)
-    );
-
-    get group() {
-        return this.groupOfPropertiesBuilder;
-    }
-
-    private readonly triggerBuilder = new TriggerBuilder();
-
-    get trigger() {
-        return this.triggerBuilder;
-    }
+    readonly scalar: PropertyScalarBuilder;
+    readonly group: GroupOfPropertiesBuilder;
+    readonly trigger = new TriggerBuilder();
 
     constructor(
         options: RuleBuilderOptions,
@@ -68,6 +49,23 @@ export class RuleBuilder {
             type: "switch",
             debounceTime: 40
         });
+        if (options.defaultEmptyChoiceDisplayValue) {
+            this.defaultEmptyChoice = {
+                value: null,
+                displayValue: options.defaultEmptyChoiceDisplayValue
+            };
+        }
+
+        this.scalar = new PropertyScalarBuilder(
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) =>
+                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig),
+            <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
+            this.defaultEmptyChoice,
+        );
+        this.group = new GroupOfPropertiesBuilder(
+            <T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
+                this.groupOfProperties(id, properties, exportFcn, importFcn)
+        );
     }
 
     private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig): PropertyScalarImpl<T> {

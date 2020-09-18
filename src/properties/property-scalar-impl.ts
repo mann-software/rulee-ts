@@ -69,6 +69,10 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         Logger.trace(() => `PropertyScalarImpl.setToInitialValue ${this.id}: ${initialValue}`);
     }
 
+    getInitialValue() {
+        return this.initialValue ?? null;
+    }
+
     protected getSpecialisedValidationResult() {
         return this.scalarValidators.reduce((res, sv) => {
             const msg = sv.validate(this);

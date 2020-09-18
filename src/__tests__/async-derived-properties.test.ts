@@ -25,7 +25,7 @@ beforeEach(() => {
     });
 });
 
-test('async derived properties work', () => {
+test('async derived properties work', async () => {
 
     // initial
     expect(propB.isProcessing()).toBe(false);
@@ -66,7 +66,7 @@ test('async derived properties work', () => {
     }, 3500);
 });
 
-test('async derived properties are only processing if needed', () => {
+test('async derived properties are only processing if needed', async () => {
 
     void propC.awaitValue().then(() => {
         // the next time it resolves immediately since no dependeny changed
@@ -99,7 +99,7 @@ test('async derived properties are only processing if needed', () => {
     }, 3500);
 });
 
-test('async derived properties are only processing if needed - part II', () => {
+test('async derived properties are only processing if needed - part II', async () => {
 
     // when awaiting value of propB, propC will not be derived
     void propB.awaitValue();
@@ -115,7 +115,7 @@ test('async derived properties are only processing if needed - part II', () => {
     }, 1500);
 });
 
-test('getValue should NOT start async processing but awaitValue should do if needed', () => {
+test('getValue should NOT start async processing but awaitValue should do if needed', async () => {
 
     expect(propB.isProcessing()).toBe(false);
     propB.getValue();

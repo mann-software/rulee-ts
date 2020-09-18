@@ -7,6 +7,10 @@ export interface PropertyScalar<T> extends AbstractProperty<T> {
      */
     setToInitialValue(): void;
     /**
+     * Gets the initial value
+     */
+    getInitialValue(): T | null;
+    /**
      * Performs a conversion on getValue() according to the used converter
      */
     getDisplayValue(): string;
