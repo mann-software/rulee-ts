@@ -19,6 +19,7 @@ import { EmptyValueFcn, EmptyValueFcns } from "../../provider/value-provider/emp
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { ChoiceListConverter } from "../../value-converter/choices/choice-list-converter";
 import { assertThat } from "../../util/assertions/assertions";
+import { PropertySourceChoicesProvider } from "../../provider/value-provider/choices/property-source-choices-provider";
 
 export class PropertyScalarBuilder {
 
@@ -94,9 +95,9 @@ export class PropertyScalarBuilder {
 
     choicesProperty<T>(id: PropertyId, choices: Choice<T>[], emptyChoice?: Choice<T>): PropertyScalar<T> {
         if (!emptyChoice) {
-            emptyChoice = this.defaultEmptyChoice
+            emptyChoice = this.defaultEmptyChoice;
         }
-        const provider = new ChoiceValueProvider<T>(emptyChoice?.value ?? null);
+        const provider = new ChoiceValueProvider<T>(choices, emptyChoice);
         const converter = new ChoiceValueConverter<T>(() => choices, emptyChoice);
         const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
         const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
@@ -122,12 +123,12 @@ export class PropertyScalarBuilder {
 
     choicesPropertyWithPropertySource<T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, emptyChoice?: Choice<T>): PropertyScalar<T> {
         if (!emptyChoice) {
-            emptyChoice = this.defaultEmptyChoice
+            emptyChoice = this.defaultEmptyChoice;
         }
-        const provider = new ChoiceValueProvider<T>(emptyChoice?.value ?? null);
+        const provider = new PropertySourceChoicesProvider<T>(choicesSource, emptyChoice);
         const converter = new ChoiceValueConverter<T>(() => choicesSource.getNonNullValue(), emptyChoice);
         const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
-        const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
+        const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource]);
         prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
         prop.setToInitialValue();
         return prop;

@@ -11,6 +11,7 @@ import { Logger } from "../util/logger/logger";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { EmptyValueFcn } from "../provider/value-provider/empty-value-fcn";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
+import { Choice } from "./choice";
 
 export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements PropertyScalar<T> {
 
@@ -48,7 +49,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return {
             asyncPromise: this.valueProvider.getValue() as Promise<T | null>,
             resolve: value => {
-                console.log(`${this.id} - ${value}`)
                 this.currentValue = value;
             }
         }
@@ -161,6 +161,10 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     async awaitValue(): Promise<T | null> {
         await this.awaitAsyncUpdate();
         return this.getCurrentValue();
+    }
+
+    getChoices(): Choice<T>[] | undefined {
+        return this.valueProvider.getChoices?.();
     }
 
     get<A>(id: AttributeId<A>): A | undefined {

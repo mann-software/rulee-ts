@@ -8,6 +8,11 @@ test('static property choice WITHOUT default choice and WITHOUT empty choice', (
         { value: 'b', displayValue: 'B' },
     ]);
 
+    expect(propA.getChoices()).toStrictEqual([
+        { value: 'a', displayValue: 'A' },
+        { value: 'b', displayValue: 'B' }
+    ]);
+
     expect(propA.getValue()).toBe('a');
     expect(propA.getDisplayValue()).toBe('A');
 
@@ -32,6 +37,12 @@ test('static property choice WITHOUT default choice and WITH empty choice', () =
         { value: 2, displayValue: 'B' },
     ], { value: null, displayValue: '...' });
 
+    expect(propB.getChoices()).toStrictEqual([
+        { value: null, displayValue: '...' },
+        { value: 1, displayValue: 'A' },
+        { value: 2, displayValue: 'B' }
+    ]);
+
     expect(propB.getValue()).toBe(null);
     expect(propB.getDisplayValue()).toBe('...');
 
@@ -52,6 +63,7 @@ test('static property choice WITHOUT default choice and WITHOUT ANY choice', () 
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
     const propC = ruleBuilder.scalar.choicesProperty('PROP_C', []);
 
+    expect(propC.getChoices()).toStrictEqual([]);
     expect(propC.getValue()).toBe(null);
     expect(propC.getDisplayValue()).toBe('');
 });
@@ -59,6 +71,10 @@ test('static property choice WITHOUT default choice and WITHOUT ANY choice', () 
 test('static property choice WITH default choice and WITHOUT ANY choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory({ defaultEmptyChoiceDisplayValue: '...' });
     const propD = ruleBuilder.scalar.choicesProperty('PROP_D', []);
+
+    expect(propD.getChoices()).toStrictEqual([
+        { value: null, displayValue: '...' }
+    ]);
 
     expect(propD.getValue()).toBe(null);
     expect(propD.getDisplayValue()).toBe('...');
@@ -81,11 +97,24 @@ test('derived property choice', () => {
 
     expect(propE.getValue()).toBe(false);
     expect(propF.getValue()).toBe(null);
+    expect(propF.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' }
+    ]);
 
     propF.setValue(true);
     expect(propF.getValue()).toBe(true);
     expect(propF.getDisplayValue()).toBe('');
+    expect(propF.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' }
+    ]);
 
     propE.setValue(true);
     expect(propF.getDisplayValue()).toBe('Yes');
+    expect(propF.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' },
+        { value: true, displayValue: 'Yes' }
+    ]);
 });

@@ -14,7 +14,8 @@ export class ChoiceValueConverter<T> implements ValueConverter<T> {
 
     fromDisplayValue(value: string | null): T | null {
         const choice = this.choiceFcn().find(c => c.displayValue === value);
-        return choice?.value ?? this.emptyChoice?.value ?? null;
+        return choice?.value 
+            ?? (value === this.emptyChoice?.displayValue ? this.emptyChoice.value :  null);
     }
 
     asDisplayValue(value: T | null): string {
@@ -22,8 +23,8 @@ export class ChoiceValueConverter<T> implements ValueConverter<T> {
             return this.emptyChoice?.displayValue ?? '';
         } else {
             const choice = this.choiceFcn().find(c => c.value === value);
-            return choice?.displayValue ?? (value === this.emptyChoice?.value 
-                ? this.emptyChoice.displayValue :  '');
+            return choice?.displayValue 
+                ?? (value === this.emptyChoice?.value ? this.emptyChoice.displayValue :  '');
         }
     }
 

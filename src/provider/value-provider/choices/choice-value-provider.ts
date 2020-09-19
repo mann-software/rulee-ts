@@ -1,11 +1,14 @@
+import { Choice } from "../../../properties/choice";
 import { ValueProvider } from "../value-provider";
 
 export class ChoiceValueProvider<T> implements ValueProvider<T> {
 
     private value: T | null;
+    private readonly choiceList: Choice<T>[];
 
-    constructor(emptyChoiceValue?: T | null) {
-        this.value = emptyChoiceValue ?? null;
+    constructor(choices: Choice<T>[], emptyChoice?: Choice<T>) {
+        this.value = emptyChoice?.value ?? null;
+        this.choiceList = emptyChoice ? [emptyChoice, ...choices] : choices;
     }
 
     getValue(): T | null {
@@ -14,6 +17,10 @@ export class ChoiceValueProvider<T> implements ValueProvider<T> {
 
     setValue(value: T | null): void {
         this.value = value;
+    }
+
+    getChoices() {
+        return this.choiceList;
     }
 
     isAsynchronous(): boolean {
