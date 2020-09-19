@@ -1,7 +1,7 @@
-import { ValueConverter } from "./../value-converter";
+import { ValueConverter } from "../value-converter";
 import { Choice } from "../../properties/choice";
 
-export class ChoiceValueConverter<T> implements ValueConverter<T> {
+export class SelectValueConverter<T> implements ValueConverter<T> {
 
     private readonly choiceFcn: () => Choice<T>[];
 

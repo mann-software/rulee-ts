@@ -2,7 +2,7 @@ import { Choice } from "../../../properties/choice";
 import { PropertyScalar } from "../../../properties/property-scalar";
 import { ValueProvider } from "../value-provider";
 
-export class PropertySourceChoicesProvider<T> implements ValueProvider<T> {
+export class SelectValueProvider<T> implements ValueProvider<T> {
 
     private value: T | null;
 
