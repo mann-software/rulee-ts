@@ -18,10 +18,10 @@ beforeEach(() => {
     propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
     propB = ruleBuilder.scalar.stringProperty('PROP_B', { initialValue: '42' });
     propBNumber = ruleBuilder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
-    propC = ruleBuilder.scalar.derivedProperty2('PROP_C', C.number.default, propA, propB, {
+    propC = ruleBuilder.scalar.derived.sync2('PROP_C', C.number.default, propA, propB, {
         derive: (propA, propB) => propA.getNonNullValue().length + propB.getNonNullValue().length
     });
-    propD = ruleBuilder.scalar.derivedAsyncProperty1('PROP_D', C.number.default, propB, {
+    propD = ruleBuilder.scalar.derived.async1('PROP_D', C.number.default, propB, {
         deriveAsync: (propA) => valueAfterTime(propA.getNonNullValue().length, 40)
     });
 });

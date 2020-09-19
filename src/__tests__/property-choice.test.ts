@@ -3,7 +3,7 @@ import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
 test('static property choice WITHOUT default choice and WITHOUT empty choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
 
-    const propA = ruleBuilder.scalar.choicesProperty('PROP_A', [
+    const propA = ruleBuilder.scalar.select.static('PROP_A', [
         { value: 'a', displayValue: 'A' },
         { value: 'b', displayValue: 'B' },
     ]);
@@ -32,7 +32,7 @@ test('static property choice WITHOUT default choice and WITHOUT empty choice', (
 test('static property choice WITHOUT default choice and WITH empty choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
 
-    const propB = ruleBuilder.scalar.choicesProperty('PROP_B', [
+    const propB = ruleBuilder.scalar.select.static('PROP_B', [
         { value: 1, displayValue: 'A' },
         { value: 2, displayValue: 'B' },
     ], { value: null, displayValue: '...' });
@@ -61,7 +61,7 @@ test('static property choice WITHOUT default choice and WITH empty choice', () =
 
 test('static property choice WITHOUT default choice and WITHOUT ANY choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
-    const propC = ruleBuilder.scalar.choicesProperty('PROP_C', []);
+    const propC = ruleBuilder.scalar.select.static('PROP_C', []);
 
     expect(propC.getChoices()).toStrictEqual([]);
     expect(propC.getValue()).toBe(null);
@@ -70,7 +70,7 @@ test('static property choice WITHOUT default choice and WITHOUT ANY choice', () 
 
 test('static property choice WITH default choice and WITHOUT ANY choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory({ defaultEmptyChoiceDisplayValue: '...' });
-    const propD = ruleBuilder.scalar.choicesProperty('PROP_D', []);
+    const propD = ruleBuilder.scalar.select.static('PROP_D', []);
 
     expect(propD.getChoices()).toStrictEqual([
         { value: null, displayValue: '...' }
@@ -83,7 +83,7 @@ test('static property choice WITH default choice and WITHOUT ANY choice', () => 
 test('derived property choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
     const propE = ruleBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
-    const propF = ruleBuilder.scalar.derivedChoicesProperty1('PROP_F', propE, {
+    const propF = ruleBuilder.scalar.select.derived1('PROP_F', propE, {
         derive: (propE) => {
             const choices = [
                 { value: false, displayValue: 'No' }

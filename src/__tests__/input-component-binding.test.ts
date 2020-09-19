@@ -19,12 +19,12 @@ beforeEach(() => {
     propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: '1' });
     inputA = new InputComponentMock(propA);
 
-    propB = ruleBuilder.scalar.derivedProperty1('PROP_B', C.string.identity, propA, {
+    propB = ruleBuilder.scalar.derived.sync1('PROP_B', C.string.identity, propA, {
         derive: (propA) => `< ${propA.getDisplayValue()} >`
     });
     inputB = new InputComponentMock(propB);
 
-    propC = ruleBuilder.scalar.derivedAsyncProperty1('PROP_C', C.string.identity, propA, {
+    propC = ruleBuilder.scalar.derived.async1('PROP_C', C.string.identity, propA, {
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 100)
     });
     inputC = new InputComponentMock(propC);

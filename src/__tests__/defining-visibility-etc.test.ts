@@ -37,7 +37,7 @@ test('defining visibility', () => {
 
 test('defining "requiredIfVisible"', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
-    const propA = ruleBuilder.scalar.choicesProperty('PROP_A', [
+    const propA = ruleBuilder.scalar.select.static('PROP_A', [
         { value: 0, displayValue: 'Not visible, not required' },
         { value: 1, displayValue: 'Visible, but not required' },
         { value: 2, displayValue: 'Visible and required' }
