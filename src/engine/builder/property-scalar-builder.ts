@@ -22,6 +22,7 @@ import { assertThat } from "../../util/assertions/assertions";
 import { SelectValueProvider } from "../../provider/value-provider/choices/select-value-provider";
 import { TypeaheadValueProvider } from "../../provider/value-provider/choices/typeahead-value-provider";
 import { TypeaheadValueConverter } from "../../value-converter/choices/typeahead-value-converter";
+import { PropertyScalarWithChoices, upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
 
 export class PropertyScalarBuilder {
 
@@ -101,12 +102,12 @@ export class PropertyScalarBuilder {
                 emptyChoice = this.defaultEmptyChoice;
             }
             const provider = new ChoiceValueProvider<T>(choices, emptyChoice);
-            const converter = new SelectValueConverter<T>(() => choices, emptyChoice);
+            const converter = new SelectValueConverter<T>(choices, emptyChoice);
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
             const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choices[0]?.value);
             prop.setToInitialValue();
-            return prop as PropertyScalar<T>;
+            return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
     
         derived1: <T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, dependency: D1, derivations: {
@@ -134,14 +135,14 @@ export class PropertyScalarBuilder {
             const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource]);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
             prop.setToInitialValue();
-            return prop as PropertyScalar<T>;
+            return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());     
         }
     }
 
     typeahead = {
         async: <T>(id: PropertyId, options: {
             fetchChoices: (currentText: string) => Promise<Choice<T>[]>;
-            choiceSelected: (value: T) => void;
+            choiceSelected?: (value: T) => void;
         }) => {
             const inputSourceProperty = this.stringProperty(`${id}__input__`);
             const choicesSourceProperty = this.derived.async1(`${id}__choices__`, new ChoiceListConverter<T>(), inputSourceProperty, {
@@ -152,10 +153,10 @@ export class PropertyScalarBuilder {
 
         withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>) => {
             const provider = new TypeaheadValueProvider<T>(inputSource, choicesSource);
-            const converter = new TypeaheadValueConverter<T>(() => choicesSource.getNonNullValue());
+            const converter = new TypeaheadValueConverter<T>();
             const emptyValueFcn: EmptyValueFcn<[T | null, string]> = (val) => val?.[0] == null;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [inputSource, choicesSource]);
-            return prop as PropertyScalar<[T | null, string]>;
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource]);
+            return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         }
     }
 

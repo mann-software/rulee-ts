@@ -1,4 +1,3 @@
-import { Choice } from "../../properties/choice";
 
 export interface ValueProvider<T> {
     /**
@@ -12,11 +11,6 @@ export interface ValueProvider<T> {
      * @param value new value
      */
     setValue(value: T | null): void;
-
-    /**
-     * If there are choices defined, this fcn exists and returns a choice list
-     */
-    getChoices?(): Choice<T>[];
 
     /**
      * Indicates that geting the value requires asynchronous processing.

@@ -1,6 +1,7 @@
 import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
+import { valueAfterTime } from "./utils/timing-utils";
 
-test('static property choice WITHOUT default choice and WITHOUT empty choice', () => {
+test('static property select WITHOUT default choice and WITHOUT empty choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
 
     const propA = ruleBuilder.scalar.select.static('PROP_A', [
@@ -29,7 +30,7 @@ test('static property choice WITHOUT default choice and WITHOUT empty choice', (
     expect(propA.getDisplayValue()).toBe('');
 });
 
-test('static property choice WITHOUT default choice and WITH empty choice', () => {
+test('static property select WITHOUT default choice and WITH empty choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
 
     const propB = ruleBuilder.scalar.select.static('PROP_B', [
@@ -59,7 +60,7 @@ test('static property choice WITHOUT default choice and WITH empty choice', () =
     expect(propB.getDisplayValue()).toBe('');
 });
 
-test('static property choice WITHOUT default choice and WITHOUT ANY choice', () => {
+test('static property select WITHOUT default choice and WITHOUT ANY choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
     const propC = ruleBuilder.scalar.select.static('PROP_C', []);
 
@@ -68,7 +69,7 @@ test('static property choice WITHOUT default choice and WITHOUT ANY choice', () 
     expect(propC.getDisplayValue()).toBe('');
 });
 
-test('static property choice WITH default choice and WITHOUT ANY choice', () => {
+test('static property select WITH default choice and WITHOUT ANY choice', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory({ defaultEmptyChoiceDisplayValue: '...' });
     const propD = ruleBuilder.scalar.select.static('PROP_D', []);
 
@@ -80,7 +81,7 @@ test('static property choice WITH default choice and WITHOUT ANY choice', () => 
     expect(propD.getDisplayValue()).toBe('...');
 });
 
-test('derived property choice', () => {
+test('derived property select', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
     const propE = ruleBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
     const propF = ruleBuilder.scalar.select.derived1('PROP_F', propE, {
@@ -113,6 +114,58 @@ test('derived property choice', () => {
     propE.setValue(true);
     expect(propF.getDisplayValue()).toBe('Yes');
     expect(propF.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' },
+        { value: true, displayValue: 'Yes' }
+    ]);
+});
+
+test('async derived property select', async () => {
+    const [ruleBuilder] = ruleBuilderAndEngineFactory();
+    const propG = ruleBuilder.scalar.booleanProperty('PROP_G', { initialValue: false });
+    const propH = ruleBuilder.scalar.select.asyncDerived1('PROP_H', propG, {
+        deriveAsync: (propG) => {
+            const choices = [
+                { value: false, displayValue: 'No' }
+            ];
+            if (propG.getValue()) {
+                choices.push({ value: true, displayValue: 'Yes' })
+            }
+            return valueAfterTime(choices, 50);
+        }
+    }, { value: null, displayValue: 'Undetermined' });
+
+    expect(propG.getValue()).toBe(false);
+    expect(propH.getValue()).toBe(null);
+    expect(propH.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' }
+    ]);
+
+    await propH.awaitValue();
+    expect(propH.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' }
+    ]);
+
+    propH.setValue(true);
+    expect(propH.getValue()).toBe(true);
+    expect(propH.getDisplayValue()).toBe('');
+    expect(propH.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' }
+    ]);
+
+    propG.setValue(true);
+    expect(propH.getValue()).toBe(true);
+    expect(propH.getDisplayValue()).toBe('');
+    expect(propH.getChoices()).toStrictEqual([
+        { value: null, displayValue: 'Undetermined' },
+        { value: false, displayValue: 'No' }
+    ]);
+
+    await propH.awaitValue();
+    expect(propH.getDisplayValue()).toBe('Yes');
+    expect(propH.getChoices()).toStrictEqual([
         { value: null, displayValue: 'Undetermined' },
         { value: false, displayValue: 'No' },
         { value: true, displayValue: 'Yes' }

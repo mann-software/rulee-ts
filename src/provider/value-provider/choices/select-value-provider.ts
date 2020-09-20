@@ -30,7 +30,7 @@ export class SelectValueProvider<T> implements ValueProvider<T> {
     }
 
     isAsynchronous(): boolean {
-        return this.choicesSource.isAsynchronous();
+        return false;
     }
 
     isProcessing(): boolean {

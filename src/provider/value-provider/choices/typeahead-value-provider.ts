@@ -4,37 +4,40 @@ import { ValueProvider } from "../value-provider";
 
 export class TypeaheadValueProvider<T> implements ValueProvider<[T | null, string]> {
 
-    private value: T | null = null;
-
     constructor(
         private readonly inputSource: PropertyScalar<string>,
         private readonly choicesSource: PropertyScalar<Choice<T>[]>
     ) { }
 
     getValue(): [T | null, string] | null {
-        return [this.value, this.inputSource.getNonNullValue()];
+        const displayValue = this.inputSource.getNonNullValue();
+        const choice = this.choicesSource.getNonNullValue().find(c => c.displayValue === displayValue);
+        if (choice) {
+            return [choice.value, displayValue];
+        }
+        return [null, displayValue];
     }
 
     setValue(value: [T | null, string] | null): void {
-        if (value) {
-            this.value = value[0];
+        if (value != null) {
+            if (value[0] != null) {
+                const choice = this.choicesSource.getNonNullValue().find(c => c.value === value[0]);
+                if (choice) {
+                    value[1] = choice.displayValue;
+                }
+            }
             this.inputSource.setValue(value[1]);
         } else {
-            this.value = null;
             this.inputSource.setValue('');
         }
     }
 
     getChoices() {
-        return this.choicesSource.getNonNullValue()
-            .map(c => ({
-                value: [c.value, c.displayValue] as [T | null, string],
-                displayValue: c.displayValue 
-            }));
+        return this.choicesSource.getNonNullValue();
     }
 
     isAsynchronous(): boolean {
-        return this.choicesSource.isAsynchronous();
+        return false;
     }
 
     isProcessing(): boolean {

@@ -1,6 +1,5 @@
 import { AbstractProperty } from "./abstract-property";
 import { AttributeId } from "../attributes/attribute-id";
-import { Choice } from "./choice";
 
 export interface PropertyScalar<T> extends AbstractProperty<T> {
     /**
@@ -36,10 +35,6 @@ export interface PropertyScalar<T> extends AbstractProperty<T> {
      * return the up-to-date value
      */
     awaitValue(): Promise<T | null>;
-    /**
-     * Returns the choices if they were defined
-     */
-    getChoices(): Choice<T>[] | undefined;
     get<A>(id: AttributeId<A>): A | undefined;
     isRequired(): boolean;
     isVisible(): boolean;
