@@ -32,6 +32,10 @@ export class SimpleListProvider<T extends AbstractProperty<D>, D> implements Lis
         return prop;
     }
 
+    getProperty(atIndex: number): T | undefined {
+        return this.list[atIndex]?.prop;
+    }
+
     removeByIndex(idx: number): T | undefined {
         if (idx < 0 || idx >= this.list.length) {
             return;
@@ -39,6 +43,20 @@ export class SimpleListProvider<T extends AbstractProperty<D>, D> implements Lis
             const [removed] = this.list.splice(idx, 1);
             this.adjustIndices(idx);
             return removed?.prop;
+        }
+    }
+
+    moveProperty(from: number, to: number): void {
+        if (from !== to) {
+            const [prop] = this.list.splice(from, 1);
+            if (prop) {
+                this.list.splice(to, 0, prop);
+                if (from < to) {
+                    this.adjustIndices(from);
+                } else {
+                    this.adjustIndices(to);
+                }
+            }
         }
     }
 

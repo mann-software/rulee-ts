@@ -20,6 +20,9 @@ import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { Choice } from "../../properties/choice";
+import { ListOfPropertiesBuilder } from "./list-of-properties-builder";
+import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
+import { ListProvider } from "../../provider/list-provider/list-provider";
 
 export class RuleBuilder {
 
@@ -34,6 +37,7 @@ export class RuleBuilder {
     readonly scalar: PropertyScalarBuilder;
     readonly group: GroupOfPropertiesBuilder;
     readonly trigger = new TriggerBuilder();
+    readonly list: ListOfPropertiesBuilder;
 
     constructor(
         options: RuleBuilderOptions,
@@ -66,6 +70,10 @@ export class RuleBuilder {
             <T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
                 this.groupOfProperties(id, properties, exportFcn, importFcn)
         );
+        this.list =  new ListOfPropertiesBuilder(
+            <T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean) =>
+                this.listOfProperties(id, listProvider, selectedIndices, isMultiSelect)
+        );
     }
 
     private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig): PropertyScalarImpl<T> {
@@ -96,6 +104,13 @@ export class RuleBuilder {
         return prop;
     }
 
+    private listOfProperties<T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean): ListOfPropertiesImpl<T, D> {
+        const prop = new ListOfPropertiesImpl(id, listProvider, selectedIndices, isMultiSelect, this.ruleEngine);
+        this.addProperty(prop);
+        // TODO addDependencies?
+        return prop;
+    }
+
     private addDependencies(dependencyGraph: DependencyGraph, from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         if (from.length) {
             dependencyGraph.addDependencies(from, to, options);
@@ -113,12 +128,12 @@ export class RuleBuilder {
         return { name };
     }
 
-    asVisJsDataLink() {
+    asVisJsData() {
         return this.dependencyGraph.createVisJsData(this.properties);
     }
 
     generateNetworkGraphHtmlPage() {
-        const graph = this.asVisJsDataLink();
+        const graph = this.asVisJsData();
         const nodes = JSON.stringify(graph.nodes);
         const edges = JSON.stringify(graph.edges);
         const options = JSON.stringify(graph.options);

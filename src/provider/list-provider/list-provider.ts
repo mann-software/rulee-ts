@@ -5,7 +5,7 @@ export interface ListProvider<T extends AbstractProperty<D>, D> {
      * Get the list
      * If isAsynchronous() returns true, a promise is expected as result, otherwise no promise is expected
      */
-    getList(): T[]; // TODO Promise<T[]> | T[];
+    getList(): T[];
 
     /**
      * after clearing the list is empty. Supported if not read-only
@@ -22,11 +22,24 @@ export interface ListProvider<T extends AbstractProperty<D>, D> {
     addProperty(atIndex?: number): T;
 
     /**
+     * Return the property at given index
+     * @param atIndex index
+     */
+    getProperty(atIndex: number): T | undefined;
+
+    /**
      * Removes the property with the given index. Supported if not read-only.
      * Returns the property that was removed
-     * @param prop 
+     * @param idx
      */
     removeByIndex(idx: number): T | undefined;
+
+    /**
+     * Move property from index to index
+     * @param from from index
+     * @param to to index
+     */
+    moveProperty(from: number, to: number): void;
 
     /**
      * Indicates that geting the list requires asynchronous processing.
