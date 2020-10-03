@@ -22,7 +22,8 @@ import { assertThat } from "../../util/assertions/assertions";
 import { SelectValueProvider } from "../../provider/value-provider/choices/select-value-provider";
 import { TypeaheadValueProvider } from "../../provider/value-provider/choices/typeahead-value-provider";
 import { TypeaheadValueConverter } from "../../value-converter/choices/typeahead-value-converter";
-import { PropertyScalarWithChoices, upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
+import { upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
+import { ListIndex } from "../../properties/factory/list-index";
 
 export class PropertyScalarBuilder {
 
@@ -34,10 +35,10 @@ export class PropertyScalarBuilder {
         assertThat(() => !defaultEmptyChoice || defaultEmptyChoice.value === null, () => 'value of defaultEmptyChoice must be null to match every Choice<T>')
     }
 
-    defineTemplate<T>(prefix: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId) => PropertyScalar<T>): PropertyTemplate<PropertyScalar<T>, T> {
-        return (id: string) => factory(this, `${prefix}_${id}`);
+    template<T>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex) => PropertyScalar<T>): PropertyTemplate<PropertyScalar<T>, T> {
+        return (prefix: string, index?: ListIndex) => factory(this, `${prefix}_${id}`, index);
     }
- 
+
     isLike<T>(template: PropertyScalar<T>): PropertyScalar<T> {
         // TODO copy template
         return template;
@@ -47,7 +48,7 @@ export class PropertyScalarBuilder {
         return this.propertyScalar(id, new SimpleValueProvider<T>(), emptyValueFcn, valueConverter);
     }
 
-    stringProperty(id: PropertyId, options?: { 
+    stringProperty(id: PropertyId, options?: {
         valueConverter?: ValueConverter<string>;
         initialValue?: string | null;
     }): PropertyScalar<string> {
@@ -59,7 +60,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    numberProperty(id: PropertyId, options?: { 
+    numberProperty(id: PropertyId, options?: {
         valueConverter?: ValueConverter<number>;
         zeroIsConsideredAsEmpty?: boolean;
         initialValue?: number | null;
@@ -72,7 +73,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    booleanProperty(id: PropertyId, options?: { 
+    booleanProperty(id: PropertyId, options?: {
         valueConverter?: ValueConverter<boolean>;
         initialValue?: boolean | null;
     }): PropertyScalar<boolean> {
@@ -84,7 +85,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    dateProperty(id: PropertyId, options?: { 
+    dateProperty(id: PropertyId, options?: {
         valueConverter?: ValueConverter<Date>;
         initialValue?: Date | null;
     }): PropertyScalar<Date> {
@@ -109,14 +110,14 @@ export class PropertyScalarBuilder {
             prop.setToInitialValue();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
-    
+
         derived1: <T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, dependency: D1, derivations: {
             derive: (dep: D1) => Choice<T>[];
         }, emptyChoice?: Choice<T>) => {
             const choicesSourceProperty = this.derived.sync1(`${id}__choices__`, new ChoiceListConverter<T>(), dependency, derivations);
             return this.select.withPropertySource(id, choicesSourceProperty, emptyChoice);
         },
-    
+
         asyncDerived1: <T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, dependency: D1, derivations: {
             deriveAsync: (dep: D1) => Promise<Choice<T>[]>;
             backpressureConfig?: BackpressureConfig;
@@ -124,7 +125,7 @@ export class PropertyScalarBuilder {
             const choicesSourceProperty = this.derived.async1(`${id}__choices__`, new ChoiceListConverter<T>(), dependency, derivations);
             return this.select.withPropertySource(id, choicesSourceProperty, emptyChoice);
         },
-    
+
         withPropertySource: <T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, emptyChoice?: Choice<T>) => {
             if (!emptyChoice) {
                 emptyChoice = this.defaultEmptyChoice;
@@ -135,7 +136,7 @@ export class PropertyScalarBuilder {
             const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource]);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
             prop.setToInitialValue();
-            return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());     
+            return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         }
     }
 
@@ -183,9 +184,9 @@ export class PropertyScalarBuilder {
     }
 
     derived = {
-        sync1: <T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>, dependency: D1, 
+        sync1: <T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>, dependency: D1,
             derivations: {
-                derive: (dep: D1) => T | null; 
+                derive: (dep: D1) => T | null;
                 inverse?: (dep: D1, val: T | null) => void;
             },
             emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
@@ -195,7 +196,7 @@ export class PropertyScalarBuilder {
             const provider = new DerivedValueProvider<T>(dependencies, (deps) => derivations.derive(deps[0] as D1), invFcn);
             return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies) as PropertyScalar<T>;
         },
-    
+
         sync2: <T, TD, D1 extends AbstractProperty<TD>, D2 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
             dependency1: D1, dependency2: D2, derivations: {
                 derive: (dep1: D1, dep2: D2) => T | null;
@@ -208,7 +209,7 @@ export class PropertyScalarBuilder {
             const provider = new DerivedValueProvider<T>(dependencies, (deps) => derivations.derive(deps[0] as D1, deps[1] as D2), invFcn);
             return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies) as PropertyScalar<T>;
         },
-    
+
         async0: <T>(id: PropertyId, valueConverter: ValueConverter<T>, derivations: {
                 deriveAsync: () => Promise<T | null>;
                 inverseAsync?: (val: T | null) => Promise<unknown>;
@@ -221,7 +222,7 @@ export class PropertyScalarBuilder {
             const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => derivations.deriveAsync(), invFcn);
             return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies, undefined, derivations.backpressureConfig) as PropertyScalar<T>;
         },
-    
+
         async1: <T, TD, D1 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
             dependency: D1, derivations: {
                 deriveAsync: (dep: D1) => Promise<T | null>;
@@ -235,7 +236,7 @@ export class PropertyScalarBuilder {
             const provider = new DerivedAsyncValueProvider<T>(dependencies, (deps) => derivations.deriveAsync(deps[0] as D1), invFcn);
             return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies, undefined, derivations.backpressureConfig) as PropertyScalar<T>;
         },
-    
+
         async2: <T, TD, D1 extends AbstractProperty<TD>, D2 extends AbstractProperty<TD>>(id: PropertyId, valueConverter: ValueConverter<T>,
             dependency1: D1, dependency2: D2, derivations: {
                 deriveAsync: (dep: D1, dep2: D2) => Promise<T | null>;

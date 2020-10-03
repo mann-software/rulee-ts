@@ -5,12 +5,22 @@ import { DataLink } from "./data-link/data-link";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { ValidationMessage } from "../validators/validation-message";
 
+export type DataTypeOfProperty<T extends AbstractProperty<unknown>> =
+    T extends AbstractProperty<string> ? string :
+    (T extends AbstractProperty<number> ? number :
+    (T extends AbstractProperty<boolean> ? boolean :
+    (T extends AbstractProperty<Date> ? Date :
+    (T extends AbstractProperty<string[]> ? string[] :
+    (T extends AbstractProperty<number[]> ? number[] :
+    (T extends AbstractProperty<boolean[]> ? boolean[] :
+    (T extends AbstractProperty<Date[]> ? Date[] : unknown)))))));
+
 export interface AbstractProperty<D> extends DataLink<D> {
     readonly id: PropertyId;
 
     /**
      * Method to call if the property changed or even might have changed.
-     * The property will be updated by the rule engine. 
+     * The property will be updated by the rule engine.
      * Usually no need to call this method for the user of ruleengine, except for this case:
      * Call the method if the value changed by not setting it via the ruleengine to
      * inform the ruleengine it has changed
@@ -34,7 +44,7 @@ export interface AbstractProperty<D> extends DataLink<D> {
      * Indicates that the current property has an valid state
      */
     isValid(): boolean;
-    
+
     /**
      * Gets current Validation Messages
      */
@@ -49,7 +59,7 @@ export interface AbstractProperty<D> extends DataLink<D> {
      * The config that defines how to cope with backpressure.
      * The default config object of the rule builder is frozen,
      * but you can set another config object.
-     * 
+     *
      * Defined iff property is asynchronous
      */
     backpressureConfig?: BackpressureConfig;
