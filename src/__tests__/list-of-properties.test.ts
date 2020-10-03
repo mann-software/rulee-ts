@@ -1,6 +1,5 @@
 import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
 import { RuleBuilder } from "../engine/builder/rule-builder";
-import { ListIndex } from "../properties/factory/list-index";
 import { SelectionMode } from "../engine/builder/list-of-properties-builder";
 
 let ruleBuilder: RuleBuilder;
@@ -10,18 +9,19 @@ beforeEach(() => {
 });
 
 test('list of property: add existing property', () => {
-    const listItemTemplate = (id: string, index?: ListIndex) => {
-        const itemProp = ruleBuilder.scalar.stringProperty(id);
+    const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
+        const itemProp = builder.stringProperty(id);
         ruleBuilder.scalar.bind(itemProp)
             .defineRequiredIfVisible(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
-    }
+    });
+
     const propList = ruleBuilder.list.createList('PROP_LIST', listItemTemplate);
 
     expect(propList.exportData()).toStrictEqual([]);
 
     const propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: '123' });
-    propList.addProperty({ property: propA });
+    propList.addProperty(propA);
     propList.addProperty();
 
     expect(propList.exportData()).toStrictEqual(['123', '']);
@@ -34,25 +34,24 @@ test('list of property: add existing property', () => {
     // however if you need them to be in sync you could use RuleEngine.linkPropertyData
     expect(propList.exportData()).toStrictEqual(['123', '']);
     expect(propA.getValue()).toBe('abc');
-    expect(propList.getProperty(0)?.id).toBe('PROP_LIST_0');
+    expect(propList.getProperty(0)?.id).toBe('PROP_LIST_0_ITEM');
     expect(propA.id).toBe('PROP_A');
 });
 
 test('list of property: add properties and select property', () => {
-    const listItemTemplate = (id: string, index?: ListIndex) => {
-        const itemProp = ruleBuilder.scalar.stringProperty(id);
+    const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
+        const itemProp = builder.stringProperty(id);
         ruleBuilder.scalar.bind(itemProp)
             .defineRequiredIfVisible(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
-    }
+    });
     const propList = ruleBuilder.list.createList('PROP_LIST', listItemTemplate);
 
     expect(propList.exportData()).toStrictEqual([]);
 
-    propList.addProperties(2);
-    propList.getProperty(0)?.setValue('123')
+    propList.addPropertyData(['123', '456']);
 
-    expect(propList.exportData()).toStrictEqual(['123', '']);
+    expect(propList.exportData()).toStrictEqual(['123', '456']);
     expect(propList.getProperty(0)?.isRequired()).toBe(true);
     expect(propList.getProperty(1)?.isRequired()).toBe(false);
 
@@ -61,12 +60,12 @@ test('list of property: add properties and select property', () => {
 });
 
 test('list of property: select properties multiple properties and move properties around', () => {
-    const listItemTemplate = (id: string, index?: ListIndex) => {
-        const itemProp = ruleBuilder.scalar.stringProperty(id);
+    const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
+        const itemProp = builder.stringProperty(id);
         ruleBuilder.scalar.bind(itemProp)
             .defineRequiredIfVisible(() => !!index?.isLast());
         return itemProp;
-    }
+    });
     const propList = ruleBuilder.list.createList('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);
     propList.addProperties(3);
 
@@ -112,4 +111,3 @@ test('list of property: select properties multiple properties and move propertie
     propList.unselectAll();
     expect(propList.getSelectedIndices()).toStrictEqual([]);
 });
-

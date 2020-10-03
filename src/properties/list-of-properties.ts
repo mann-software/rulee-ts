@@ -10,6 +10,8 @@ export interface ListOfProperties<T extends AbstractProperty<D>, D> extends Abst
      */
     readonly length: number;
 
+    readonly list: T[];
+
     /**
      * Get Property at index, posiblly undefined if there index is out of range
      * @param index index
@@ -29,14 +31,21 @@ export interface ListOfProperties<T extends AbstractProperty<D>, D> extends Abst
      * @param property property whose data will be added
      * @param atIndex optional index
      */
-    addProperty(options?: { property?: T; atIndex?: number }): T;
+    addProperty(property?: T, atIndex?: number): T;
 
     /**
      * Instantiates properties and adds them to the list
-     * @param count number of properties to create
+     * @param properties number of properties to create, or properties whose data will be added
      * @param atIndex optionally provide an index
      */
-    addProperties(count: number, atIndex?: number): T[];
+    addProperties(properties: number | T[], atIndex?: number): T[];
+
+    /**
+     * Instantiates properties and adds them to the list
+     * @param data the data for the freshly created properties
+     * @param atIndex optionally provide an index
+     */
+    addPropertyData(data: (D | null)[], atIndex?: number): T[];
 
     /**
      * Swaps the position of two properties

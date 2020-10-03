@@ -4,7 +4,7 @@ export class ListIndexImpl implements ListIndex {
 
     constructor(public index: number, private readonly list: unknown[], private readonly getSelected: (idx: number) => boolean) { }
 
-    idx(): number {
+    get idx(): number {
         return this.index;
     }
 

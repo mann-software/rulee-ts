@@ -13,6 +13,10 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         return this.listProvider.getList().length;
     }
 
+    get list() {
+        return this.listProvider.getList();
+    }
+
     constructor(
         readonly id: string,
         private readonly listProvider: ListProvider<T, D>,
@@ -39,21 +43,37 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         return this.listProvider.getProperty(index);
     }
 
-    addProperty(options?: { property?: T; atIndex?: number }): T {
-        const prop = this.listProvider.addProperty(options?.atIndex);
-        if (options?.property) {
-            prop.importData(options.property.exportData());
-            prop.needsAnUpdate();
+    addProperty(property?: T, atIndex?: number, dontNotify?: boolean): T {
+        const prop = this.listProvider.addProperty(atIndex);
+        if (property) {
+            prop.importData(property.exportData());
+        }
+        if (!dontNotify) {
+            this.needsAnUpdate();
         }
         return prop;
     }
 
-    addProperties(count: number, atIndex?: number): T[] {
+    addProperties(properties: number | T[], atIndex?: number): T[] {
         const res: T[] = [];
+        const count = typeof properties === 'number' ? properties : properties.length;
         for (let c = 0; c < count; c++) {
-            res.push(this.addProperty({ atIndex }));
+            const property = typeof properties === 'number' ? undefined : properties[c];
+            res.push(this.addProperty(property, atIndex, true));
         }
+        this.needsAnUpdate();
         return res;
+    }
+
+    addPropertyData(data: (D | null)[], atIndex?: number): T[] {
+        const result = data.map((d, i) => {
+            const index = atIndex !== undefined ? atIndex + i : undefined;
+            const prop = this.listProvider.addProperty(index);
+            prop.importData(d);
+            return prop;
+        });
+        this.needsAnUpdate();
+        return result;
     }
 
     swapProperties(indexA: number, indexB: number): void {
@@ -73,6 +93,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
             } else if (bIdx >= 0) {
                 this.selectedIndices.splice(bIdx, 1, indexA);
             }
+            this.needsAnUpdate();
         }
     }
 
@@ -82,6 +103,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         if (selectedIdx >= 0) {
             this.selectedIndices.splice(fromIndex, 1, toIndex);
         }
+        this.needsAnUpdate();
     }
 
     removePropertyAtIndex(index: number): T | undefined {
@@ -96,7 +118,11 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
 
             }
         }
-        return this.listProvider.removeByIndex(index);
+        const result = this.listProvider.removeByIndex(index);
+        if (result) {
+            this.needsAnUpdate();
+        }
+        return result;
     }
 
     removeProperty(property: T): boolean {
@@ -108,9 +134,11 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         if (this.isMultiSelect) {
             if (!this.selectedIndices.includes(index)) {
                 this.selectedIndices.push(index);
+                this.needsAnUpdate();
             }
         } else {
             this.selectedIndices.splice(0, this.selectProperty.length, index);
+            this.needsAnUpdate();
         }
     }
 
@@ -142,6 +170,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         const idxOfIndex = this.selectedIndices.findIndex(selected => selected === index);
         if (idxOfIndex >= 0) {
             this.selectedIndices.splice(idxOfIndex, 1);
+            this.needsAnUpdate();
         }
     }
 
@@ -152,6 +181,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
 
     unselectAll(): void {
         this.selectedIndices.splice(0, this.selectedIndices.length);
+        this.needsAnUpdate();
     }
 
     isValid(): boolean {
