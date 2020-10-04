@@ -22,7 +22,7 @@ import { assertThat } from "../../util/assertions/assertions";
 import { SelectValueProvider } from "../../provider/value-provider/choices/select-value-provider";
 import { TypeaheadValueProvider } from "../../provider/value-provider/choices/typeahead-value-provider";
 import { TypeaheadValueConverter } from "../../value-converter/choices/typeahead-value-converter";
-import { upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
+import { PropertyScalarWithChoices, upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
 import { ListIndex } from "../../properties/factory/list-index";
 
 export class PropertyScalarBuilder {
@@ -143,21 +143,27 @@ export class PropertyScalarBuilder {
     typeahead = {
         async: <T>(id: PropertyId, options: {
             fetchChoices: (currentText: string) => Promise<Choice<T>[]>;
-            choiceSelected?: (value: T) => void;
-        }) => {
+            minimumTextLength?: number;
+        }): PropertyScalarWithChoices<[T | null, string], T> => {
             const inputSourceProperty = this.stringProperty(`${id}__input__`);
             const choicesSourceProperty = this.derived.async1(`${id}__choices__`, new ChoiceListConverter<T>(), inputSourceProperty, {
-                deriveAsync: (text) => options.fetchChoices(text.getNonNullValue())
+                deriveAsync: (inputProperty) => {
+                    const text = inputProperty.getNonNullValue();
+                    if (options.minimumTextLength && text.length < options.minimumTextLength) {
+                        return Promise.resolve([]);
+                    }
+                    return options.fetchChoices(text);
+                }
             });
             return this.typeahead.withPropertySource(id, inputSourceProperty, choicesSourceProperty);
         },
 
-        withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>) => {
+        withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>): PropertyScalarWithChoices<[T | null, string], T> => {
             const provider = new TypeaheadValueProvider<T>(inputSource, choicesSource);
             const converter = new TypeaheadValueConverter<T>();
             const emptyValueFcn: EmptyValueFcn<[T | null, string]> = (val) => val?.[0] == null;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource]);
-            return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [inputSource]);
+            return upgradeAsPropertyWithChoices(prop, choicesSource);
         }
     }
 
