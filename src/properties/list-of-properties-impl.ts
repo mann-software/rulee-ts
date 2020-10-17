@@ -3,6 +3,7 @@ import { ListOfProperties } from "./list-of-properties";
 import { AbstractProperty } from "./abstract-property";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
 import { ListProvider } from "../provider/list-provider/list-provider";
+import { OwnerRelation } from "../dependency-graph/dependency-graph";
 
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
@@ -23,6 +24,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         private readonly selectedIndices: number[],
         private readonly isMultiSelect: boolean = false,
         updateHandler: RuleEngineUpdateHandler<(D | null)[]>,
+        private readonly ownerRelation: OwnerRelation,
     ) {
         super(updateHandler);
     }
@@ -48,6 +50,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
         if (property) {
             prop.importData(property.exportData());
         }
+        this.ownerRelation.addOwnerDependency(this, prop);
         if (!dontNotify) {
             this.needsAnUpdate();
         }
@@ -70,6 +73,7 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
             const index = atIndex !== undefined ? atIndex + i : undefined;
             const prop = this.listProvider.addProperty(index);
             prop.importData(d);
+            this.ownerRelation.addOwnerDependency(this, prop);
             return prop;
         });
         this.needsAnUpdate();

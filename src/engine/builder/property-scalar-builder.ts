@@ -28,7 +28,16 @@ import { ListIndex } from "../../properties/factory/list-index";
 export class PropertyScalarBuilder {
 
     constructor(
-        private readonly propertyScalar: <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) => PropertyScalarImpl<T>,
+        private readonly propertyScalar: <T>(
+            id: PropertyId,
+            provider: ValueProvider<T>,
+            emptyValueFcn: EmptyValueFcn<T>,
+            converter: ValueConverter<T>,
+            dependencies?: AbstractProperty<unknown>[],
+            initialValue?: T | null,
+            backpressureConfig?: BackpressureConfig,
+            ownedProperties?: AbstractProperty<unknown>[],
+        ) => PropertyScalarImpl<T>,
         private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
         private readonly defaultEmptyChoice: Choice<any> | undefined,
     ) {
@@ -39,8 +48,8 @@ export class PropertyScalarBuilder {
         return (prefix: string, index?: ListIndex) => factory(this, `${prefix}_${id}`, index);
     }
 
-    isLike<T>(template: PropertyScalar<T>): PropertyScalar<T> {
-        // TODO copy template
+    isLike<T>(template: PropertyScalar<T>, valueProvider?: ValueProvider<T>): PropertyScalar<T> {
+        // TODO copy template and set new value provider if preset else copy value provider too
         return template;
     }
 
@@ -133,7 +142,7 @@ export class PropertyScalarBuilder {
             const provider = new SelectValueProvider<T>(choicesSource, emptyChoice);
             const converter = new SelectValueConverter<T>(() => choicesSource.getNonNullValue(), emptyChoice);
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource]);
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource], undefined, undefined, [choicesSource]);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
             prop.setToInitialValue();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
@@ -162,7 +171,7 @@ export class PropertyScalarBuilder {
             const provider = new TypeaheadValueProvider<T>(inputSource, choicesSource);
             const converter = new TypeaheadValueConverter<T>();
             const emptyValueFcn: EmptyValueFcn<[T | null, string]> = (val) => val?.[0] == null;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [inputSource]);
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [inputSource], undefined, undefined, [inputSource, choicesSource]);
             return upgradeAsPropertyWithChoices(prop, choicesSource);
         }
     }

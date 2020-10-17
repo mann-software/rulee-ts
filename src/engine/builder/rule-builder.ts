@@ -61,8 +61,8 @@ export class RuleBuilder {
         }
 
         this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig) =>
-                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig),
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: AbstractProperty<unknown>[]) =>
+                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
             this.defaultEmptyChoice,
         );
@@ -76,11 +76,14 @@ export class RuleBuilder {
         );
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: AbstractProperty<unknown>[]): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, backpressureConfig ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
+        }
+        if (ownedProperties) {
+            ownedProperties.forEach(owned => this.dependencyGraph.addOwnerDependency(prop, owned, false));
         }
         if (initialValue !== undefined) {
             prop.defineInitialValue(initialValue);
@@ -104,10 +107,9 @@ export class RuleBuilder {
         return prop;
     }
 
-    private listOfProperties<T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean): ListOfPropertiesImpl<T, D> {
-        const prop = new ListOfPropertiesImpl(id, listProvider, selectedIndices, isMultiSelect, this.ruleEngine);
+    private listOfProperties<T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
+        const prop = new ListOfPropertiesImpl(id, listProvider, selectedIndices, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
-        // TODO addDependencies?
         return prop;
     }
 

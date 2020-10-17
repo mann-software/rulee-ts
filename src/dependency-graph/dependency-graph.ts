@@ -43,10 +43,26 @@ type EdgesMap = Map<PropertyId, OutgoingMap>;
  */
 type AsyncEdgesMap = Map<PropertyId, AbstractProperty<unknown>[]>;
 
-export class DependencyGraph {
+export interface OwnerRelation {
+    /**
+     * Adds an owner dependency. That is the case if a property creates another poperty and manages it.
+     * E.g. property list own its elements (properties), or select properties own its choice list properties
+     *
+     * An owning dependency makes sure that the ownedProperty is removed as well if the owner is removed
+     * and the owner will be notified if the value of an owned property changes (if withValueDependency is not explicitly set to false)
+     * 
+     * @param owner property that ownes the other
+     * @param ownedProperty property that is owned by owner porperty
+     * @param withValueDependency add a value dependency from ownedProperty to owner? Default is true
+     */
+    addOwnerDependency(owner: AbstractProperty<unknown>, ownedProperty: AbstractProperty<unknown>, withValueDependency?: boolean): void;
+}
+
+export class DependencyGraph implements OwnerRelation {
 
     private readonly edgesMap: EdgesMap = new Map<string, OutgoingMap>();
     private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, AbstractProperty<unknown>[]>();
+    private readonly ownerMap = new Map<PropertyId, PropertyId[]>();
 
     // --------
 
@@ -76,6 +92,18 @@ export class DependencyGraph {
 
     addDependencies(from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         from.forEach((prop: AbstractProperty<unknown>) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
+    }
+
+    addOwnerDependency(owner: AbstractProperty<unknown>, ownedProperty: AbstractProperty<unknown>, withValueDependency?: boolean): void {
+        if (withValueDependency !== false) {
+            this.addDependency(ownedProperty, owner, { value: true });
+        }
+        const owned = this.ownerMap.get(owner.id);
+        if (owned) {
+            owned.push(ownedProperty.id);
+        } else {
+            this.ownerMap.set(owner.id, [ownedProperty.id]);
+        }
     }
     
     // --------
