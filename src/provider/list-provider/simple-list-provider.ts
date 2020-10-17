@@ -27,7 +27,7 @@ export class SimpleListProvider<T extends AbstractProperty<D>, D> implements Lis
         const propId = `${this.id}_${this.nxtId}`;
         this.nxtId++;
         const index = new ListIndexImpl(this.list.length, this.list, this.getSelected);
-        const prop = this.propertyTemplate(propId, index);
+        const prop = this.propertyTemplate(propId, index, this);
         this.list.push({prop, index});
         return prop;
     }
@@ -81,5 +81,11 @@ export class SimpleListProvider<T extends AbstractProperty<D>, D> implements Lis
 
     isReadOnly(): boolean {
         return false;
+    }
+
+    // interface: SiblingAccess
+
+    getSibling(atIndex: number): T | undefined {
+        return this.getProperty(atIndex);
     }
 }
