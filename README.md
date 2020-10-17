@@ -2,9 +2,9 @@
 
 UI-centered rule engine to manage your business rules.
 
-Feature-rich to make thing easy:
+Feature-rich to make things easy:
 - fully typed rule definitions
-- supports synchron and asynchron processing of rules
+- supports synchronous and asynchronous processing of rules
 - abstract properties can be fields, groups, list ... and are composable
 - define rules via builders
 - dependency graph for efficient processing and visualization
@@ -28,7 +28,7 @@ Documentation still to be done. For now, see tests in folder: `src/__tests__`
 
 ## Contribute
 
-Contributions to the rulee-ts library are very welcome! Please contact [andre@mann-software.de](mailto:andre@mann-software.de).
+Contributions to rulee-ts are very welcome! Please contact [andre@mann-software.de](mailto:andre@mann-software.de).
 
 ## License
 
