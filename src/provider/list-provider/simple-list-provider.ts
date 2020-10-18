@@ -7,6 +7,7 @@ import { PropertyTemplate } from "../../properties/factory/property-template";
 export class SimpleListProvider<T extends AbstractProperty<D>, D> implements ListProvider<T, D> {
 
     private readonly list: { prop: T; index: ListIndexImpl }[] = [];
+    readonly siblingCount = this.list.length;
     private nxtId = 0;
 
     constructor(
