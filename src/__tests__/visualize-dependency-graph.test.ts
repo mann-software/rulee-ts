@@ -16,7 +16,7 @@ test('list of group properties with sum-property', () => {
         });
         return { propA, propB }
     });
-    const propList = ruleBuilder.list.createList('PROP_LIST', template);
+    const propList = ruleBuilder.list.create('PROP_LIST', template);
     ruleBuilder.scalar.derived.sync1('SUM', C.number.default, propList, {
         derive: (propList) => propList.list.reduce((res, item) => res + item.properties.propB.getNonNullValue(), 0)
     });
@@ -30,6 +30,6 @@ test('list of group properties with sum-property', () => {
     expect(graphData.nodes.filter(node => node.group === 'list')).toHaveLength(1);
 
     const htmlString = ruleBuilder.generateNetworkGraphHtmlPage();
-    console.log(htmlString);
+    // console.log(htmlString);
     expect(htmlString.includes('<html>') && htmlString.includes('</html>')).toBe(true);
 });

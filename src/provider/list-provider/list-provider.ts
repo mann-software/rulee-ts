@@ -1,11 +1,5 @@
 import { AbstractProperty } from "../../properties/abstract-property";
-
-/**
- * Interface that can be used for list elements to access their siblings
- */
-export interface SiblingAccess<T extends AbstractProperty<D>, D> {
-    getSibling(atIndex: number): T | undefined;
-}
+import { SiblingAccess } from "./sibling-access";
 
 export interface ListProvider<T extends AbstractProperty<D>, D> extends SiblingAccess<T, D> {
     /**

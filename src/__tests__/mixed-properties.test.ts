@@ -15,7 +15,7 @@ test('list of group properties with sum-property', () => {
         const propB = ruleBuilder.scalar.stringProperty(id('PROP_B'));
         return { propA, propB }
     });
-    const propList = ruleBuilder.list.createList('PROP_LIST', template);
+    const propList = ruleBuilder.list.create('PROP_LIST', template);
     const sumProp = ruleBuilder.scalar.derived.sync1('SUM', C.number.default, propList, {
         derive: (propList) => propList.list.reduce((res, item) => res + item.properties.propA.getNonNullValue(), 0)
     });

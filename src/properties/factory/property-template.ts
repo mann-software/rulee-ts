@@ -1,4 +1,4 @@
-import { SiblingAccess } from "../../provider/list-provider/list-provider";
+import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { AbstractProperty } from "../abstract-property";
 import { ListIndex } from "./list-index";
 

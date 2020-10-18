@@ -24,6 +24,7 @@ import { TypeaheadValueProvider } from "../../provider/value-provider/choices/ty
 import { TypeaheadValueConverter } from "../../value-converter/choices/typeahead-value-converter";
 import { PropertyScalarWithChoices, upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
 import { ListIndex } from "../../properties/factory/list-index";
+import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 
 export class PropertyScalarBuilder {
 
@@ -44,8 +45,8 @@ export class PropertyScalarBuilder {
         assertThat(() => !defaultEmptyChoice || defaultEmptyChoice.value === null, () => 'value of defaultEmptyChoice must be null to match every Choice<T>')
     }
 
-    template<T>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex) => PropertyScalar<T>): PropertyTemplate<PropertyScalar<T>, T> {
-        return (prefix: string, index?: ListIndex) => factory(this, `${prefix}_${id}`, index);
+    template<T>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<T>, T>) => PropertyScalar<T>): PropertyTemplate<PropertyScalar<T>, T> {
+        return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<T>, T>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
     }
 
     isLike<T>(template: PropertyScalar<T>, valueProvider?: ValueProvider<T>): PropertyScalar<T> {

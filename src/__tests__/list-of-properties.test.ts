@@ -16,7 +16,7 @@ test('list of property: add existing property', () => {
         return itemProp;
     });
 
-    const propList = ruleBuilder.list.createList('PROP_LIST', listItemTemplate);
+    const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate);
 
     expect(propList.exportData()).toStrictEqual([]);
 
@@ -45,7 +45,7 @@ test('list of property: add properties and select property', () => {
             .defineRequiredIfVisible(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
     });
-    const propList = ruleBuilder.list.createList('PROP_LIST', listItemTemplate);
+    const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate);
 
     expect(propList.exportData()).toStrictEqual([]);
 
@@ -66,7 +66,7 @@ test('list of property: select properties multiple properties and move propertie
             .defineRequiredIfVisible(() => !!index?.isLast());
         return itemProp;
     });
-    const propList = ruleBuilder.list.createList('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);
+    const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);
     propList.addProperties(3);
 
     expect(propList.getSelectedIndices()).toHaveLength(0);

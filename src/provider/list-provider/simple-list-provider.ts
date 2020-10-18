@@ -23,12 +23,18 @@ export class SimpleListProvider<T extends AbstractProperty<D>, D> implements Lis
         this.list.splice(0, this.list.length);
     }
 
-    addProperty(): T {
+    addProperty(atIndex?: number): T {
         const propId = `${this.id}_${this.nxtId}`;
         this.nxtId++;
-        const index = new ListIndexImpl(this.list.length, this.list, this.getSelected);
+        const idx = atIndex ?? this.list.length;
+        const index = new ListIndexImpl(idx, this.list, this.getSelected);
         const prop = this.propertyTemplate(propId, index, this);
-        this.list.push({prop, index});
+        if (atIndex !== undefined) {
+            this.list.splice(atIndex, 0, {prop, index});
+            this.adjustIndices(atIndex + 1);
+        } else {
+            this.list.push({prop, index});
+        }
         return prop;
     }
 
@@ -87,5 +93,21 @@ export class SimpleListProvider<T extends AbstractProperty<D>, D> implements Lis
 
     getSibling(atIndex: number): T | undefined {
         return this.getProperty(atIndex);
+    }
+
+    someSibling(predicate: (sibling: T, index?: number) => unknown) {
+        return this.list.some((el) => predicate(el.prop, el.index.idx));
+    }
+
+    everySibling(predicate: (sibling: T, index?: number) => unknown) {
+        return this.list.every((el, index) => predicate(el.prop, index));
+    }
+
+    reduceSiblings<R>(callbackfn: (previousValue: R, sibling: T, index?: number) => R, initialValue: R) {
+        return this.list.reduce<R>((res, el, i) => callbackfn(res, el.prop, i), initialValue);
+    }
+
+    filterSiblings(predicate: (sibling: T, index?: number) => unknown): T[] {
+        return this.list.filter((el, i) => predicate(el.prop, i)).map(el => el.prop);
     }
 }
