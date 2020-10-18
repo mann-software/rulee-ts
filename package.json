@@ -1,11 +1,12 @@
 {
   "name": "rulee-ts",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "UI-centered rule engine to manage your business rules with TypeScript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.ts",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest",
+    "test-coverage": "jest --coverage",
     "test-watch": "jest --watch",
     "lint": "eslint . --ext .ts --fix",
     "tsc": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
