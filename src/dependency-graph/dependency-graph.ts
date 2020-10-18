@@ -3,8 +3,10 @@ import { AbstractProperty } from "../properties/abstract-property";
 import { PropertyDependency, PropertyDependencyOptions } from "./property-dependency";
 import { Logger } from "../util/logger/logger";
 import { assertThat } from "../util/assertions/assertions";
+import { ListOfPropertiesImpl } from "../properties/list-of-properties-impl";
+import { GroupOfPropertiesImpl } from "../properties/group-of-properties-impl";
 
-export type VisNodeGroup = 'default' | 'async' | 'readonly' | 'async-readonly';
+export type VisNodeGroup = 'scalar' | 'scalar-async' | 'group' | 'group-async' | 'list' | 'list-async';
 
 export interface VisJsNode {
     id: number;
@@ -15,8 +17,9 @@ export interface VisJsNode {
 export interface VisJsEdge {
     from: number;
     to: number;
-    title: string;
+    title?: string;
     dashes?: boolean | number[]; // true or sth like [5, 5, 3, 3]
+    color?: string;
     arrows?: {
         to?: {
             enabled: boolean;
@@ -79,11 +82,11 @@ export class DependencyGraph implements OwnerRelation {
 
         const asyncDeps = from.isAsynchronous() ? [from] : this.asyncEdgesMap.get(from.id);
         if (asyncDeps?.length) {
-            // Due to the design of rule-definitions, the to-property will always have no dependents, yet
+            // Due to the design of rule-definitions, the to-property will always have no dependents (except lists), yet
             // In case this breaks in future, recursively add 'asyncDeps' to all dependents of 'from' until
             // the the current dependent is asynchronous its self or it has no further dependents
             assertThat(
-                () => !this.edgesMap.has(to.id),
+                () => !this.edgesMap.has(to.id) || to instanceof ListOfPropertiesImpl,
                 () => `DependencyGraph: The property ${to.id} has no dependents, yet`
             );
             this.asyncEdgesMap.get(to.id)?.push(...asyncDeps) ?? this.asyncEdgesMap.set(to.id, asyncDeps);
@@ -180,20 +183,28 @@ export class DependencyGraph implements OwnerRelation {
                 borderWidth: 2,
                 shadow: true
             },
-            groups: {
-                'default': {
-                    color: { background: "rgb(0,204,52)", border: "black" }
+            groups: { // colors: https://paletton.com/#uid=7481q0kqspsgswHlls7sSkxzhfw
+                'scalar': {
+                    color: { background: "#37278C", border: "black" }
                 },
-                'async': {
-                    color: { background: "rgb(204,0,153)", border: "black" }
+                'scalar-async': {
+                    color: { background: "#4F419B", border: "black" }
                 },
-                'async-readonly': {
-                    color: { background: "rgb(204,0,153)", border: "black" },
+                'group': {
+                    color: { background: "#40AC1E", border: "black" },
                     shape: "hexagon"
                 },
-                'readonly': {
-                    color: { background: "rgb(0,204,52)", border: "black" },
+                'group-async': {
+                    color: { background: "#5EBE3F", border: "black" },
                     shape: "hexagon"
+                },
+                'list': {
+                    color: { background: "#C12237", border: "black" },
+                    shape: "square"
+                },
+                'list-async': {
+                    color: { background: "#D5475B", border: "black" },
+                    shape: "square"
                 }
             },
             edges: {
@@ -220,16 +231,14 @@ export class DependencyGraph implements OwnerRelation {
     }
 
     private propertyToVisNodeGroup(property: AbstractProperty<unknown>): VisNodeGroup {
-        if (property.isAsynchronous()) {
-            if (property.isReadOnly()) {
-                return 'async-readonly';
-            } else {
-                return 'async'
-            }
-        } else if (property.isReadOnly()) {
-            return 'readonly';
+        const isAsync = property.isAsynchronous();
+        if (property instanceof ListOfPropertiesImpl) {
+            return isAsync ? 'list-async' : 'list';
         }
-        return 'default';
+        if (property instanceof GroupOfPropertiesImpl) {
+            return isAsync ? 'group-async' : 'group';
+        }
+        return isAsync ? 'scalar-async' : 'scalar';
     }
 
     private createVisJsEdges(map: Map<PropertyId, VisJsNode>, edges: VisJsEdge[]) {
@@ -243,12 +252,28 @@ export class DependencyGraph implements OwnerRelation {
                     arrows: {
                         to: {
                             enabled: true,
-                            type: 'arrow'
+                            type: 'triangle'
                         }
                     }
                 }
                 edges.push(edge);
             })
+        });
+        this.ownerMap.forEach((toList, from) => {
+            toList.forEach(to => {
+                const edge: VisJsEdge = {
+                    from: map.get(from)!.id,
+                    to: map.get(to)!.id,
+                    color: "rgb(110, 110, 110)",
+                    arrows: {
+                        from: {
+                            enabled: true,
+                            type: 'diamond'
+                        }
+                    }
+                }
+                edges.push(edge);
+            });
         });
     }
 
