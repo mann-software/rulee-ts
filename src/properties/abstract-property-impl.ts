@@ -262,7 +262,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         this.validators.push(validator);
     }
 
-    validate(): void {
+    validate(): Promise<void> {
         const validated = () => this.tellValueChangeListeners(listener => {
             if (listener.validated) {
                 listener.validated();
@@ -293,7 +293,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         };
         if (this.needsToRevalidate !== false && !this.isAboutToStartValidation) {
             this.isAboutToStartValidation = true;
-            void this.awaitAsyncUpdate().then(() => doValidate());
+            return this.awaitAsyncUpdate().then(() => doValidate());
+        } else {
+            return Promise.resolve();
         }
     }
 

@@ -38,7 +38,7 @@ export interface AbstractProperty<D> extends DataLink<D> {
     /**
      * Triggers the validation
      */
-    validate(): void;
+    validate(): Promise<void>;
 
     /**
      * Indicates that the current property has an valid state
