@@ -7,6 +7,7 @@ import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
 import { ScalarValidator, Validator } from "../../validators/validator";
 import { ValueChangeListener } from "../../properties/value-change-listener";
+import { Rule } from "../../rules/rule";
 
 export enum TextInterpreter {
     Plain, Markdown, Html
@@ -54,7 +55,7 @@ export class PropertyScalarRuleBinding<T> {
     
     // ------------------
 
-    define<A>(attribudeId: AttributeId<A>, value: A | ((self: PropertyScalar<T>) => A)): PropertyScalarRuleBinding<T> {
+    define<A>(attribudeId: AttributeId<A>, value: A | Rule<[self: PropertyScalar<T>], A>): PropertyScalarRuleBinding<T> {
         if (value instanceof Function) {
             this.defineAttributeFunction(attribudeId, [], () => value(this.property));
         } else {
@@ -85,7 +86,7 @@ export class PropertyScalarRuleBinding<T> {
     
     // ------------------
 
-    defineVisibility(isVisible: boolean | ((self: PropertyScalar<T>) => boolean)): PropertyScalarRuleBinding<T> {
+    defineVisibility(isVisible: boolean | Rule<[self: PropertyScalar<T>], boolean>): PropertyScalarRuleBinding<T> {
         if (isVisible === false) { // true is default -> no need to set
             this.defineVisibilityFunction([], () => isVisible);
         } else if (isVisible instanceof Function) {
@@ -94,12 +95,12 @@ export class PropertyScalarRuleBinding<T> {
         return this;
     }
 
-    defineVisibility1<D1 extends AbstractProperty<unknown>>(dep1: D1, isVisible: (self: PropertyScalar<T>, dep1: D1) => boolean): PropertyScalarRuleBinding<T> {
+    defineVisibility1<D1 extends AbstractProperty<unknown>>(dep1: D1, isVisible: Rule<[self: PropertyScalar<T>, dep1: D1], boolean>): PropertyScalarRuleBinding<T> {
         this.defineVisibilityFunction([dep1], () => isVisible(this.property, dep1));
         return this;
     }
 
-    defineVisibility2<D1 extends AbstractProperty<unknown>, D2 extends AbstractProperty<unknown>>(dep1: D1, dep2: D2, isVisible: (self: PropertyScalar<T>, dep1: D1, dep2: D2) => boolean): PropertyScalarRuleBinding<T> {
+    defineVisibility2<D1 extends AbstractProperty<unknown>, D2 extends AbstractProperty<unknown>>(dep1: D1, dep2: D2, isVisible: Rule<[self: PropertyScalar<T>, dep1: D1, dep2: D2], boolean>): PropertyScalarRuleBinding<T> {
         this.defineVisibilityFunction([dep1, dep2], () => isVisible(this.property, dep1, dep2));
         return this;
     }
@@ -115,7 +116,7 @@ export class PropertyScalarRuleBinding<T> {
 
     // ------------------
 
-    defineRequiredIfVisible(required: boolean | ((self: PropertyScalar<T>) => boolean)): PropertyScalarRuleBinding<T> {
+    defineRequiredIfVisible(required: boolean | Rule<[self: PropertyScalar<T>], boolean>): PropertyScalarRuleBinding<T> {
         if (required === true) { // false is default -> no need to set
             this.defineRequiredIfVisibleFunction([], () => required);
         } else if (required instanceof Function) {
