@@ -5,15 +5,7 @@ import { DataLink } from "./data-link/data-link";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { ValidationMessage } from "../validators/validation-message";
 
-export type DataTypeOfProperty<T extends AbstractProperty<unknown>> =
-    T extends AbstractProperty<string> ? string :
-    (T extends AbstractProperty<number> ? number :
-    (T extends AbstractProperty<boolean> ? boolean :
-    (T extends AbstractProperty<Date> ? Date :
-    (T extends AbstractProperty<string[]> ? string[] :
-    (T extends AbstractProperty<number[]> ? number[] :
-    (T extends AbstractProperty<boolean[]> ? boolean[] :
-    (T extends AbstractProperty<Date[]> ? Date[] : unknown)))))));
+export type DataTypeOfProperty<T> = T extends AbstractProperty<infer D> ? D : unknown;
 
 export interface AbstractProperty<D> extends DataLink<D> {
     readonly id: PropertyId;
