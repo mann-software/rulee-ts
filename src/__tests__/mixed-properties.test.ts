@@ -12,7 +12,7 @@ beforeEach(() => {
 test('list of group properties with sum-property', () => {
     const template = ruleBuilder.group.template((id, index) => {
         const propA = ruleBuilder.scalar.numberProperty(id('PROP_A'));
-        ruleBuilder.scalar.bind(propA).defineVisibility(() => (index?.idx ?? 0) % 2 === 0);
+        ruleBuilder.scalar.bind(propA).defineVisibility()(() => (index?.idx ?? 0) % 2 === 0);
         const propB = ruleBuilder.scalar.stringProperty(id('PROP_B'));
         return { propA, propB }
     });

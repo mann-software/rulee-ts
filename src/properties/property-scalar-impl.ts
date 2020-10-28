@@ -112,11 +112,11 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.infoText = infoText;
     }
 
-    defineVisibility(visibility: Attribute<boolean>) {
+    defineVisibility(visibility?: Attribute<boolean>) {
         this.visible = visibility;
     }
 
-    defineRequiredIfVisible(mandatoriness: Attribute<boolean>) {
+    defineRequiredIfVisible(mandatoriness?: Attribute<boolean>) {
         this.required = mandatoriness;
     }
 

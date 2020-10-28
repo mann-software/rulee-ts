@@ -12,7 +12,7 @@ test('list of property: add existing property', () => {
     const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
         const itemProp = builder.stringProperty(id);
         ruleBuilder.scalar.bind(itemProp)
-            .defineRequiredIfVisible(() => !index || index.isFirst() || index.isSelected());
+            .defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
     });
 
@@ -42,7 +42,7 @@ test('list of property: add properties and select property', () => {
     const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
         const itemProp = builder.stringProperty(id);
         ruleBuilder.scalar.bind(itemProp)
-            .defineRequiredIfVisible(() => !index || index.isFirst() || index.isSelected());
+            .defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
     });
     const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate);
@@ -63,7 +63,7 @@ test('list of property: select properties multiple properties and move propertie
     const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
         const itemProp = builder.stringProperty(id);
         ruleBuilder.scalar.bind(itemProp)
-            .defineRequiredIfVisible(() => !!index?.isLast());
+            .defineRequiredIfVisible()(() => !!index?.isLast());
         return itemProp;
     });
     const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);

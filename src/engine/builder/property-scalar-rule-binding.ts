@@ -20,7 +20,7 @@ export class PropertyScalarRuleBinding<T> {
     constructor(
         property: PropertyScalar<T>,
         private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>,
-        private readonly addDependencies: (from: AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => void
+        private readonly addDependencies: (from: readonly AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => void
     ) {
         this.property = property as PropertyScalarImpl<T>;
     }
@@ -55,18 +55,19 @@ export class PropertyScalarRuleBinding<T> {
     
     // ------------------
 
-    define<A>(attribudeId: AttributeId<A>, value: A | Rule<[self: PropertyScalar<T>], A>): PropertyScalarRuleBinding<T> {
-        if (value instanceof Function) {
-            this.defineAttributeFunction(attribudeId, [], () => value(this.property));
-        } else {
-            this.defineAttributeFunction(attribudeId, [], () => value);
-        }
+    set<A>(attribudeId: AttributeId<A>, value: A): PropertyScalarRuleBinding<T> {
+        this.defineAttributeFunction(attribudeId, [], () => value);
         return this;
     }
 
-    // TODO define1, 2 , etc
+    define<A, Dependencies extends readonly AbstractProperty<unknown>[]>(attribudeId: AttributeId<A>, ...dependencies: Dependencies): (value: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], A>) => PropertyScalarRuleBinding<T> {
+        return (value: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], A>) => {
+            this.defineAttributeFunction(attribudeId, dependencies, () => value(this.property, ...dependencies));
+            return this;
+        };
+    }
 
-    private defineAttributeFunction<A>(attribudeId: AttributeId<A>, deps: AbstractProperty<unknown>[], fcn: () => A) {
+    private defineAttributeFunction<A>(attribudeId: AttributeId<A>, dependencies: readonly AbstractProperty<unknown>[], fcn: () => A) {
         alwaysAssertThat(!A[attribudeId.name], () => {
             const mapping: {[attrName: string]: string} = {
                 Required: 'defineRequiredIfVisible',
@@ -76,62 +77,64 @@ export class PropertyScalarRuleBinding<T> {
             }
             return `Please use specialised function ${mapping[attribudeId.name]} to define ${attribudeId.name}`;
         });
-        this.addDependencies(deps, this.property, { [attribudeId.name]: true });
+        this.addDependencies(dependencies, this.property, { [attribudeId.name]: true });
         this.property.defineAttribute({
             id: attribudeId,
-            dependencies: deps,
+            dependencies: dependencies,
             getValue: fcn
         } as Attribute<A>);
     }
     
     // ------------------
 
-    defineVisibility(isVisible: boolean | Rule<[self: PropertyScalar<T>], boolean>): PropertyScalarRuleBinding<T> {
+    setVisibility(isVisible: boolean): PropertyScalarRuleBinding<T> {
         if (isVisible === false) { // true is default -> no need to set
             this.defineVisibilityFunction([], () => isVisible);
-        } else if (isVisible instanceof Function) {
-            this.defineVisibilityFunction([], () => isVisible(this.property));
+        } else {
+            this.property.defineVisibility(undefined);
         }
         return this;
     }
 
-    defineVisibility1<D1 extends AbstractProperty<unknown>>(dep1: D1, isVisible: Rule<[self: PropertyScalar<T>, dep1: D1], boolean>): PropertyScalarRuleBinding<T> {
-        this.defineVisibilityFunction([dep1], () => isVisible(this.property, dep1));
-        return this;
+    defineVisibility<Dependencies extends readonly AbstractProperty<unknown>[]>(...dependencies: Dependencies): (isVisible: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => PropertyScalarRuleBinding<T> {
+        return (isVisible: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => {
+            this.defineVisibilityFunction(dependencies, () => isVisible(this.property, ...dependencies));
+            return this;
+        };
     }
 
-    defineVisibility2<D1 extends AbstractProperty<unknown>, D2 extends AbstractProperty<unknown>>(dep1: D1, dep2: D2, isVisible: Rule<[self: PropertyScalar<T>, dep1: D1, dep2: D2], boolean>): PropertyScalarRuleBinding<T> {
-        this.defineVisibilityFunction([dep1, dep2], () => isVisible(this.property, dep1, dep2));
-        return this;
-    }
-
-    private defineVisibilityFunction(deps: AbstractProperty<unknown>[], fcn: () => boolean) {
-        this.addDependencies(deps, this.property, { visible: true });
+    private defineVisibilityFunction(dependencies: readonly AbstractProperty<unknown>[], fcn: () => boolean) {
+        this.addDependencies(dependencies, this.property, { visible: true });
         this.property.defineVisibility({
             id: A.Visible,
-            dependencies: deps,
+            dependencies: dependencies,
             getValue: fcn
         } as Attribute<boolean>);
     }
 
     // ------------------
 
-    defineRequiredIfVisible(required: boolean | Rule<[self: PropertyScalar<T>], boolean>): PropertyScalarRuleBinding<T> {
-        if (required === true) { // false is default -> no need to set
+    setRequiredIfVisible(required: boolean): PropertyScalarRuleBinding<T> {
+        if (required) { // false is default -> no need to set
             this.defineRequiredIfVisibleFunction([], () => required);
-        } else if (required instanceof Function) {
-            this.defineRequiredIfVisibleFunction([], () => required(this.property));
+        } else {
+            this.property.defineRequiredIfVisible(undefined);
         }
         return this;
     }
 
-    // TODO defineRequiredIfVisible1, 2 , etc
+    defineRequiredIfVisible<Dependencies extends readonly AbstractProperty<unknown>[]>(...dependencies: Dependencies): (required: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => PropertyScalarRuleBinding<T> {
+        return (required: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => {
+            this.defineRequiredIfVisibleFunction(dependencies, () => required(this.property, ...dependencies));
+            return this;
+        };
+    }
 
-    private defineRequiredIfVisibleFunction(deps: AbstractProperty<unknown>[], fcn: () => boolean) {
-        this.addDependencies(deps, this.property, { required: true });
+    private defineRequiredIfVisibleFunction(dependencies: readonly AbstractProperty<unknown>[], fcn: () => boolean) {
+        this.addDependencies(dependencies, this.property, { required: true });
         this.property.defineRequiredIfVisible({
             id: A.Required,
-            dependencies: deps,
+            dependencies: dependencies,
             getValue: fcn
         } as Attribute<boolean>);
         this.property.addScalarValidator(this.notEmptyIfRequiredValidator);

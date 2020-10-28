@@ -12,10 +12,10 @@ test('defining visibility', () => {
     });
     const propE = ruleBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
 
-    ruleBuilder.scalar.bind(propB).defineVisibility(false);
-    ruleBuilder.scalar.bind(propC).defineInitialValue(3).defineVisibility(self => self.getNonNullValue() > 0);
-    ruleBuilder.scalar.bind(propD).defineVisibility1(propA, (self, propA) => !!propA.getValue());
-    ruleBuilder.scalar.bind(propE).defineVisibility2(propA, propD, (self, propA, propD) => {
+    ruleBuilder.scalar.bind(propB).setVisibility(false);
+    ruleBuilder.scalar.bind(propC).defineInitialValue(3).defineVisibility()(self => self.getNonNullValue() > 0);
+    ruleBuilder.scalar.bind(propD).defineVisibility(propA)((self, propA) => !!propA.getValue());
+    ruleBuilder.scalar.bind(propE).defineVisibility(propA, propD)((self, propA, propD) => {
         return !!self.getValue() && !!propA.getValue() && !!propD.getValue()
     });
 
@@ -43,8 +43,8 @@ test('defining "requiredIfVisible"', () => {
         { value: 2, displayValue: 'Visible and required' }
     ]);
     ruleBuilder.scalar.bind(propA)
-        .defineVisibility(self => self.getValue() !== 0)
-        .defineRequiredIfVisible(self => self.getValue() !== 1);
+        .defineVisibility()(self => self.getValue() !== 0)
+        .defineRequiredIfVisible()(self => self.getValue() !== 1);
 
     expect(propA.getValue()).toBe(0);
     expect(propA.getDisplayValue()).toBe('Not visible, not required');
@@ -78,7 +78,7 @@ test('defining a custom attribute', () => {
         initialValue: 12
     });
     // attach your custom attribute to a property like the other predefined attributes, e.g. visible
-    ruleBuilder.scalar.bind(propA).define(customAttribute, self => new Date(2020, 0, self.getValue() ?? 1));
+    ruleBuilder.scalar.bind(propA).define(customAttribute)(self => new Date(2020, 0, self.getValue() ?? 1));
 
     expect(propA.get(customAttribute)).toEqual(new Date(2020, 0, 12));
 });
