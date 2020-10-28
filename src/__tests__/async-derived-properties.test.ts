@@ -14,11 +14,11 @@ beforeEach(() => {
 
     propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
 
-    propB = ruleBuilder.scalar.derived.async1('PROP_B', C.number.default, propA, {
+    propB = ruleBuilder.scalar.derived.async('PROP_B', C.number.default, propA)({
         deriveAsync: (propA) => valueAfterTime(propA.getDisplayValue().length, 1000)
     });
 
-    propC = ruleBuilder.scalar.derived.async2('PROB_C', C.boolean.default, propA, propB, {
+    propC = ruleBuilder.scalar.derived.async('PROB_C', C.boolean.default, propA, propB)({
         deriveAsync: (propA, propB) => valueAfterTime(
             (propA.getDisplayValue() === 'abc' && propB.getDisplayValue() === '3') || null, 2000
         )

@@ -1,14 +1,14 @@
 import { ValueProvider } from "./value-provider";
 import { AbstractProperty } from "../../properties/abstract-property";
 
-export class DerivedAsyncValueProvider<T> implements ValueProvider<T> {
+export class DerivedAsyncValueProvider<T, Dependencies extends readonly AbstractProperty<unknown>[]> implements ValueProvider<T> {
 
     private processing = false;
 
     constructor(
-        private readonly dependencies: AbstractProperty<unknown>[],
-        private readonly get: (dependencies: AbstractProperty<unknown>[]) => Promise<T | null>,
-        private readonly set?: (dependencies: AbstractProperty<unknown>[], value: T | null) => Promise<void>
+        private readonly dependencies: Dependencies,
+        private readonly get: (dependencies: Dependencies) => Promise<T | null>,
+        private readonly set?: (value: T | null, ...dependencies: Dependencies) => Promise<void>
     ) {}
 
     getValue(): Promise<T | null> {
@@ -21,7 +21,7 @@ export class DerivedAsyncValueProvider<T> implements ValueProvider<T> {
 
     setValue(value: T | null): void {
         if (this.set) {
-            void this.set(this.dependencies, value);
+            void this.set(value, ...this.dependencies);
         }
     }
 

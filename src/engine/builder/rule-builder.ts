@@ -61,7 +61,7 @@ export class RuleBuilder {
         }
 
         this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: AbstractProperty<unknown>[]) =>
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty<unknown>[]) =>
                 this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
             this.defaultEmptyChoice,
@@ -76,7 +76,7 @@ export class RuleBuilder {
         );
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: AbstractProperty<unknown>[]): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty<unknown>[]): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, backpressureConfig ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
@@ -96,7 +96,7 @@ export class RuleBuilder {
         return new PropertyScalarRuleBinding<T>(
             prop,
             this.notEmptyIfRequiredValidator,
-            (from: AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
+            (from: readonly AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
         );
     }
 
@@ -113,7 +113,7 @@ export class RuleBuilder {
         return prop;
     }
 
-    private addDependencies(dependencyGraph: DependencyGraph, from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
+    private addDependencies(dependencyGraph: DependencyGraph, from: readonly AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         if (from.length) {
             dependencyGraph.addDependencies(from, to, options);
         }

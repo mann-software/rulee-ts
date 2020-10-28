@@ -84,7 +84,7 @@ test('static property select WITH default choice and WITHOUT ANY choice', () => 
 test('derived property select', () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
     const propE = ruleBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
-    const propF = ruleBuilder.scalar.select.derived1('PROP_F', propE, {
+    const propF = ruleBuilder.scalar.select.derived('PROP_F', propE)({
         derive: (propE) => {
             const choices = [
                 { value: false, displayValue: 'No' }
@@ -123,7 +123,7 @@ test('derived property select', () => {
 test('async derived property select', async () => {
     const [ruleBuilder] = ruleBuilderAndEngineFactory();
     const propG = ruleBuilder.scalar.booleanProperty('PROP_G', { initialValue: false });
-    const propH = ruleBuilder.scalar.select.asyncDerived1('PROP_H', propG, {
+    const propH = ruleBuilder.scalar.select.asyncDerived('PROP_H', propG)({
         deriveAsync: (propG) => {
             const choices = [
                 { value: false, displayValue: 'No' }

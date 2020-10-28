@@ -1,12 +1,12 @@
 import { ValueProvider } from "./value-provider";
 import { AbstractProperty } from "../../properties/abstract-property";
 
-export class DerivedValueProvider<T> implements ValueProvider<T> {
+export class DerivedValueProvider<T, Dependencies extends readonly AbstractProperty<unknown>[]> implements ValueProvider<T> {
 
     constructor(
-        private readonly dependencies: AbstractProperty<unknown>[],
-        private readonly get: (dependencies: AbstractProperty<unknown>[]) => T | null,
-        private readonly set?: (dependencies: AbstractProperty<unknown>[], value: T | null) => void
+        private readonly dependencies: Dependencies,
+        private readonly get: (dependencies: Dependencies) => T | null,
+        private readonly set?: (value: T | null, ...dependencies: Dependencies) => void
     ) {}
 
     getValue(): T | null {
@@ -15,7 +15,7 @@ export class DerivedValueProvider<T> implements ValueProvider<T> {
 
     setValue(value: T | null): void {
         if (this.set) {
-            this.set(this.dependencies, value);
+            this.set(value, ...this.dependencies);
         }
     }
 

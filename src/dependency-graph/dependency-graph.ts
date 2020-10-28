@@ -93,7 +93,7 @@ export class DependencyGraph implements OwnerRelation {
         }
     }
 
-    addDependencies(from: AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
+    addDependencies(from: readonly AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
         from.forEach((prop: AbstractProperty<unknown>) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
     }
 
