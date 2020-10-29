@@ -1,7 +1,7 @@
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { ListOfProperties } from "./list-of-properties";
 import { AbstractProperty } from "./abstract-property";
-import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
+import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { ListProvider } from "../provider/list-provider/list-provider";
 import { OwnerRelation } from "../dependency-graph/dependency-graph";
 

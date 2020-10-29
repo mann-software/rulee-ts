@@ -4,9 +4,9 @@ import { ValueConverter } from "../value-converter/value-converter";
 import { AttributeId } from "../attributes/attribute-id";
 import { Attribute } from "../attributes/attribute";
 import { PropertyId } from "./property-id";
-import { ScalarValidator } from "../validators/validator";
+import { ScalarValidator } from "../validators/scalar-validator";
 import { ValidationMessage } from "../validators/validation-message";
-import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
+import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { Logger } from "../util/logger/logger";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { EmptyValueFcn } from "../provider/value-provider/empty-value-fcn";
@@ -80,7 +80,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     protected getSpecialisedValidationResult() {
         return this.scalarValidators.reduce((res, sv) => {
-            const msg = sv.validate(this);
+            const msg = sv(this);
             if (msg) {
                 res.push(msg);
             }
@@ -197,7 +197,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     }
 
     isAsynchronous(): boolean {
-        return this.valueProvider.isAsynchronous() || super.isAsynchronous();
+        return this.valueProvider.isAsynchronous();
     }
 
     isProcessing(): boolean {

@@ -1,18 +1,22 @@
 import { DependencyGraph } from "../dependency-graph/dependency-graph";
 import { RuleEngineDescription } from "./rule-engine-description";
 import { AbstractProperty } from "../properties/abstract-property";
-import { RuleEngineUpdateHandler } from "./rule-engine-update-handler";
+import { RuleEngineUpdateHandler } from "./rule-engine-update-handler-impl";
 import { AbstractPropertyWithInternals } from "../properties/abstract-property-impl";
 import { ValueChangeListener } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
-import { Logger } from "../util/logger/logger";
 import { RuleBuilderOptions } from "./builder/rule-builder-options";
 import { RuleBuilder } from "./builder/rule-builder";
+import { Validator } from "../validators/validator";
+import { ValidationProcess } from "./validation-process-impl";
+import { ValidationResult } from "../validators/validation-result";
+import { ValidationTypes } from "../validators/validation-type";
 
 export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
 
     private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
+    private readonly validations = new WeakMap<Validator, ValidationProcess>();
 
     private readonly dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
     private readonly snapshots = new Map<string, Snapshot>();
@@ -146,6 +150,61 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
             dependency => !dependency.options.value
         );
     }
+
+    // -----------------------------------------------------------------------
+
+    invalidateValidationResults(validators: readonly Validator[]): void {
+        validators.forEach(v => {
+            const vprocess = this.getValidationProcess(v);
+            vprocess.isLastResultUpToDate = false;
+        });
+    }
+
+    validate(validators: readonly Validator[]): Promise<ValidationResult>[] {
+        return validators.map(validator => {
+            const vprocess = this.getValidationProcess(validator);
+            if (vprocess.isLastResultUpToDate) {
+                return Promise.resolve(vprocess.lastValidationResult);
+            } else if(vprocess.currentValidation) {
+                return vprocess.currentValidation;
+            }
+            const validation = validator.validate();
+            if (validation instanceof Promise) {
+                vprocess.currentValidation = validation.then(res => {
+                    vprocess.currentValidation = undefined;
+                    vprocess.lastValidationResult = res;
+                    vprocess.isLastResultUpToDate = true;
+                    return res;
+                }, err => {
+                    vprocess.currentValidation = undefined;
+                    return [{
+                        text: JSON.stringify(err),
+                        type: ValidationTypes.ErrorThrownDuringValidation
+                    }];
+                });
+                return vprocess.currentValidation;
+            } else {
+                vprocess.lastValidationResult = validation;
+                vprocess.isLastResultUpToDate = true;
+                return Promise.resolve(validation);
+            }
+        });
+    }
+
+    private getValidationProcess(validator: Validator): ValidationProcess {
+        const vprocess = this.validations.get(validator);
+        if (vprocess) {
+            return vprocess;
+        } else {
+            const newProcess: ValidationProcess = {
+                isLastResultUpToDate: false
+            }
+            this.validations.set(validator, newProcess);
+            return newProcess;
+        }
+    }
+
+    // -----------------------------------------------------------------------
 
     static serialize(engine: RuleEngine): string {
         // TODO

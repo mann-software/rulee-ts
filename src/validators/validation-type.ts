@@ -1,14 +1,29 @@
+
 export interface ValidationType {
     name: string;
     isValid: boolean;
 }
 
-export const ValidationError: ValidationType = {
-    name: 'ValidationError',
+const ValidationError: ValidationType = {
+    name: 'Error',
     isValid: false
 };
 
-export const ValidationHint: ValidationType = {
-    name: 'ValidationHint',
+const ValidationHint: ValidationType = {
+    name: 'Hint',
     isValid: true
+}
+
+const ErrorThrownDuringValidation: ValidationType = {
+    name: 'ErrorThrown',
+    isValid: true
+};
+
+/**
+ * Set of predefined ValidationTypes
+ */
+export const ValidationTypes = {
+    Error: ValidationError,
+    Hint: ValidationHint,
+    ErrorThrownDuringValidation
 }

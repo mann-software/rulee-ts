@@ -1,4 +1,6 @@
 import { AbstractProperty } from "../properties/abstract-property";
+import { ValidationResult } from "../validators/validation-result";
+import { Validator } from "../validators/validator";
 
 export interface RuleEngineUpdateHandler<D> {
     /**
@@ -14,4 +16,14 @@ export interface RuleEngineUpdateHandler<D> {
      * @param property to update
      */
     updateValue(property: AbstractProperty<D>): Promise<void>;
+    /**
+     * Call this to invalidate the last validation result for the given Validator
+     * @param validators validators to invalidate
+     */
+    invalidateValidationResults(validators: readonly Validator[]): void;
+    /**
+     * Validates the given validators but uses the last validation result if it is still up to date (and not invalidated via invalidateValidationResults)
+     * @param validators validators to validate
+     */
+    validate(validators: readonly Validator[]): Promise<ValidationResult>[];
 }

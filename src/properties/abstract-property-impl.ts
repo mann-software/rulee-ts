@@ -3,7 +3,7 @@ import { ValueChangeListener } from "./value-change-listener";
 import { Trigger, TriggerListener } from "./trigger";
 import { BackpressureType } from "./backpressure/backpressure-type";
 import { Logger } from "../util/logger/logger";
-import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler";
+import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { ValidationMessage } from "../validators/validation-message";
 import { Validator } from "../validators/validator";
 import { PropertyDependency } from "../dependency-graph/property-dependency";
@@ -35,8 +35,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private updatedListeners?: UpdatedListener[];
 
     private needsToRevalidate?: boolean; // needsToRevalidate iff true or undefined
-    private isAboutToStartValidation?: boolean; // isAboutToStartValidation iff true
-    private validationCounter?: number;
     private readonly validators: Validator[] = [];
     private validationMessages: ValidationMessage[] = [];
 
@@ -254,7 +252,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // ---------------------------------------------------------------------------------------
     
     /**
-     * Used for specialised synchronous Validations like ScalarValidators
+     * Used for specialised synchronous Validations: ScalarValidators
      */
     protected abstract getSpecialisedValidationResult(): ValidationMessage[];
 
@@ -262,40 +260,27 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         this.validators.push(validator);
     }
 
-    validate(): Promise<void> {
-        const validated = () => this.tellValueChangeListeners(listener => {
-            if (listener.validated) {
-                listener.validated();
-            }
-        });
-        const doValidate = () => {
+    async validate(): Promise<void> {
+        if (this.needsToRevalidate !== false) {
             this.needsToRevalidate = false;
-            this.isAboutToStartValidation = false;
+            this.updateHandler.invalidateValidationResults(this.validators);
+            await this.awaitAsyncUpdate();
             this.validationMessages = this.getSpecialisedValidationResult();
-
             if (this.validators.length) {
-                this.validationCounter = ((this.validationCounter || 0) + 1) % Number.MAX_SAFE_INTEGER;
-                const currentValidationCount = this.validationCounter;
-                return Promise.all(this.validators.map((validator: Validator) => {
-                    validator.validate().then(result => {
-                        const msgs = result.getMessages(this.id);
-                        if (msgs?.length && currentValidationCount === this.validationCounter) {
-                            this.validationMessages.push(...msgs);
-                        }
-                    }, error => {
-                        Logger.error('Validation failed', error);
-                    })
-                })).then(() => validated());
-            } else {
-                validated();
-                return Promise.resolve();
+                const results = await Promise.all(this.updateHandler.validate(this.validators));
+                results.forEach(result => {
+                    if (result instanceof Array) {
+                        this.validationMessages.push(...result);
+                    } else if (result?.[this.id]) {
+                        this.validationMessages.push(...result[this.id]);
+                    }
+                });
             }
-        };
-        if (this.needsToRevalidate !== false && !this.isAboutToStartValidation) {
-            this.isAboutToStartValidation = true;
-            return this.awaitAsyncUpdate().then(() => doValidate());
-        } else {
-            return Promise.resolve();
+            this.tellValueChangeListeners(listener => {
+                if (listener.validated) {
+                    listener.validated();
+                }
+            });
         }
     }
 
@@ -350,12 +335,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     // --------------------------------------------------------------------------------------
 
-    isAsynchronous(): boolean {
-        return this.validators.some(v => v.isAsynchronous());
-    }
-
     backpressureConfig?: BackpressureConfig;
 
+    abstract isAsynchronous(): boolean;
     abstract isProcessing(): boolean;
     abstract isReadOnly(): boolean;
     abstract exportData(): D | null;

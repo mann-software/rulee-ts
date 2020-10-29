@@ -1,7 +1,7 @@
 import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
 import { RuleBuilder } from "../engine/builder/rule-builder";
 import { C } from "../value-converter/common-value-converters";
-import { ValidationError } from "../validators/validation-type";
+import { ValidationTypes } from "../validators/validation-type";
 
 let ruleBuilder: RuleBuilder;
 
@@ -40,12 +40,12 @@ test('list of lists', async () => {
     const innerTemplate = ruleBuilder.list.template('INNER_LIST', (listBuilder, id) => {
         return listBuilder.create(id, ruleBuilder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
             const prop = scalarBuilder.booleanProperty(id);
-            scalarBuilder.bind(prop).addScalarValidator({
-                validate: (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? null : {
+            scalarBuilder.bind(prop).addScalarValidator(
+                (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
                     text: 'At most one element is allowed to be true',
-                    type: ValidationError
+                    type: ValidationTypes.Error
                 }
-            });
+            );
             return prop;
         }));
     });

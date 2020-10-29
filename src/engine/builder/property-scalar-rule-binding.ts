@@ -5,9 +5,10 @@ import { alwaysAssertThat } from "../../util/assertions/assertions";
 import { AttributeId, A } from "../../attributes/attribute-id";
 import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
-import { ScalarValidator, Validator } from "../../validators/validator";
+import { Validator } from "../../validators/validator";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
+import { ScalarValidator } from "../../validators/scalar-validator";
 
 export enum TextInterpreter {
     Plain, Markdown, Html
@@ -34,7 +35,10 @@ export class PropertyScalarRuleBinding<T> {
 
     addValidator(validator: Validator): PropertyScalarRuleBinding<T> {
         this.property.addValidator(validator);
-        const dependencies = validator.getValidatedProperties().concat(validator.getAdditionalProperties());
+        let dependencies = validator.validatedProperties;
+        if (validator.additionalProperties) {
+            dependencies = dependencies.concat(validator.additionalProperties);
+        }
         this.addDependencies(dependencies, this.property, { validation: true });
         return this;
     }
