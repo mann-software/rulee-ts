@@ -7,6 +7,8 @@ import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { SimpleListProvider } from "../../provider/list-provider/simple-list-provider";
 import { ListIndex } from "../../properties/factory/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
+import { Validator } from "../../validators/validator";
+import { ValidatorInstance } from "../validation/validator-instance-impl";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -26,5 +28,13 @@ export class ListOfPropertiesBuilder {
 
     template<T extends AbstractProperty<D>, D>(id: string, factory: (listBuilder: ListOfPropertiesBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>, (D | null)[]>) => ListOfProperties<T, D>): PropertyTemplate<ListOfProperties<T, D>, (D | null)[]> {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>, (D | null)[]>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
+    }
+
+    bindValidator<T extends AbstractProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<AbstractProperty<D>[]>) {
+        const instance: ValidatorInstance<AbstractProperty<D>[]> = {
+            validatedProperties: list.list,
+            validate: validator
+        };
+        (list as ListOfPropertiesImpl<T, D>).addValidator(instance);
     }
 }

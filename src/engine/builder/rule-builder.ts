@@ -23,6 +23,8 @@ import { Choice } from "../../properties/choice";
 import { ListOfPropertiesBuilder } from "./list-of-properties-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { ListProvider } from "../../provider/list-provider/list-provider";
+import { Validator } from "../../validators/validator";
+import { ValidatorInstance } from "../validation/validator-instance-impl";
 
 export class RuleBuilder {
 
@@ -128,6 +130,18 @@ export class RuleBuilder {
 
     defineCustomAttribute<A>(name: string): AttributeId<A> {
         return { name };
+    }
+
+    bindValidator<Properties extends readonly AbstractProperty<unknown>[]>(...properties: Properties): (validator: Validator<Properties>) => void {
+        return (validator: Validator<Properties>) => {
+            const instance: ValidatorInstance<Properties> = {
+                validatedProperties: properties,
+                validate: validator
+            };
+            properties.forEach(prop => {
+                (prop as AbstractPropertyWithInternals<unknown>).addValidator(instance);
+            });
+        };
     }
 
     asVisJsData() {

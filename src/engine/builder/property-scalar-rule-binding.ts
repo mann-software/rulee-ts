@@ -5,10 +5,10 @@ import { alwaysAssertThat } from "../../util/assertions/assertions";
 import { AttributeId, A } from "../../attributes/attribute-id";
 import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
-import { Validator } from "../../validators/validator";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
 import { ScalarValidator } from "../../validators/scalar-validator";
+import { ValidationMessage } from "../../validators/validation-message";
 
 export enum TextInterpreter {
     Plain, Markdown, Html
@@ -33,13 +33,11 @@ export class PropertyScalarRuleBinding<T> {
         return this;
     }
 
-    addValidator(validator: Validator): PropertyScalarRuleBinding<T> {
-        this.property.addValidator(validator);
-        let dependencies = validator.validatedProperties;
-        if (validator.additionalProperties) {
-            dependencies = dependencies.concat(validator.additionalProperties);
-        }
-        this.addDependencies(dependencies, this.property, { validation: true });
+    addAsyncScalarValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBinding<T> {
+        this.property.addValidator({
+            validatedProperties: [this.property],
+            validate: (prop) => validator(prop as PropertyScalar<T>)
+        });
         return this;
     }
     

@@ -1,6 +1,6 @@
 import { AbstractProperty } from "../properties/abstract-property";
 import { ValidationResult } from "../validators/validation-result";
-import { Validator } from "../validators/validator";
+import { ValidatorInstance } from "./validation/validator-instance-impl";
 
 export interface RuleEngineUpdateHandler<D> {
     /**
@@ -20,10 +20,10 @@ export interface RuleEngineUpdateHandler<D> {
      * Call this to invalidate the last validation result for the given Validator
      * @param validators validators to invalidate
      */
-    invalidateValidationResults(validators: readonly Validator[]): void;
+    invalidateValidationResults(validators: readonly ValidatorInstance<readonly AbstractProperty<unknown>[]>[]): void;
     /**
      * Validates the given validators but uses the last validation result if it is still up to date (and not invalidated via invalidateValidationResults)
      * @param validators validators to validate
      */
-    validate(validators: readonly Validator[]): Promise<ValidationResult>[];
+    validate(validators: readonly ValidatorInstance<readonly AbstractProperty<unknown>[]>[]): Promise<ValidationResult>[];
 }

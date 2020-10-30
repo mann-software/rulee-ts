@@ -1,4 +1,4 @@
-import { ValidationResult } from "../validators/validation-result";
+import { ValidationResult } from "../../validators/validation-result";
 
 /**
  * Used by RuleEngine to keep track of validation for a validator

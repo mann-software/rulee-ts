@@ -4,6 +4,8 @@ import { GroupOfProperties } from "../../properties/group-of-properties";
 import { ListIndex } from "../../properties/factory/list-index";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
+import { ValidatorInstance } from "../validation/validator-instance-impl";
+import { ValidationResult } from "../../validators/validation-result";
 
 const defaultExportFcn = <T extends { [id: string]: AbstractProperty<unknown> }>(props: T) =>
     Object.keys(props).reduce((res: {[key: string]: unknown}, cur: string) => {
@@ -41,5 +43,13 @@ export class GroupOfPropertiesBuilder {
             exportFcn: optional?.exportFcn ?? defaultExportFcn as unknown as (props: T) => D | null,
             importFcn: optional?.importFcn ?? defaultImportFcn
         };
+    }
+
+    bindValidator<T extends { [id: string]: AbstractProperty<unknown> }, D>(group: GroupOfProperties<T, D>, validator: (group: T) => ValidationResult | Promise<ValidationResult>) {
+        const instance: ValidatorInstance<AbstractProperty<unknown>[]> = {
+            validatedProperties: [],
+            validate: () => validator(group.properties)
+        };
+        (group as GroupOfPropertiesImpl<T, D>).addValidator(instance);
     }
 }

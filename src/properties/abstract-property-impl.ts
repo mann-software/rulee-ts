@@ -5,10 +5,10 @@ import { BackpressureType } from "./backpressure/backpressure-type";
 import { Logger } from "../util/logger/logger";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { ValidationMessage } from "../validators/validation-message";
-import { Validator } from "../validators/validator";
 import { PropertyDependency } from "../dependency-graph/property-dependency";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
+import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractProperty<D> {
     internallyUpdate(): Promise<void>;
@@ -16,6 +16,7 @@ export interface AbstractPropertyWithInternals<D> extends AbstractProperty<D> {
     errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
     internallyRequiresEagerUpdate(): boolean;
+    addValidator<Properties extends readonly AbstractProperty<unknown>[]>(validator: ValidatorInstance<Properties>): void;
 }
 
 interface UpdatedListener {
@@ -35,7 +36,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private updatedListeners?: UpdatedListener[];
 
     private needsToRevalidate?: boolean; // needsToRevalidate iff true or undefined
-    private readonly validators: Validator[] = [];
+    private readonly validators: ValidatorInstance<readonly AbstractProperty<unknown>[]>[] = [];
     private validationMessages: ValidationMessage[] = [];
 
 
@@ -256,8 +257,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
      */
     protected abstract getSpecialisedValidationResult(): ValidationMessage[];
 
-    addValidator(validator: Validator) {
-        this.validators.push(validator);
+    addValidator<Properties extends readonly AbstractProperty<unknown>[]>(validator: ValidatorInstance<Properties>) {
+        this.validators.push(validator as unknown as ValidatorInstance<readonly AbstractProperty<unknown>[]>);
     }
 
     async validate(): Promise<void> {
