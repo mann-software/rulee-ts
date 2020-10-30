@@ -11,4 +11,4 @@ import { ValidationMessage } from "./validation-message";
  * to one PropertyScalar if there are different validations that lead to more
  * than one message at once
  */
-export type ScalarValidator<T> = (property: PropertyScalar<T>) => ValidationMessage | undefined;
+export type ScalarValidator<T> = (property: PropertyScalar<T>) => ValidationMessage | void;

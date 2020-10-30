@@ -168,7 +168,7 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
             } else if(vprocess.currentValidation) {
                 return vprocess.currentValidation;
             }
-            const validation = validator.validate(...validator.validatedProperties);
+            const validation = validator.validate(...validator.getValidatedProperties());
             if (validation instanceof Promise) {
                 vprocess.currentValidation = validation.then(res => {
                     vprocess.currentValidation = undefined;

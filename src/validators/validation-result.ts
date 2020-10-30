@@ -7,4 +7,4 @@ import { ValidationMessage } from "./validation-message";
  * - Array of ValidationMessage if the result holds for every validated property
  * - Object with propertyId as keys and the corresponding messages (propertyId must be one of given properties) 
  */
-export type ValidationResult = undefined | ValidationMessage[] | { [propertyId: string]: ValidationMessage[] };
+export type ValidationResult = void | ValidationMessage[] | { [propertyId: string]: ValidationMessage[] };

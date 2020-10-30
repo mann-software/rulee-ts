@@ -7,8 +7,8 @@ export class TimingGuard {
         this.gate = initialGate;
     }
 
-    passGate(expectedGate: number) {
-        if (expectedGate !== this.gate) {
+    passGate(expectedGate?: number) {
+        if (expectedGate !== undefined && expectedGate !== this.gate) {
             throw new AssertionError(`Expected gate is ${expectedGate} but actual gate is ${this.gate}`);
         }
         this.gate++

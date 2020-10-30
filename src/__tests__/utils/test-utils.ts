@@ -1,11 +1,11 @@
-import { ValidationError } from '../../validators/validation-type';
+import { ValidationTypes } from '../../validators/validation-type';
 import { ValidationMessage } from '../../validators/validation-message';
 import { RuleEngine } from '../../engine/rule-engine';
 import { RuleBuilder } from '../../engine/builder/rule-builder';
 import { RuleBuilderOptions } from '../../engine/builder/rule-builder-options';
 
 export const emptyButRequiredMessage: ValidationMessage = {
-    type: ValidationError,
+    type: ValidationTypes.Error,
     text: 'Must not be empty'
 };
 

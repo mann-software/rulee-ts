@@ -135,7 +135,7 @@ export class RuleBuilder {
     bindValidator<Properties extends readonly AbstractProperty<unknown>[]>(...properties: Properties): (validator: Validator<Properties>) => void {
         return (validator: Validator<Properties>) => {
             const instance: ValidatorInstance<Properties> = {
-                validatedProperties: properties,
+                getValidatedProperties: () => properties,
                 validate: validator
             };
             properties.forEach(prop => {

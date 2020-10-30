@@ -47,7 +47,7 @@ export class GroupOfPropertiesBuilder {
 
     bindValidator<T extends { [id: string]: AbstractProperty<unknown> }, D>(group: GroupOfProperties<T, D>, validator: (group: T) => ValidationResult | Promise<ValidationResult>) {
         const instance: ValidatorInstance<AbstractProperty<unknown>[]> = {
-            validatedProperties: [],
+            getValidatedProperties: () => group.propertiesAsList(),
             validate: () => validator(group.properties)
         };
         (group as GroupOfPropertiesImpl<T, D>).addValidator(instance);

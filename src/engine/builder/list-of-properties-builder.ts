@@ -30,10 +30,10 @@ export class ListOfPropertiesBuilder {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>, (D | null)[]>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
     }
 
-    bindValidator<T extends AbstractProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<AbstractProperty<D>[]>) {
+    bindValidator<T extends AbstractProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<T[]>) {
         const instance: ValidatorInstance<AbstractProperty<D>[]> = {
-            validatedProperties: list.list,
-            validate: validator
+            getValidatedProperties: () => list.list,
+            validate: validator as Validator<AbstractProperty<D>[]>
         };
         (list as ListOfPropertiesImpl<T, D>).addValidator(instance);
     }

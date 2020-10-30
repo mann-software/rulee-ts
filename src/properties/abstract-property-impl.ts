@@ -261,7 +261,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         this.validators.push(validator as unknown as ValidatorInstance<readonly AbstractProperty<unknown>[]>);
     }
 
-    async validate(): Promise<void> {
+    async validate(): Promise<ValidationMessage[]> {
         if (this.needsToRevalidate !== false) {
             this.needsToRevalidate = false;
             this.updateHandler.invalidateValidationResults(this.validators);
@@ -272,7 +272,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 results.forEach(result => {
                     if (result instanceof Array) {
                         this.validationMessages.push(...result);
-                    } else if (result?.[this.id]) {
+                    } else if (!!result && result[this.id]) {
                         this.validationMessages.push(...result[this.id]);
                     }
                 });
@@ -283,6 +283,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 }
             });
         }
+        return this.getValidationMessages();
     }
 
     isValid(): boolean {
