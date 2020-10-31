@@ -1,7 +1,7 @@
 import { ValidationMessage } from "../../validators/validation-message";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 
-export interface RuleBuilderOptions {
+export interface BuilderOptions {
     /**
      * Used for validation: Property is empty according its emptyValueFcn but required
      */

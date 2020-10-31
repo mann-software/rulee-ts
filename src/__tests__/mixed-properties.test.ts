@@ -1,23 +1,23 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { ValidationTypes } from "../validators/validation-type";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 
 beforeEach(() => {
-    [ruleBuilder] = ruleBuilderAndEngineFactory();
+    [builder] = builderAndRuleEngineFactory();
 });
 
 test('list of group properties with sum-property', () => {
-    const template = ruleBuilder.group.template((id, index) => {
-        const propA = ruleBuilder.scalar.numberProperty(id('PROP_A'));
-        ruleBuilder.scalar.bind(propA).defineVisibility()(() => (index?.idx ?? 0) % 2 === 0);
-        const propB = ruleBuilder.scalar.stringProperty(id('PROP_B'));
+    const template = builder.group.template((id, index) => {
+        const propA = builder.scalar.numberProperty(id('PROP_A'));
+        builder.scalar.bind(propA).defineVisibility()(() => (index?.idx ?? 0) % 2 === 0);
+        const propB = builder.scalar.stringProperty(id('PROP_B'));
         return { propA, propB }
     });
-    const propList = ruleBuilder.list.create('PROP_LIST', template);
-    const sumProp = ruleBuilder.scalar.derived.sync('SUM', C.number.default, propList)({
+    const propList = builder.list.create('PROP_LIST', template);
+    const sumProp = builder.scalar.derived.sync('SUM', C.number.default, propList)({
         derive: (propList) => propList.list.reduce((res, item) => res + item.properties.propA.getNonNullValue(), 0)
     });
 
@@ -37,8 +37,8 @@ test('list of group properties with sum-property', () => {
 });
 
 test('list of lists', async () => {
-    const innerTemplate = ruleBuilder.list.template('INNER_LIST', (listBuilder, id) => {
-        return listBuilder.create(id, ruleBuilder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
+    const innerTemplate = builder.list.template('INNER_LIST', (listBuilder, id) => {
+        return listBuilder.create(id, builder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
             const prop = scalarBuilder.booleanProperty(id);
             scalarBuilder.bind(prop).addScalarValidator(
                 (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
@@ -49,12 +49,12 @@ test('list of lists', async () => {
             return prop;
         }));
     });
-    const outerList = ruleBuilder.list.create('OUTER_LIST', innerTemplate);
+    const outerList = builder.list.create('OUTER_LIST', innerTemplate);
     expect(outerList.exportData()).toStrictEqual([]);
     outerList.addProperties(2);
     expect(outerList.exportData()).toStrictEqual([[], []]);
 
-    const atLeastOneTrue = ruleBuilder.scalar.derived.sync('AT_LEAST_ONE_TRUE', C.boolean.default, outerList)({
+    const atLeastOneTrue = builder.scalar.derived.sync('AT_LEAST_ONE_TRUE', C.boolean.default, outerList)({
         derive: (outerList) => outerList.list.some(innerList => innerList.list.some(element => element.getNonNullValue()))
     });
     expect(atLeastOneTrue.getValue()).toBe(false);

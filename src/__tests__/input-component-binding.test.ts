@@ -1,11 +1,11 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { PropertyScalar } from "../properties/property-scalar";
 import { C } from "../value-converter/common-value-converters";
 import { valueAfterTime } from "./utils/timing-utils";
 import { InputComponentMock } from "./utils/input-component-mock";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 let propA: PropertyScalar<string>;
 let propB: PropertyScalar<string>;
 let propC: PropertyScalar<string>;
@@ -14,17 +14,17 @@ let inputB: InputComponentMock;
 let inputC: InputComponentMock;
 
 beforeEach(() => {
-    [ruleBuilder] = ruleBuilderAndEngineFactory();
+    [builder] = builderAndRuleEngineFactory();
 
-    propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: '1' });
+    propA = builder.scalar.stringProperty('PROP_A', { initialValue: '1' });
     inputA = new InputComponentMock(propA);
 
-    propB = ruleBuilder.scalar.derived.sync('PROP_B', C.string.identity, propA)({
+    propB = builder.scalar.derived.sync('PROP_B', C.string.identity, propA)({
         derive: (propA) => `< ${propA.getDisplayValue()} >`
     });
     inputB = new InputComponentMock(propB);
 
-    propC = ruleBuilder.scalar.derived.async('PROP_C', C.string.identity, propA)({
+    propC = builder.scalar.derived.async('PROP_C', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 100)
     });
     inputC = new InputComponentMock(propC);

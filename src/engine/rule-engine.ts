@@ -1,12 +1,11 @@
 import { DependencyGraph } from "../dependency-graph/dependency-graph";
-import { RuleEngineDescription } from "./rule-engine-description";
 import { AbstractProperty } from "../properties/abstract-property";
 import { RuleEngineUpdateHandler } from "./rule-engine-update-handler-impl";
 import { AbstractPropertyWithInternals } from "../properties/abstract-property-impl";
 import { ValueChangeListener } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
-import { RuleBuilderOptions } from "./builder/rule-builder-options";
-import { RuleBuilder } from "./builder/rule-builder";
+import { BuilderOptions } from "./builder/builder-options";
+import { Builder } from "./builder/builder";
 import { ValidationProcess } from "./validation/validation-process-impl";
 import { ValidationResult } from "../validators/validation-result";
 import { ValidationTypes } from "../validators/validation-type";
@@ -27,11 +26,11 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
     }
 
     /**
-     * Creates a rule builder to define your business rules
+     * Creates a builder to define your business rules
      * @param options for the builder
      */
-    builder(options: RuleBuilderOptions) {
-        return new RuleBuilder(options, this, this.dependencyGraph, this.propertyMap);
+    builder(options: BuilderOptions) {
+        return new Builder(options, this, this.dependencyGraph, this.propertyMap);
     }
 
     takeSnapShot(key = 'default'): Snapshot {
@@ -212,28 +211,4 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
         }
     }
 
-    // -----------------------------------------------------------------------
-
-    static serialize(engine: RuleEngine): string {
-        // TODO
-        return '';
-    }
-
-    static deserialize(serialized: string): RuleEngine {
-        // TODO
-        // - possible to send rule engine via network
-        // - faster creation since serialized rule engine needs no preprocessing (e.g. analysing graph)
-        // - maybe validation if serialized string is valid for security reasons? 
-        //   -> attacker could manipulate values. E.g. for IBAN display value as entered but internal value its the attackers IBAN
-        //      -> thus validation no gain for security.
-        //      -> prossibly code injection via serialized rule engine!
-        //      -> serialized string needs to be signed by cryto mechanism!
-        const description = JSON.parse(serialized);
-        return RuleEngine.createFromRuleEngineDescription(description);
-    }
-    
-    static createFromRuleEngineDescription(description: RuleEngineDescription): RuleEngine {
-        // TODO
-        throw Error('TODO');
-    }
 }

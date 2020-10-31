@@ -1,22 +1,22 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 let propA: PropertyScalar<number>;
 let propB: PropertyScalar<number>;
 let propC: PropertyScalar<number>;
 
 beforeEach(() => {
-    [ruleBuilder] = ruleBuilderAndEngineFactory();
-    propA = ruleBuilder.scalar.numberProperty('PROP_A', { initialValue: 0 });
+    [builder] = builderAndRuleEngineFactory();
+    propA = builder.scalar.numberProperty('PROP_A', { initialValue: 0 });
     
-    propB = ruleBuilder.scalar.derived.sync('PROP_B', C.number.default, propA)({
+    propB = builder.scalar.derived.sync('PROP_B', C.number.default, propA)({
         derive: (propA) => propA.getNonNullValue() * 2
     });
 
-    propC = ruleBuilder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
+    propC = builder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
         derive: (propA, propB) => propA.getNonNullValue()  + propB.getNonNullValue(),
         inverse: (val, propA, propB) => val ? propA.setValue(val / 3) : propA.setValue(0)
     });

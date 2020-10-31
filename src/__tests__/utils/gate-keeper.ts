@@ -1,6 +1,6 @@
 import { AssertionError } from "../../util/assertions/assertion-error";
 
-export class TimingGuard {
+export class GateKeeper {
     private gate = 0;
 
     constructor (initialGate = 1) {

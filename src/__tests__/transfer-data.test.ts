@@ -1,11 +1,11 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
 import { RuleEngine } from "../engine/rule-engine";
 import { valueAfterTime } from "./utils/timing-utils";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 let propA: PropertyScalar<string>;
 let propB: PropertyScalar<string>;
 let propBNumber: PropertyScalar<number>;
@@ -14,14 +14,14 @@ let propD: PropertyScalar<number>;
 let ruleEngine: RuleEngine;
 
 beforeEach(() => {
-    [ruleBuilder, ruleEngine] = ruleBuilderAndEngineFactory();
-    propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
-    propB = ruleBuilder.scalar.stringProperty('PROP_B', { initialValue: '42' });
-    propBNumber = ruleBuilder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
-    propC = ruleBuilder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
+    [builder, ruleEngine] = builderAndRuleEngineFactory();
+    propA = builder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
+    propB = builder.scalar.stringProperty('PROP_B', { initialValue: '42' });
+    propBNumber = builder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
+    propC = builder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
         derive: (propA, propB) => propA.getNonNullValue().length + propB.getNonNullValue().length
     });
-    propD = ruleBuilder.scalar.derived.async('PROP_D', C.number.default, propB)({
+    propD = builder.scalar.derived.async('PROP_D', C.number.default, propB)({
         deriveAsync: (propA) => valueAfterTime(propA.getNonNullValue().length, 40)
     });
 });

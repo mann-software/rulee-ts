@@ -1,26 +1,26 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { SelectionMode } from "../engine/builder/list-of-properties-builder";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 
 beforeEach(() => {
-    [ruleBuilder] = ruleBuilderAndEngineFactory();
+    [builder] = builderAndRuleEngineFactory();
 });
 
 test('list of property: add existing property', () => {
-    const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
-        const itemProp = builder.stringProperty(id);
-        ruleBuilder.scalar.bind(itemProp)
+    const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
+        const itemProp = scalarBuilder.stringProperty(id);
+        scalarBuilder.bind(itemProp)
             .defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
     });
 
-    const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate);
+    const propList = builder.list.create('PROP_LIST', listItemTemplate);
 
     expect(propList.exportData()).toStrictEqual([]);
 
-    const propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: '123' });
+    const propA = builder.scalar.stringProperty('PROP_A', { initialValue: '123' });
     propList.addProperty(propA);
     propList.addProperty();
 
@@ -39,13 +39,13 @@ test('list of property: add existing property', () => {
 });
 
 test('list of property: add properties and select property', () => {
-    const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
-        const itemProp = builder.stringProperty(id);
-        ruleBuilder.scalar.bind(itemProp)
+    const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
+        const itemProp = scalarBuilder.stringProperty(id);
+        scalarBuilder.bind(itemProp)
             .defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected());
         return itemProp;
     });
-    const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate);
+    const propList = builder.list.create('PROP_LIST', listItemTemplate);
 
     expect(propList.exportData()).toStrictEqual([]);
 
@@ -60,13 +60,13 @@ test('list of property: add properties and select property', () => {
 });
 
 test('list of property: select properties multiple properties and move properties around', () => {
-    const listItemTemplate = ruleBuilder.scalar.template('ITEM', (builder, id, index) => {
-        const itemProp = builder.stringProperty(id);
-        ruleBuilder.scalar.bind(itemProp)
+    const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
+        const itemProp = scalarBuilder.stringProperty(id);
+        scalarBuilder.bind(itemProp)
             .defineRequiredIfVisible()(() => !!index?.isLast());
         return itemProp;
     });
-    const propList = ruleBuilder.list.create('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);
+    const propList = builder.list.create('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);
     propList.addProperties(3);
 
     expect(propList.getSelectedIndices()).toHaveLength(0);

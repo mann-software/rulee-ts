@@ -1,10 +1,10 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { valueAfterTime } from "./utils/timing-utils";
 
 test('static property select WITHOUT default choice and WITHOUT empty choice', () => {
-    const [ruleBuilder] = ruleBuilderAndEngineFactory();
+    const [builder] = builderAndRuleEngineFactory();
 
-    const propA = ruleBuilder.scalar.select.static('PROP_A', [
+    const propA = builder.scalar.select.static('PROP_A', [
         { value: 'a', displayValue: 'A' },
         { value: 'b', displayValue: 'B' },
     ]);
@@ -31,9 +31,9 @@ test('static property select WITHOUT default choice and WITHOUT empty choice', (
 });
 
 test('static property select WITHOUT default choice and WITH empty choice', () => {
-    const [ruleBuilder] = ruleBuilderAndEngineFactory();
+    const [builder] = builderAndRuleEngineFactory();
 
-    const propB = ruleBuilder.scalar.select.static('PROP_B', [
+    const propB = builder.scalar.select.static('PROP_B', [
         { value: 1, displayValue: 'A' },
         { value: 2, displayValue: 'B' },
     ], { value: null, displayValue: '...' });
@@ -61,8 +61,8 @@ test('static property select WITHOUT default choice and WITH empty choice', () =
 });
 
 test('static property select WITHOUT default choice and WITHOUT ANY choice', () => {
-    const [ruleBuilder] = ruleBuilderAndEngineFactory();
-    const propC = ruleBuilder.scalar.select.static('PROP_C', []);
+    const [builder] = builderAndRuleEngineFactory();
+    const propC = builder.scalar.select.static('PROP_C', []);
 
     expect(propC.getChoices()).toStrictEqual([]);
     expect(propC.getValue()).toBe(null);
@@ -70,8 +70,8 @@ test('static property select WITHOUT default choice and WITHOUT ANY choice', () 
 });
 
 test('static property select WITH default choice and WITHOUT ANY choice', () => {
-    const [ruleBuilder] = ruleBuilderAndEngineFactory({ defaultEmptyChoiceDisplayValue: '...' });
-    const propD = ruleBuilder.scalar.select.static('PROP_D', []);
+    const [builder] = builderAndRuleEngineFactory({ defaultEmptyChoiceDisplayValue: '...' });
+    const propD = builder.scalar.select.static('PROP_D', []);
 
     expect(propD.getChoices()).toStrictEqual([
         { value: null, displayValue: '...' }
@@ -82,9 +82,9 @@ test('static property select WITH default choice and WITHOUT ANY choice', () => 
 });
 
 test('derived property select', () => {
-    const [ruleBuilder] = ruleBuilderAndEngineFactory();
-    const propE = ruleBuilder.scalar.booleanProperty('PROP_E', { initialValue: false });
-    const propF = ruleBuilder.scalar.select.derived('PROP_F', propE)({
+    const [builder] = builderAndRuleEngineFactory();
+    const propE = builder.scalar.booleanProperty('PROP_E', { initialValue: false });
+    const propF = builder.scalar.select.derived('PROP_F', propE)({
         derive: (propE) => {
             const choices = [
                 { value: false, displayValue: 'No' }
@@ -121,9 +121,9 @@ test('derived property select', () => {
 });
 
 test('async derived property select', async () => {
-    const [ruleBuilder] = ruleBuilderAndEngineFactory();
-    const propG = ruleBuilder.scalar.booleanProperty('PROP_G', { initialValue: false });
-    const propH = ruleBuilder.scalar.select.asyncDerived('PROP_H', propG)({
+    const [builder] = builderAndRuleEngineFactory();
+    const propG = builder.scalar.booleanProperty('PROP_G', { initialValue: false });
+    const propH = builder.scalar.select.asyncDerived('PROP_H', propG)({
         deriveAsync: (propG) => {
             const choices = [
                 { value: false, displayValue: 'No' }

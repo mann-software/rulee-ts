@@ -1,20 +1,20 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
 import { RuleEngine } from "../engine/rule-engine";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 let propA: PropertyScalar<string>;
 let propB: PropertyScalar<string>;
 let propC: PropertyScalar<number>;
 let ruleEngine: RuleEngine;
 
 beforeEach(() => {
-    [ruleBuilder, ruleEngine] = ruleBuilderAndEngineFactory();
-    propA = ruleBuilder.scalar.stringProperty('PROP_A');
-    propB = ruleBuilder.scalar.stringProperty('PROP_B');
-    propC = ruleBuilder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
+    [builder, ruleEngine] = builderAndRuleEngineFactory();
+    propA = builder.scalar.stringProperty('PROP_A');
+    propB = builder.scalar.stringProperty('PROP_B');
+    propC = builder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
         derive: (propA, propB) => propA.getNonNullValue().length  + propB.getNonNullValue().length
     });
 });

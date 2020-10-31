@@ -1,23 +1,23 @@
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
+import { Builder } from "../engine/builder/builder";
 import { PropertyScalar } from "../properties/property-scalar";
 import { C } from "../value-converter/common-value-converters";
 import { valueAfterTime, executeAfterTime } from "./utils/timing-utils";
 import { InputComponentMock } from "./utils/input-component-mock";
-import { TimingGuard } from "./utils/timing-guard";
+import { GateKeeper } from "./utils/gate-keeper";
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 let propA: PropertyScalar<string>;
 let inputA: InputComponentMock;
 
 beforeEach(() => {
-    [ruleBuilder] = ruleBuilderAndEngineFactory();
-    propA = ruleBuilder.scalar.stringProperty('PROP_A', { initialValue: '1' });
+    [builder] = builderAndRuleEngineFactory();
+    propA = builder.scalar.stringProperty('PROP_A', { initialValue: '1' });
     inputA = new InputComponentMock(propA);
 });
 
 test('the default backpressure type is switch with debouncing', () => {
-    const propB = ruleBuilder.scalar.derived.async('PROP_B', C.string.identity, propA)({
+    const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<<${propA.getDisplayValue()}>>`, 100)
     });
     expect(propB.backpressureConfig?.type).toBe('switch');
@@ -25,7 +25,7 @@ test('the default backpressure type is switch with debouncing', () => {
 });
 
 test('testing backpressure type switch with debouncing', async () => {
-    const propB = ruleBuilder.scalar.derived.async('PROP_B', C.string.identity, propA)({
+    const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 300),
         backpressureConfig: {
             type: 'switch',
@@ -34,7 +34,7 @@ test('testing backpressure type switch with debouncing', async () => {
     });
     expect(propB.backpressureConfig?.type).toBe('switch');
     expect(propB.backpressureConfig?.debounceTime).toBe(150);
-    const guard = new TimingGuard();
+    const guard = new GateKeeper();
 
     inputA.registerBinding();
     const inputB = new InputComponentMock(propB);
@@ -77,7 +77,7 @@ test('testing backpressure type switch with debouncing', async () => {
 });
 
 test('testing backpressure type switch with debouncing - no switch if not awaited', async () => {
-    const propB = ruleBuilder.scalar.derived.async('PROP_B', C.string.identity, propA)({
+    const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 300),
         backpressureConfig: {
             type: 'switch',
@@ -86,7 +86,7 @@ test('testing backpressure type switch with debouncing - no switch if not awaite
     });
     expect(propB.backpressureConfig?.type).toBe('switch');
     expect(propB.backpressureConfig?.debounceTime).toBe(150);
-    const guard = new TimingGuard();
+    const guard = new GateKeeper();
 
     void propB.awaitValue().then(result => {
         guard.passGate(1);
@@ -109,14 +109,14 @@ test('testing backpressure type switch with debouncing - no switch if not awaite
 });
 
 test('testing backpressure type skip', async () => {
-    const propB = ruleBuilder.scalar.derived.async('PROP_B', C.string.identity, propA)({
+    const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 200),
         backpressureConfig: {
             type: 'skip'
         }
     });
     expect(propB.backpressureConfig?.type).toBe('skip');
-    const guard = new TimingGuard();
+    const guard = new GateKeeper();
 
     inputA.registerBinding();
     const inputB = new InputComponentMock(propB);

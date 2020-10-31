@@ -1,17 +1,17 @@
 import { ValidationTypes } from '../../validators/validation-type';
 import { ValidationMessage } from '../../validators/validation-message';
 import { RuleEngine } from '../../engine/rule-engine';
-import { RuleBuilder } from '../../engine/builder/rule-builder';
-import { RuleBuilderOptions } from '../../engine/builder/rule-builder-options';
+import { Builder } from '../../engine/builder/builder';
+import { BuilderOptions } from '../../engine/builder/builder-options';
 
 export const emptyButRequiredMessage: ValidationMessage = {
     type: ValidationTypes.Error,
     text: 'Must not be empty'
 };
 
-const defaultOptions: RuleBuilderOptions = { emptyButRequiredMessage };
+const defaultOptions: BuilderOptions = { emptyButRequiredMessage };
 
-export const ruleBuilderAndEngineFactory: (options?: Partial<RuleBuilderOptions>) => [RuleBuilder, RuleEngine] = (options?: Partial<RuleBuilderOptions>) => {
+export const builderAndRuleEngineFactory: (options?: Partial<BuilderOptions>) => [Builder, RuleEngine] = (options?: Partial<BuilderOptions>) => {
     const ruleEngine = new RuleEngine();
     const mergedOptions = !options ? defaultOptions : { ...defaultOptions, ...options };
     return [ruleEngine.builder(mergedOptions), ruleEngine];

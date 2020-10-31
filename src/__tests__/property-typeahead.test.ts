@@ -1,6 +1,6 @@
-import { RuleBuilder } from "../engine/builder/rule-builder";
+import { Builder } from "../engine/builder/builder";
 import { Choice } from "../properties/choice";
-import { ruleBuilderAndEngineFactory } from "./utils/test-utils";
+import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { valueAfterTime } from "./utils/timing-utils";
 
 interface TestDTO {
@@ -11,14 +11,14 @@ interface TestDTO {
 const freddie: Choice<TestDTO> = { value: { id: 0, name: 'Freddie' }, displayValue: 'Freddie (0)'};
 const eduard: Choice<TestDTO> = { value: { id: 1, name: 'Eduard' }, displayValue: 'Eduard (1)'};
 
-let ruleBuilder: RuleBuilder;
+let builder: Builder;
 
 beforeEach(() => {
-    [ruleBuilder] = ruleBuilderAndEngineFactory();
+    [builder] = builderAndRuleEngineFactory();
 });
 
 test('async derived property typeahead', async () => {
-    const propA = ruleBuilder.scalar.typeahead.async('PROP_A', {
+    const propA = builder.scalar.typeahead.async('PROP_A', {
         fetchChoices: (currentText) => valueAfterTime<Choice<TestDTO>[]>(
             [freddie, eduard].filter(choice => !currentText || choice.displayValue.toLowerCase().includes(currentText.toLowerCase())), 
             10
@@ -67,7 +67,7 @@ test('async derived property typeahead', async () => {
 });
 
 test('async derived property typeahead with minimum input length', async () => {
-    const propA = ruleBuilder.scalar.typeahead.async<TestDTO>('PROP_A', {
+    const propA = builder.scalar.typeahead.async<TestDTO>('PROP_A', {
         fetchChoices: (currentText) => valueAfterTime(
             [freddie, eduard].filter(choice => !currentText || choice.displayValue.toLowerCase().includes(currentText.toLowerCase())), 
             10
