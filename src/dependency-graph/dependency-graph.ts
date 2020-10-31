@@ -111,13 +111,25 @@ export class DependencyGraph implements OwnerRelation {
     
     // --------
 
-    traverseDepthFirst(start: PropertyId, apply: (prop: AbstractProperty<unknown>, dependency: PropertyDependency) => void, filter?: (dependency: PropertyDependency) => boolean) {
+    traverseDepthFirst(start: PropertyId, apply: (prop: AbstractProperty<unknown>, dependency: PropertyDependency) => void, filter?: (dependency: PropertyDependency) => boolean, preventCycles?: boolean) {
+        let visited: Set<PropertyId>;
         const outgoing = this.edgesMap.get(start);
         if (outgoing) {
             outgoing.forEach((dependency, to) => {
                 if (!filter || filter(dependency)) {
-                    apply(dependency.to, dependency);
-                    this.traverseDepthFirst(to, apply, filter);
+                    if (preventCycles) {
+                        if (!visited) {
+                            visited = new Set();
+                        }
+                        if (!visited.has(dependency.to.id)) {
+                            apply(dependency.to, dependency);
+                            visited.add(dependency.to.id);
+                            this.traverseDepthFirst(to, apply, filter);
+                        }
+                    } else {
+                        apply(dependency.to, dependency);
+                        this.traverseDepthFirst(to, apply, filter);
+                    }
                 }
             });
         }

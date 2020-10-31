@@ -105,7 +105,7 @@ export class RuleBuilder {
     private groupOfProperties<T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
         const prop = new GroupOfPropertiesImpl(id, properties, exportFcn, importFcn, this.ruleEngine);
         this.addProperty(prop);
-        this.addDependencies(this.dependencyGraph, prop.propertiesAsList(), prop, { value: true });
+        this.addDependencies(this.dependencyGraph, prop.propertiesAsList, prop, { value: true });
         return prop;
     }
 
@@ -138,8 +138,13 @@ export class RuleBuilder {
                 getValidatedProperties: () => properties,
                 validate: validator
             };
-            properties.forEach(prop => {
+            properties.forEach((prop, i) => {
                 (prop as AbstractPropertyWithInternals<unknown>).addValidator(instance);
+                for (let j = i +1; j < properties.length; j++) {
+                    const dependent = properties[j];
+                    this.dependencyGraph.addDependency(prop, dependent, { validation: true });
+                    this.dependencyGraph.addDependency(dependent, prop, { validation: true });
+                }
             });
         };
     }

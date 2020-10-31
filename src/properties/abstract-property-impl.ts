@@ -36,7 +36,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private updatedListeners?: UpdatedListener[];
 
     private needsToRevalidate?: boolean; // needsToRevalidate iff true or undefined
-    private readonly validators: ValidatorInstance<readonly AbstractProperty<unknown>[]>[] = [];
+    private validators?: ValidatorInstance<readonly AbstractProperty<unknown>[]>[];
     private validationMessages: ValidationMessage[] = [];
 
 
@@ -206,6 +206,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
         this.needsToRecompute = true;
         this.needsToRevalidate = true;
+        if (this.validators) {
+            this.updateHandler.invalidateValidationResults(this.validators);
+        }
 
         // chain is controlled by RuleEngine Class, it will set notifyOthers to false
         if (notifyOthers !== false) {
@@ -236,6 +239,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     dependencyHasBeenUpdated(dependency: PropertyDependency) {
         if (dependency.options.validation) {
             this.needsToRevalidate = true;
+            if (this.validators) {
+                this.updateHandler.invalidateValidationResults(this.validators);
+            }
         }
         this.tellValueChangeListeners(listener => {
             if (listener.dependencyHasBeenUpdated) {
@@ -258,16 +264,18 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     protected abstract getSpecialisedValidationResult(): ValidationMessage[];
 
     addValidator<Properties extends readonly AbstractProperty<unknown>[]>(validator: ValidatorInstance<Properties>) {
+        if (!this.validators) {
+            this.validators = [];
+        }
         this.validators.push(validator as unknown as ValidatorInstance<readonly AbstractProperty<unknown>[]>);
     }
 
     async validate(): Promise<ValidationMessage[]> {
         if (this.needsToRevalidate !== false) {
             this.needsToRevalidate = false;
-            this.updateHandler.invalidateValidationResults(this.validators);
             await this.awaitAsyncUpdate();
             this.validationMessages = this.getSpecialisedValidationResult();
-            if (this.validators.length) {
+            if (this.validators) {
                 const results = await Promise.all(this.updateHandler.validate(this.validators));
                 results.forEach(result => {
                     if (result instanceof Array) {

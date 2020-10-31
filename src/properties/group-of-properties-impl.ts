@@ -8,6 +8,8 @@ import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-im
  */
 export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<unknown> }, D> extends AbstractPropertyImpl<D> implements GroupOfProperties<T, D> {
 
+    readonly propertiesAsList: readonly AbstractProperty<unknown>[];
+
     constructor(
         readonly id: string,
         readonly properties: T,
@@ -16,10 +18,7 @@ export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<un
         updateHandler: RuleEngineUpdateHandler<D>
     ) {
         super(updateHandler);
-    }
-
-    propertiesAsList(): AbstractProperty<unknown>[] {
-        return Object.keys(this.properties).map(propKey => this.properties[propKey]);
+        this.propertiesAsList = Object.keys(this.properties).map(propKey => this.properties[propKey]);
     }
 
     protected internallySyncUpdate(): void {

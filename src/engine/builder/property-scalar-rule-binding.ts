@@ -34,8 +34,9 @@ export class PropertyScalarRuleBinding<T> {
     }
 
     addAsyncScalarValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBinding<T> {
+        const propList = [this.property];
         this.property.addValidator({
-            getValidatedProperties: () => [this.property],
+            getValidatedProperties: () => propList,
             validate: (prop) => validator(prop as PropertyScalar<T>)
         });
         return this;

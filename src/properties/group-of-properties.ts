@@ -5,5 +5,5 @@ import { AbstractProperty } from "./abstract-property";
  */
 export interface GroupOfProperties<T extends { [id: string]: AbstractProperty<unknown> }, D> extends AbstractProperty<D> {
     readonly properties: T;
-    propertiesAsList(): AbstractProperty<unknown>[];
+    readonly propertiesAsList: readonly AbstractProperty<unknown>[];
 }

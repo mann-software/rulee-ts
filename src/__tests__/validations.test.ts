@@ -64,10 +64,8 @@ test('validator combination test', async () => {
     expect(guard.lastGatePassed).toBe(0);
 
     propA.setValue('Earth');
-    propB.needsAnUpdate(); // TODO make it also work without this line!
-    const promiseMsgsA = propA.validate();
+    const msgsA = await propA.validate();
     const msgsB = await propB.validate();
-    const msgsA = await promiseMsgsA;
     expect(msgsA).toStrictEqual([someError, someError]);
     expect(msgsB).toStrictEqual([]);
     expect(guard.lastGatePassed).toBe(1);
