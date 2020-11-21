@@ -1,10 +1,10 @@
 import { ListProvider } from "./list-provider";
-import { AbstractProperty } from "../../properties/abstract-property";
 import { PropertyId } from "../../properties/property-id";
 import { ListIndexImpl } from "../../properties/factory/list-index-impl";
 import { PropertyTemplate } from "../../properties/factory/property-template";
+import { AbstractDataProperty } from "../../properties/abstract-data-property";
 
-export class SimpleListProvider<T extends AbstractProperty<D>, D> implements ListProvider<T, D> {
+export class SimpleListProvider<T extends AbstractDataProperty<D>, D> implements ListProvider<T> {
 
     private readonly list: { prop: T; index: ListIndexImpl }[] = [];
     readonly siblingCount = this.list.length;

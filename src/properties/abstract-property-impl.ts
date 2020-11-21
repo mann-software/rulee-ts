@@ -9,14 +9,15 @@ import { PropertyDependency } from "../dependency-graph/property-dependency";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
 import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
+import { AbstractDataProperty } from "./abstract-data-property";
 
-export interface AbstractPropertyWithInternals<D> extends AbstractProperty<D> {
+export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void>;
     hasBeenUpdated(): void;
     errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
     internallyRequiresEagerUpdate(): boolean;
-    addValidator<Properties extends readonly AbstractProperty<unknown>[]>(validator: ValidatorInstance<Properties>): void;
+    addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>): void;
 }
 
 interface UpdatedListener {
@@ -36,12 +37,12 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private updatedListeners?: UpdatedListener[];
 
     private needsToRevalidate?: boolean; // needsToRevalidate iff true or undefined
-    private validators?: ValidatorInstance<readonly AbstractProperty<unknown>[]>[];
+    private validators?: ValidatorInstance<readonly AbstractProperty[]>[];
     private validationMessages: ValidationMessage[] = [];
 
 
     constructor(
-        protected updateHandler: RuleEngineUpdateHandler<D>,
+        protected updateHandler: RuleEngineUpdateHandler,
         backpressureConfig?: BackpressureConfig
     ) {
         this.backpressureConfig = backpressureConfig;
@@ -263,11 +264,11 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
      */
     protected abstract getSpecialisedValidationResult(): ValidationMessage[];
 
-    addValidator<Properties extends readonly AbstractProperty<unknown>[]>(validator: ValidatorInstance<Properties>) {
+    addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>) {
         if (!this.validators) {
             this.validators = [];
         }
-        this.validators.push(validator as unknown as ValidatorInstance<readonly AbstractProperty<unknown>[]>);
+        this.validators.push(validator as unknown as ValidatorInstance<readonly AbstractProperty[]>);
     }
 
     async validate(): Promise<ValidationMessage[]> {

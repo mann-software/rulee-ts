@@ -4,11 +4,12 @@ import { AbstractProperty } from "./abstract-property";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { ListProvider } from "../provider/list-provider/list-provider";
 import { OwnerRelation } from "../dependency-graph/dependency-graph";
+import { AbstractDataProperty } from "./abstract-data-property";
 
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
  */
-export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D> {
+export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D> {
 
     get length() {
         return this.listProvider.getList().length;
@@ -20,10 +21,10 @@ export class ListOfPropertiesImpl<T extends AbstractProperty<D>, D> extends Abst
 
     constructor(
         readonly id: string,
-        private readonly listProvider: ListProvider<T, D>,
+        private readonly listProvider: ListProvider<T>,
         private readonly selectedIndices: number[],
         private readonly isMultiSelect: boolean = false,
-        updateHandler: RuleEngineUpdateHandler<(D | null)[]>,
+        updateHandler: RuleEngineUpdateHandler,
         private readonly ownerRelation: OwnerRelation,
     ) {
         super(updateHandler);

@@ -1,7 +1,7 @@
 import { AbstractProperty } from "../../properties/abstract-property";
 import { SiblingAccess } from "./sibling-access";
 
-export interface ListProvider<T extends AbstractProperty<D>, D> extends SiblingAccess<T, D> {
+export interface ListProvider<T extends AbstractProperty> extends SiblingAccess<T> {
     /**
      * Get the list
      * If isAsynchronous() returns true, a promise is expected as result, otherwise no promise is expected

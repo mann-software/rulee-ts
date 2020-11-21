@@ -25,6 +25,7 @@ import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { ListProvider } from "../../provider/list-provider/list-provider";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
+import { AbstractDataProperty } from "../../properties/abstract-data-property";
 
 export class Builder {
 
@@ -63,22 +64,22 @@ export class Builder {
         }
 
         this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty<unknown>[]) =>
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty[]) =>
                 this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
             this.defaultEmptyChoice,
         );
         this.group = new GroupOfPropertiesBuilder(
-            <T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
+            <T extends { [id: string]: AbstractProperty }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
                 this.groupOfProperties(id, properties, exportFcn, importFcn)
         );
         this.list =  new ListOfPropertiesBuilder(
-            <T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean) =>
-                this.listOfProperties(id, listProvider, selectedIndices, isMultiSelect)
+            <T extends AbstractDataProperty<D>, D>(id: string, listProvider: ListProvider<T>, selectedIndices: number[], isMultiSelect: boolean) =>
+                this.listOfProperties<T, D>(id, listProvider, selectedIndices, isMultiSelect)
         );
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty<unknown>[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty<unknown>[]): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, backpressureConfig ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
@@ -98,24 +99,24 @@ export class Builder {
         return new PropertyScalarRuleBinding<T>(
             prop,
             this.notEmptyIfRequiredValidator,
-            (from: readonly AbstractProperty<unknown>[], to: AbstractProperty<T>, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
+            (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
         );
     }
 
-    private groupOfProperties<T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
+    private groupOfProperties<T extends { [id: string]: AbstractProperty }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
         const prop = new GroupOfPropertiesImpl(id, properties, exportFcn, importFcn, this.ruleEngine);
         this.addProperty(prop);
         this.addDependencies(this.dependencyGraph, prop.propertiesAsList, prop, { value: true });
         return prop;
     }
 
-    private listOfProperties<T extends AbstractProperty<D>, D>(id: string, listProvider: ListProvider<T, D>, selectedIndices: number[], isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
-        const prop = new ListOfPropertiesImpl(id, listProvider, selectedIndices, isMultiSelect, this.ruleEngine, this.dependencyGraph);
+    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, listProvider: ListProvider<T>, selectedIndices: number[], isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
+        const prop = new ListOfPropertiesImpl<T, D>(id, listProvider, selectedIndices, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
         return prop;
     }
 
-    private addDependencies(dependencyGraph: DependencyGraph, from: readonly AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
+    private addDependencies(dependencyGraph: DependencyGraph, from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) {
         if (from.length) {
             dependencyGraph.addDependencies(from, to, options);
         }
@@ -132,7 +133,7 @@ export class Builder {
         return { name };
     }
 
-    bindValidator<Properties extends readonly AbstractProperty<unknown>[]>(...properties: Properties): (validator: Validator<Properties>) => void {
+    bindValidator<Properties extends readonly AbstractProperty[]>(...properties: Properties): (validator: Validator<Properties>) => void {
         return (validator: Validator<Properties>) => {
             const instance: ValidatorInstance<Properties> = {
                 getValidatedProperties: () => properties,

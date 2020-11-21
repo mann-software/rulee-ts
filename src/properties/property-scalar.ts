@@ -1,7 +1,7 @@
-import { AbstractProperty } from "./abstract-property";
 import { AttributeId } from "../attributes/attribute-id";
+import { AbstractDataProperty } from "./abstract-data-property";
 
-export interface PropertyScalar<T> extends AbstractProperty<T> {
+export interface PropertyScalar<D> extends AbstractDataProperty<D> {
     /**
      * (Re)sets the value to the defined initial value
      */
@@ -9,7 +9,7 @@ export interface PropertyScalar<T> extends AbstractProperty<T> {
     /**
      * Gets the initial value
      */
-    getInitialValue(): T | null;
+    getInitialValue(): D | null;
     /**
      * Performs a conversion on getValue() according to the used converter
      */
@@ -24,17 +24,17 @@ export interface PropertyScalar<T> extends AbstractProperty<T> {
      * the current time for Date. For Choices its the empty choice if its value is not
      * null or else its the value of the first choice.
      */
-    getNonNullValue(): T;
+    getNonNullValue(): D;
     /**
      * Gets the current value
      */
-    getValue(): T | null;
-    setValue(value: T | null): void;
+    getValue(): D | null;
+    setValue(value: D | null): void;
     /**
      * Triggers an update if the property needs an update and then
      * return the up-to-date value
      */
-    awaitValue(): Promise<T | null>;
+    awaitValue(): Promise<D | null>;
     get<A>(id: AttributeId<A>): A | undefined;
     isRequired(): boolean;
     isVisible(): boolean;

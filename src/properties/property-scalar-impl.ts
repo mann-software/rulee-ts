@@ -33,7 +33,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         private readonly valueProvider: ValueProvider<T>,
         private readonly emptyValueFcn: EmptyValueFcn<T>,
         private readonly valueConverter: ValueConverter<T>,
-        updateHandler: RuleEngineUpdateHandler<T>,
+        updateHandler: RuleEngineUpdateHandler,
         backpressureConfig?: BackpressureConfig,
     ) {
         super(updateHandler, backpressureConfig);

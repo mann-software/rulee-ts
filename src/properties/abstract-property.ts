@@ -1,13 +1,10 @@
 import { PropertyId } from "./property-id";
 import { ValueChangeListener } from "./value-change-listener";
 import { Trigger } from "./trigger";
-import { DataLink } from "./data-link/data-link";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { ValidationMessage } from "../validators/validation-message";
 
-export type DataTypeOfProperty<T> = T extends AbstractProperty<infer D> ? D : unknown;
-
-export interface AbstractProperty<D> extends DataLink<D> {
+export interface AbstractProperty {
     readonly id: PropertyId;
 
     /**

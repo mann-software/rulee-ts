@@ -44,7 +44,7 @@ type EdgesMap = Map<PropertyId, OutgoingMap>;
  * An async dependency can also be indirectly connectly with sync dependencies. The map contains
  * the direct and indirect dependencies of async properties for every property
  */
-type AsyncEdgesMap = Map<PropertyId, AbstractProperty<unknown>[]>;
+type AsyncEdgesMap = Map<PropertyId, AbstractProperty[]>;
 
 export interface OwnerRelation {
     /**
@@ -58,18 +58,18 @@ export interface OwnerRelation {
      * @param ownedProperty property that is owned by owner porperty
      * @param withValueDependency add a value dependency from ownedProperty to owner? Default is true
      */
-    addOwnerDependency(owner: AbstractProperty<unknown>, ownedProperty: AbstractProperty<unknown>, withValueDependency?: boolean): void;
+    addOwnerDependency(owner: AbstractProperty, ownedProperty: AbstractProperty, withValueDependency?: boolean): void;
 }
 
 export class DependencyGraph implements OwnerRelation {
 
     private readonly edgesMap: EdgesMap = new Map<string, OutgoingMap>();
-    private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, AbstractProperty<unknown>[]>();
+    private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, AbstractProperty[]>();
     private readonly ownerMap = new Map<PropertyId, PropertyId[]>();
 
     // --------
 
-    addDependency(from: AbstractProperty<unknown>, to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
+    addDependency(from: AbstractProperty, to: AbstractProperty, options: PropertyDependencyOptions) {
         Logger.trace(`${from.id} -> ${to.id}: ${Object.keys(options).join(', ')}`);
         let outgoing = this.edgesMap.get(from.id);
         if (!outgoing) {
@@ -93,11 +93,11 @@ export class DependencyGraph implements OwnerRelation {
         }
     }
 
-    addDependencies(from: readonly AbstractProperty<unknown>[], to: AbstractProperty<unknown>, options: PropertyDependencyOptions) {
-        from.forEach((prop: AbstractProperty<unknown>) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
+    addDependencies(from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) {
+        from.forEach((prop: AbstractProperty) => this.addDependency(prop, to, options)); // could be optimized by not using addDependency
     }
 
-    addOwnerDependency(owner: AbstractProperty<unknown>, ownedProperty: AbstractProperty<unknown>, withValueDependency?: boolean): void {
+    addOwnerDependency(owner: AbstractProperty, ownedProperty: AbstractProperty, withValueDependency?: boolean): void {
         if (withValueDependency !== false) {
             this.addDependency(ownedProperty, owner, { value: true });
         }
@@ -111,7 +111,7 @@ export class DependencyGraph implements OwnerRelation {
     
     // --------
 
-    traverseDepthFirst(start: PropertyId, apply: (prop: AbstractProperty<unknown>, dependency: PropertyDependency) => void, filter?: (dependency: PropertyDependency) => boolean, preventCycles?: boolean) {
+    traverseDepthFirst(start: PropertyId, apply: (prop: AbstractProperty, dependency: PropertyDependency) => void, filter?: (dependency: PropertyDependency) => boolean, preventCycles?: boolean) {
         let visited: Set<PropertyId>;
         const outgoing = this.edgesMap.get(start);
         if (outgoing) {
@@ -178,7 +178,7 @@ export class DependencyGraph implements OwnerRelation {
     /**
      * just wrap the result of this fcn in a vis.js DataSet
      */
-    createVisJsData(allProperties: AbstractProperty<unknown>[]) {
+    createVisJsData(allProperties: AbstractProperty[]) {
         const nodes: VisJsNode[] = [];
         const edges: VisJsEdge[] = [];
 
@@ -228,9 +228,9 @@ export class DependencyGraph implements OwnerRelation {
         return { nodes, edges, options };
     }
 
-    private createVisJsNodes(allProperties: AbstractProperty<unknown>[], nodes: VisJsNode[]) {
+    private createVisJsNodes(allProperties: AbstractProperty[], nodes: VisJsNode[]) {
         const propertyIdVisJsNodeMap = new Map<PropertyId, VisJsNode>();
-        allProperties.forEach((property: AbstractProperty<unknown>) => {
+        allProperties.forEach((property: AbstractProperty) => {
             const node: VisJsNode = {
                 id: 1 + propertyIdVisJsNodeMap.size,
                 label: property.id,
@@ -242,7 +242,7 @@ export class DependencyGraph implements OwnerRelation {
         return propertyIdVisJsNodeMap;
     }
 
-    private propertyToVisNodeGroup(property: AbstractProperty<unknown>): VisNodeGroup {
+    private propertyToVisNodeGroup(property: AbstractProperty): VisNodeGroup {
         const isAsync = property.isAsynchronous();
         if (property instanceof ListOfPropertiesImpl) {
             return isAsync ? 'list-async' : 'list';

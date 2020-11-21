@@ -1,52 +1,40 @@
-import { AbstractProperty, DataTypeOfProperty } from "../../properties/abstract-property";
+import { AbstractProperty } from "../../properties/abstract-property";
 import { PropertyTemplate } from "../../properties/factory/property-template";
-import { GroupOfProperties } from "../../properties/group-of-properties";
+import { GroupedProperties, GroupOfProperties } from "../../properties/group-of-properties";
 import { ListIndex } from "../../properties/factory/list-index";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { ValidationResult } from "../../validators/validation-result";
+import { DataTypeAsProperty } from "../../properties/abstract-data-property";
 
-const defaultExportFcn = <T extends { [id: string]: AbstractProperty<unknown> }>(props: T) =>
+const defaultExportFcn: any = <D extends Record<string, unknown>>(props: { [K in keyof D]: DataTypeAsProperty<D[K]> }) =>
     Object.keys(props).reduce((res: {[key: string]: unknown}, cur: string) => {
         res[cur] = props[cur].exportData();
         return res;
     }, {});
 
-const defaultImportFcn = <T extends { [id: string]: AbstractProperty<unknown> }>(props: T, data: { [id: string]: any } | null) =>
+const defaultImportFcn: any = <D extends Record<string, unknown>>(props: { [K in keyof D]: DataTypeAsProperty<D[K]> }, data: D | null) =>
     data instanceof Object && Object.keys(props).forEach(key => {
         props[key].importData(data[key]);
     });
 
-type GroupData<T extends { [id: string]: AbstractProperty<unknown> }> = { [K in keyof T]: DataTypeOfProperty<T[K]> };
-
 export class GroupOfPropertiesBuilder {
 
     constructor(
-        private readonly propertyGroup: <T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) => GroupOfPropertiesImpl<T, D>
+        private readonly propertyGroup: <D>(id: string, properties: GroupedProperties<D>, exportFcn: (props: GroupedProperties<D>) => D | null, importFcn: (props: GroupedProperties<D>, data: D | null) => void) => GroupOfPropertiesImpl<GroupedProperties<D>, D>
     ) { }
 
-    template<T extends { [id: string]: AbstractProperty<unknown> }>(propertiesOfGroup: (idFcn: (id: string) => string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<T, GroupData<T>>, unknown>) => T): PropertyTemplate<GroupOfProperties<T, GroupData<T>>, GroupData<T>>
-    template<T extends { [id: string]: AbstractProperty<unknown> }, D>(propertiesOfGroup: (idFcn: (id: string) => string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<T, D>, D>) => T, optional?: { exportFcn?: (props: T) => D | null; importFcn?: (props: T, data: D | null) => void }): PropertyTemplate<GroupOfProperties<T, D>, D> {
-        const processOptional = this.processOptional(optional);
-        return (id: string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<T, D>, D>) => this.propertyGroup(id, propertiesOfGroup(suffix => `${id}_${suffix}`, index, siblingAccess), processOptional.exportFcn, processOptional.importFcn);
+    template<D>(propertiesOfGroup: (idFcn: (id: string) => string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<GroupedProperties<D>, D>>) => GroupedProperties<D>): PropertyTemplate<GroupOfProperties<GroupedProperties<D>, D>, D> {
+        return (id: string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<GroupedProperties<D>, D>>) => this.propertyGroup(id, propertiesOfGroup(suffix => `${id}_${suffix}`, index, siblingAccess), defaultExportFcn, defaultImportFcn);
     }
 
-    of<T extends { [id: string]: AbstractProperty<unknown> }>(id: string, propertiesOfGroup: T): GroupOfProperties<T, { [K in keyof T]: DataTypeOfProperty<T[K]> }>
-    of<T extends { [id: string]: AbstractProperty<unknown> }, D>(id: string, propertiesOfGroup: T, optional?: { exportFcn?: (props: T) => D | null; importFcn?: (props: T, data: D | null) => void }): GroupOfProperties<T, D> {
-        const processOptional = this.processOptional(optional);
-        return this.propertyGroup(id, propertiesOfGroup, processOptional.exportFcn, processOptional.importFcn);
+    of<D>(id: string, propertiesOfGroup: GroupedProperties<D>): GroupOfProperties<GroupedProperties<D>, D> {
+        return this.propertyGroup(id, propertiesOfGroup, defaultExportFcn, defaultImportFcn);
     }
 
-    private processOptional<T extends { [id: string]: AbstractProperty<unknown> }, D>(optional?: { exportFcn?: (props: T) => D | null; importFcn?: (props: T, data: D | null) => void }): { exportFcn: (props: T) => D | null; importFcn: (props: T, data: D | null) => void } {
-        return {
-            exportFcn: optional?.exportFcn ?? defaultExportFcn as unknown as (props: T) => D | null,
-            importFcn: optional?.importFcn ?? defaultImportFcn
-        };
-    }
-
-    bindValidator<T extends { [id: string]: AbstractProperty<unknown> }, D>(group: GroupOfProperties<T, D>, validator: (group: T) => ValidationResult | Promise<ValidationResult>) {
-        const instance: ValidatorInstance<readonly AbstractProperty<unknown>[]> = {
+    bindValidator<T extends { [id: string]: AbstractProperty }, D>(group: GroupOfProperties<T, D>, validator: (group: T) => ValidationResult | Promise<ValidationResult>) {
+        const instance: ValidatorInstance<readonly AbstractProperty[]> = {
             getValidatedProperties: () => group.propertiesAsList,
             validate: () => validator(group.properties)
         };

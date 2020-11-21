@@ -6,16 +6,16 @@ import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-im
 /**
  * Manages an ordered set of properties
  */
-export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty<unknown> }, D> extends AbstractPropertyImpl<D> implements GroupOfProperties<T, D> {
+export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty }, D> extends AbstractPropertyImpl<D> implements GroupOfProperties<T, D> {
 
-    readonly propertiesAsList: readonly AbstractProperty<unknown>[];
+    readonly propertiesAsList: readonly AbstractProperty[];
 
     constructor(
         readonly id: string,
         readonly properties: T,
         private readonly exportFcn: (props: T) => D | null,
         private readonly importFcn: (props: T, data: D | null) => void,
-        updateHandler: RuleEngineUpdateHandler<D>
+        updateHandler: RuleEngineUpdateHandler
     ) {
         super(updateHandler);
         this.propertiesAsList = Object.keys(this.properties).map(propKey => this.properties[propKey]);

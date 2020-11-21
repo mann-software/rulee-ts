@@ -10,16 +10,17 @@ import { ValidationProcess } from "./validation/validation-process-impl";
 import { ValidationResult } from "../validators/validation-result";
 import { ValidationTypes } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
+import { AbstractDataProperty } from "../properties/abstract-data-property";
 
-export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
+export class RuleEngine implements RuleEngineUpdateHandler {
 
     private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
-    private readonly validations = new WeakMap<ValidatorInstance<readonly AbstractProperty<unknown>[]>, ValidationProcess>();
+    private readonly validations = new WeakMap<ValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
 
     private readonly dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
     private readonly snapshots = new Map<string, Snapshot>();
-    private propertiesThatRequireAnEagerUpdate: AbstractProperty<unknown>[] = [];
+    private propertiesThatRequireAnEagerUpdate: AbstractProperty[] = [];
 
     private get properties() {
         return Object.values(this.propertyMap);
@@ -52,7 +53,7 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
     // -----------------------------------------------------------------------
 
     /**
-     * The data of the properties will be synchonized. (Via DataLink)
+     * The data of the properties will be synchonized. (Via AbstractDataProperty)
      * Usefull on UI if there is a list and one element of the list should be
      * edited. Then you can synchronise the properties that are used for editing
      * and the list element property that should be edited.
@@ -63,7 +64,7 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
      * @param propertyA property to synchronize
      * @param propertyB property to synchronize
      */
-    linkPropertyData<D>(propertyA: AbstractProperty<D>, propertyB: AbstractProperty<D>): void {
+    linkPropertyData<D>(propertyA: AbstractDataProperty<D>, propertyB: AbstractDataProperty<D>): void {
         const dataLinkKey = this.createDataLinkKey(propertyA, propertyB);
         if (this.dataLinks.has(dataLinkKey)) {
             return;
@@ -85,7 +86,7 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
      * @param propertyA synchronized property
      * @param propertyB synchronized property
      */
-    unlinkPropertyData<D>(propertyA: AbstractProperty<D>, propertyB: AbstractProperty<D>): void {
+    unlinkPropertyData<D>(propertyA: AbstractDataProperty<D>, propertyB: AbstractDataProperty<D>): void {
         const dataLinkKey = this.createDataLinkKey(propertyA, propertyB);
         const listeners = this.dataLinks.get(dataLinkKey);
         if (listeners) {
@@ -96,19 +97,19 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
         }
     }
 
-    private createDataLinkKey<D>(propertyA: AbstractProperty<D>, propertyB: AbstractProperty<D>) {
+    private createDataLinkKey(propertyA: AbstractProperty, propertyB: AbstractProperty) {
         return propertyA.id < propertyB.id
             ? `${propertyA.id}<->${propertyB.id}`
             : `${propertyB.id}<->${propertyA.id}`;
     }
 
-    transferData<D>(fromProperty: AbstractProperty<D>, toProperty: AbstractProperty<D>): void {
+    transferData<D>(fromProperty: AbstractDataProperty<D>, toProperty: AbstractDataProperty<D>): void {
         toProperty.importData(fromProperty.exportData());
     }
 
     // -----------------------------------------------------------------------
 
-    needsAnUpdate(mightHaveChanged: AbstractProperty<unknown>): void {
+    needsAnUpdate(mightHaveChanged: AbstractProperty): void {
         this.dependencyGraph.traverseDepthFirst(
             mightHaveChanged.id, 
             property => {
@@ -124,11 +125,11 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
         setTimeout(() => {
             const eagerProps = this.propertiesThatRequireAnEagerUpdate;
             this.propertiesThatRequireAnEagerUpdate = [];
-            eagerProps.forEach((prop: AbstractProperty<unknown>) => void this.updateValue(prop));
+            eagerProps.forEach((prop: AbstractProperty) => void this.updateValue(prop));
         }, 0);
     }
 
-    async updateValue(property: AbstractProperty<unknown>): Promise<void> {
+    async updateValue(property: AbstractProperty): Promise<void> {
         try {
             const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
             if (asyncDeps?.length) {
@@ -160,14 +161,14 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
 
     // -----------------------------------------------------------------------
 
-    invalidateValidationResults(validators: readonly ValidatorInstance<readonly AbstractProperty<unknown>[]>[]): void {
+    invalidateValidationResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void {
         validators.forEach(v => {
             const vprocess = this.getValidationProcess(v);
             vprocess.isLastResultUpToDate = false;
         });
     }
 
-    validate(validators: readonly ValidatorInstance<readonly AbstractProperty<unknown>[]>[]): Promise<ValidationResult>[] {
+    validate(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[] {
         return validators.map(validator => {
             const vprocess = this.getValidationProcess(validator);
             if (vprocess.isLastResultUpToDate) {
@@ -198,7 +199,7 @@ export class RuleEngine implements RuleEngineUpdateHandler<unknown> {
         });
     }
 
-    private getValidationProcess(validator: ValidatorInstance<readonly AbstractProperty<unknown>[]>): ValidationProcess {
+    private getValidationProcess(validator: ValidatorInstance<readonly AbstractProperty[]>): ValidationProcess {
         const vprocess = this.validations.get(validator);
         if (vprocess) {
             return vprocess;

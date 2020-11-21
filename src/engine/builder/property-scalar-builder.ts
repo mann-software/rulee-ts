@@ -35,10 +35,10 @@ export class PropertyScalarBuilder {
             provider: ValueProvider<T>,
             emptyValueFcn: EmptyValueFcn<T>,
             converter: ValueConverter<T>,
-            dependencies?: readonly AbstractProperty<unknown>[],
+            dependencies?: readonly AbstractProperty[],
             initialValue?: T | null,
             backpressureConfig?: BackpressureConfig,
-            ownedProperties?: readonly AbstractProperty<unknown>[],
+            ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
         private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
         private readonly defaultEmptyChoice: Choice<any> | undefined,
@@ -46,8 +46,8 @@ export class PropertyScalarBuilder {
         assertThat(() => !defaultEmptyChoice || defaultEmptyChoice.value === null, () => 'value of defaultEmptyChoice must be null to match every Choice<T>')
     }
 
-    template<T>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<T>, T>) => PropertyScalar<T>): PropertyTemplate<PropertyScalar<T>, T> {
-        return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<T>, T>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
+    template<D>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<D>>) => PropertyScalar<D>): PropertyTemplate<PropertyScalar<D>, D> {
+        return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
     }
 
     isLike<T>(template: PropertyScalar<T>, valueProvider?: ValueProvider<T>): PropertyScalar<T> {
@@ -122,14 +122,14 @@ export class PropertyScalarBuilder {
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
 
-        derived: <T, Dependencies extends readonly AbstractProperty<unknown>[]>(id: PropertyId, ...dependencies: Dependencies) => (derivations: {
+        derived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (derivations: {
             derive: (...dependencies: Dependencies) => Choice<T>[];
         }, emptyChoice?: Choice<T>) => {
             const choicesSourceProperty = this.derived.sync(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(derivations);
             return this.select.withPropertySource(id, choicesSourceProperty, emptyChoice);
         },
 
-        asyncDerived: <T, Dependencies extends readonly AbstractProperty<unknown>[]>(id: PropertyId, ...dependencies: Dependencies) => (derivations: {
+        asyncDerived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (derivations: {
             deriveAsync: (...dependencies: Dependencies) => Promise<Choice<T>[]>;
             backpressureConfig?: BackpressureConfig;
         }, emptyChoice?: Choice<T>) => {
@@ -201,7 +201,7 @@ export class PropertyScalarBuilder {
     }
 
     derived = {
-        sync: <T, Dependencies extends readonly AbstractProperty<unknown>[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
+        sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
             return (
                 derivations: {
                     derive: Rule<[...dependencies: Dependencies], T | null>;
@@ -214,7 +214,7 @@ export class PropertyScalarBuilder {
             }
         },
 
-        async: <T, Dependencies extends readonly AbstractProperty<unknown>[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
+        async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
             return (
                 derivations: {
                     deriveAsync: Rule<[...dependencies: Dependencies], Promise<T | null>>;

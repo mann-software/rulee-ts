@@ -1,7 +1,7 @@
 import { ValueProvider } from "./value-provider";
 import { AbstractProperty } from "../../properties/abstract-property";
 
-export class DerivedAsyncValueProvider<T, Dependencies extends readonly AbstractProperty<unknown>[]> implements ValueProvider<T> {
+export class DerivedAsyncValueProvider<T, Dependencies extends readonly AbstractProperty[]> implements ValueProvider<T> {
 
     private processing = false;
 
