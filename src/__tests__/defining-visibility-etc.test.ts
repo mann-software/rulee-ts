@@ -87,6 +87,9 @@ test('defining placeholder, labels and infotext', () => {
     const [builder] = builderAndRuleEngineFactory();
     const propA = builder.scalar.booleanProperty('PROP_A');
     const propB = builder.scalar.booleanProperty('PROP_B');
+    const propC = builder.scalar.booleanProperty('PROP_C', {
+        labelAndPlaceholder: 'Label and Placeholder of C'
+    });
 
     builder.scalar.bind(propA)
         .defineLabel('Label A')
@@ -100,4 +103,7 @@ test('defining placeholder, labels and infotext', () => {
     expect(propB.getLabel()).toBe('Label and Placeholder');
     expect(propB.getPlaceholder()).toBe('Label and Placeholder');
     expect(propB.getInfoText()).toBe('');
+
+    expect(propC.getLabel()).toBe('Label and Placeholder of C');
+    expect(propC.getPlaceholder()).toBe('Label and Placeholder of C');
 });

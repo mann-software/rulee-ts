@@ -12,7 +12,6 @@ import { ObjectValueProvider } from "../../provider/value-provider/object-value-
 import { C } from "../../value-converter/common-value-converters";
 import { DerivedValueProvider } from "../../provider/value-provider/derived-value-provider";
 import { DerivedAsyncValueProvider } from "../../provider/value-provider/derived-async-value-provider";
-import { ConstantValueProvider } from "../../provider/value-provider/constant-value-provider";
 import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { EmptyValueFcn, EmptyValueFcns } from "../../provider/value-provider/empty-value-fcn";
@@ -27,6 +26,18 @@ import { ListIndex } from "../../properties/factory/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { Rule } from "../../rules/rule";
 
+export interface PropertyScalarValueConfig<T> {
+    valueConverter?: ValueConverter<T>;
+    initialValue?: T | null;
+    emptyValueFcn?: EmptyValueFcn<T>;
+}
+
+export interface PropertyScalarConfig {
+    placeholder?: string;
+    label?: string;
+    labelAndPlaceholder?: string;
+}
+
 export class PropertyScalarBuilder {
 
     constructor(
@@ -36,8 +47,7 @@ export class PropertyScalarBuilder {
             emptyValueFcn: EmptyValueFcn<T>,
             converter: ValueConverter<T>,
             dependencies?: readonly AbstractProperty[],
-            initialValue?: T | null,
-            backpressureConfig?: BackpressureConfig,
+            propertyConfig?: PropertyScalarConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
         private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
@@ -52,99 +62,104 @@ export class PropertyScalarBuilder {
 
     isLike<T>(template: PropertyScalar<T>, valueProvider?: ValueProvider<T>): PropertyScalar<T> {
         // TODO copy template and set new value provider if preset else copy value provider too
-        return template;
+        throw new Error('Not supported, yet');
     }
 
-    simpleProperty<T>(id: PropertyId, valueConverter: ValueConverter<T>, emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn): PropertyScalar<T> {
-        return this.propertyScalar(id, new SimpleValueProvider<T>(), emptyValueFcn, valueConverter);
+    simpleProperty<T>(id: PropertyId, valueConverter: ValueConverter<T>, config?: PropertyScalarConfig & {
+        emptyValueFcn?: EmptyValueFcn<T>;
+        initialValue?: T | null;
+    }): PropertyScalar<T> {
+        return this.propertyScalar(id, new SimpleValueProvider<T>(), config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn, valueConverter, undefined, config);
     }
 
-    stringProperty(id: PropertyId, options?: {
-        valueConverter?: ValueConverter<string>;
-        initialValue?: string | null;
-    }): PropertyScalar<string> {
+    stringProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<string>): PropertyScalar<string> {
+        config = this.defaultInitValue('', config);
         return this.propertyScalar(id, new SimpleValueProvider<string>(),
-            EmptyValueFcns.defaultEmptyValueFcn,
-            options?.valueConverter ?? C.string.identity,
+            config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn,
+            config?.valueConverter ?? C.string.identity,
             undefined,
-            options?.initialValue !== undefined ? options?.initialValue : ''
+            config
         );
     }
 
-    numberProperty(id: PropertyId, options?: {
-        valueConverter?: ValueConverter<number>;
+    numberProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<number> & {
         zeroIsConsideredAsEmpty?: boolean;
-        initialValue?: number | null;
     }): PropertyScalar<number> {
+        assertThat(() => !config?.zeroIsConsideredAsEmpty || !config?.emptyValueFcn, () => `${id}: Provide either zeroIsConsideredAsEmpty or emptyValueFcn.`);
+        config = this.defaultInitValue(config?.zeroIsConsideredAsEmpty ? 0 : null, config);
         return this.propertyScalar(id, new SimpleValueProvider<number>(),
-            options?.zeroIsConsideredAsEmpty ? EmptyValueFcns.defaultEmptyValueFcn : EmptyValueFcns.numberEmptyValueFcn,
-            options?.valueConverter ?? C.number.default,
+            config?.emptyValueFcn ?? (config?.zeroIsConsideredAsEmpty ? EmptyValueFcns.defaultEmptyValueFcn : EmptyValueFcns.numberEmptyValueFcn),
+            config?.valueConverter ?? C.number.default,
             undefined,
-            options?.initialValue !== undefined ? options?.initialValue : (options?.zeroIsConsideredAsEmpty ? 0 : null)
+            config
         );
     }
 
-    booleanProperty(id: PropertyId, options?: {
-        valueConverter?: ValueConverter<boolean>;
-        initialValue?: boolean | null;
-    }): PropertyScalar<boolean> {
+    booleanProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<boolean>): PropertyScalar<boolean> {
         return this.propertyScalar(id, new SimpleValueProvider<boolean>(),
-            EmptyValueFcns.booleanEmptyValueFcn,
-            options?.valueConverter ?? C.boolean.default,
+            config?.emptyValueFcn ?? EmptyValueFcns.booleanEmptyValueFcn,
+            config?.valueConverter ?? C.boolean.default,
             undefined,
-            options?.initialValue
+            config
         );
     }
 
-    dateProperty(id: PropertyId, options?: {
-        valueConverter?: ValueConverter<Date>;
-        initialValue?: Date | null;
-    }): PropertyScalar<Date> {
+    dateProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<Date>): PropertyScalar<Date> {
         return this.propertyScalar(id, new SimpleValueProvider<Date>(),
-            EmptyValueFcns.defaultEmptyValueFcn,
-            options?.valueConverter ?? C.date.iso,
+            config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn,
+            config?.valueConverter ?? C.date.iso,
             undefined,
-            options?.initialValue
+            config
         );
+    }
+
+    private defaultInitValue<T>(initialValue: T | null, config?: PropertyScalarValueConfig<T>): PropertyScalarValueConfig<T> {
+        if (!config) {
+            return {
+                initialValue
+            };
+        }
+        if (config.initialValue === undefined) {
+            config.initialValue = initialValue;
+        }
+        return config;
     }
 
     select = {
-        static: <T>(id: PropertyId, choices: Choice<T>[], emptyChoice?: Choice<T>) => {
-            if (!emptyChoice) {
-                emptyChoice = this.defaultEmptyChoice;
-            }
+        static: <T>(id: PropertyId, choices: Choice<T>[], config?: PropertyScalarConfig & { emptyChoice?: Choice<T> }) => {
+            const emptyChoice = config?.emptyChoice ?? this.defaultEmptyChoice;
             const provider = new ChoiceValueProvider<T>(choices, emptyChoice);
             const converter = new SelectValueConverter<T>(choices, emptyChoice);
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter);
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, undefined, config);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choices[0]?.value);
             prop.setToInitialValue();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
 
-        derived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (derivations: {
+        derived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyScalarConfig & {
             derive: (...dependencies: Dependencies) => Choice<T>[];
-        }, emptyChoice?: Choice<T>) => {
-            const choicesSourceProperty = this.derived.sync(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(derivations);
-            return this.select.withPropertySource(id, choicesSourceProperty, emptyChoice);
+            emptyChoice?: Choice<T>;
+        }) => {
+            const choicesSourceProperty = this.derived.sync(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(config);
+            return this.select.withPropertySource(id, choicesSourceProperty, config);
         },
 
-        asyncDerived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (derivations: {
+        asyncDerived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyScalarConfig & {
             deriveAsync: (...dependencies: Dependencies) => Promise<Choice<T>[]>;
-            backpressureConfig?: BackpressureConfig;
-        }, emptyChoice?: Choice<T>) => {
-            const choicesSourceProperty = this.derived.async(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(derivations);
-            return this.select.withPropertySource(id, choicesSourceProperty, emptyChoice);
+            emptyChoice?: Choice<T>;
+            backpressure?: BackpressureConfig;
+        }) => {
+            const choicesSourceProperty = this.derived.async(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(config);
+            return this.select.withPropertySource(id, choicesSourceProperty, config);
         },
 
-        withPropertySource: <T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, emptyChoice?: Choice<T>) => {
-            if (!emptyChoice) {
-                emptyChoice = this.defaultEmptyChoice;
-            }
+        withPropertySource: <T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, config?: PropertyScalarConfig & { emptyChoice?: Choice<T> }) => {
+            const emptyChoice = config?.emptyChoice ?? this.defaultEmptyChoice;
             const provider = new SelectValueProvider<T>(choicesSource, emptyChoice);
             const converter = new SelectValueConverter<T>(() => choicesSource.getNonNullValue(), emptyChoice);
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource], undefined, undefined, [choicesSource]);
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource], config, [choicesSource]);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
             prop.setToInitialValue();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
@@ -152,7 +167,7 @@ export class PropertyScalarBuilder {
     }
 
     typeahead = {
-        async: <T>(id: PropertyId, options: {
+        async: <T>(id: PropertyId, config: PropertyScalarConfig & {
             fetchChoices: (currentText: string) => Promise<Choice<T>[]>;
             minimumTextLength?: number;
         }): PropertyScalarWithChoices<[T | null, string], T> => {
@@ -160,71 +175,57 @@ export class PropertyScalarBuilder {
             const choicesSourceProperty = this.derived.async(`${id}__choices__`, new ChoiceListConverter<T>(), inputSourceProperty)({
                 deriveAsync: (inputProperty) => {
                     const text = inputProperty.getNonNullValue();
-                    if (options.minimumTextLength && text.length < options.minimumTextLength) {
+                    if (config.minimumTextLength && text.length < config.minimumTextLength) {
                         return Promise.resolve([]);
                     }
-                    return options.fetchChoices(text);
+                    return config.fetchChoices(text);
                 }
             });
-            return this.typeahead.withPropertySource(id, inputSourceProperty, choicesSourceProperty);
+            return this.typeahead.withPropertySource(id, inputSourceProperty, choicesSourceProperty, config);
         },
 
-        withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>): PropertyScalarWithChoices<[T | null, string], T> => {
+        withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>, config?: PropertyScalarConfig): PropertyScalarWithChoices<[T | null, string], T> => {
             const provider = new TypeaheadValueProvider<T>(inputSource, choicesSource);
             const converter = new TypeaheadValueConverter<T>();
             const emptyValueFcn: EmptyValueFcn<[T | null, string]> = (val) => val?.[0] == null;
-            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [inputSource], undefined, undefined, [inputSource, choicesSource]);
+            const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [inputSource], config, [inputSource, choicesSource]);
             return upgradeAsPropertyWithChoices(prop, choicesSource);
         }
     }
 
-    objectProperty<T, O>(id: PropertyId, obj: O, get: (obj: O) => T | null, set: (obj: O, val: T | null) => void, valueConverter: ValueConverter<T>, emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn): PropertyScalar<T> {
-        return this.propertyScalar(id, new ObjectValueProvider(obj, get, set), emptyValueFcn, valueConverter);
-    }
-
-    objectPathProperty<T, O>(id: PropertyId, obj: O, path: string, valueConverter: ValueConverter<T>, emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn): PropertyScalar<T> {
-        const get = (obj: O) => null; // TODO like lodash
-        const set = (obj: O, val: T | null) => {
-            // TODO like lodash
-        };
-        return this.propertyScalar(id, new ObjectValueProvider(obj, get, set), emptyValueFcn, valueConverter);
-    }
-
-    enviromentProperty<T>(id: PropertyId, valueConverter: ValueConverter<T>, value: T | (() => T), emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn): PropertyScalar<T> {
-        let provider: ValueProvider<T>;
-        if (value instanceof Function) {
-            provider = new DerivedValueProvider<T, []>([], (deps) => value());
-        } else {
-            provider = new ConstantValueProvider<T>(value);
-        }
-        return this.propertyScalar(id, provider, emptyValueFcn, valueConverter);
+    objectProperty<T, O>(id: PropertyId, valueConverter: ValueConverter<T>, obj: O, config: PropertyScalarConfig & {
+        get: (obj: O) => T | null;
+        set: (obj: O, val: T | null) => void;
+        emptyValueFcn?: EmptyValueFcn<T>;
+    }): PropertyScalar<T> {
+        return this.propertyScalar(id, new ObjectValueProvider(obj, config.get, config.set), config.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn, valueConverter, undefined, config);
     }
 
     derived = {
         sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
             return (
-                derivations: {
+                config: PropertyScalarConfig & {
                     derive: Rule<[...dependencies: Dependencies], T | null>;
                     inverse?: (val: T | null, ...dependencies: Dependencies) => void;
+                    emptyValueFcn?: EmptyValueFcn<T>;
                 },
-                emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
             ) => {
-                const provider = new DerivedValueProvider<T, Dependencies>(dependencies, (deps) => derivations.derive(...deps), derivations?.inverse);
-                return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies) as PropertyScalar<T>;
+                const provider = new DerivedValueProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps), config?.inverse);
+                return this.propertyScalar(id, provider, config.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn, valueConverter, dependencies, config) as PropertyScalar<T>;
             }
         },
 
         async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
             return (
-                derivations: {
+                config: PropertyScalarConfig & {
                     deriveAsync: Rule<[...dependencies: Dependencies], Promise<T | null>>;
                     inverseAsync?: (val: T | null, ...dependencies: Dependencies) => Promise<void>;
-                    backpressureConfig?: BackpressureConfig;
+                    backpressure?: BackpressureConfig;
+                    emptyValueFcn?: EmptyValueFcn<T>;
                 },
-                emptyValueFcn: EmptyValueFcn<T> = EmptyValueFcns.defaultEmptyValueFcn
             ) => {
-                const provider = new DerivedAsyncValueProvider<T, Dependencies>(dependencies, (deps) => derivations.deriveAsync(...deps), derivations?.inverseAsync);
-                return this.propertyScalar(id, provider, emptyValueFcn, valueConverter, dependencies, undefined, derivations.backpressureConfig) as PropertyScalar<T>;
+                const provider = new DerivedAsyncValueProvider<T, Dependencies>(dependencies, (deps) => config.deriveAsync(...deps), config?.inverseAsync);
+                return this.propertyScalar(id, provider, config.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn, valueConverter, dependencies, config) as PropertyScalar<T>;
             }
         }
     }

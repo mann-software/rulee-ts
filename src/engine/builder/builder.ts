@@ -9,7 +9,7 @@ import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { ValueProvider } from "../../provider/value-provider/value-provider";
 import { DependencyGraph } from "../../dependency-graph/dependency-graph";
 import { AbstractPropertyWithInternals } from "../../properties/abstract-property-impl";
-import { PropertyScalarBuilder } from "./property-scalar-builder";
+import { PropertyScalarBuilder, PropertyScalarConfig, PropertyScalarValueConfig } from "./property-scalar-builder";
 import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
@@ -64,8 +64,8 @@ export class Builder {
         }
 
         this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty[]) =>
-                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, initialValue, backpressureConfig, ownedProperties),
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyScalarConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
+                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, propertyConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
             this.defaultEmptyChoice,
         );
@@ -79,8 +79,8 @@ export class Builder {
         );
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], initialValue?: T | null, backpressureConfig?: BackpressureConfig, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
-        const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, backpressureConfig ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
+    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: PropertyScalarConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
+        const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, config?.backpressure ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
@@ -88,8 +88,20 @@ export class Builder {
         if (ownedProperties) {
             ownedProperties.forEach(owned => this.dependencyGraph.addOwnerDependency(prop, owned, false));
         }
-        if (initialValue !== undefined) {
-            prop.defineInitialValue(initialValue);
+        if (config) {
+            if (config.initialValue !== undefined) {
+                prop.defineInitialValue(config.initialValue);
+            }
+            if (config.labelAndPlaceholder !== undefined) {
+                prop.defineLabel(config.labelAndPlaceholder);
+                prop.definePlaceholder(config.labelAndPlaceholder);
+            }
+            if (config.label !== undefined) {
+                prop.defineLabel(config.label);
+            }
+            if (config.placeholder !== undefined) {
+                prop.definePlaceholder(config.placeholder);
+            }
         }
         prop.setToInitialValue();
         return prop;

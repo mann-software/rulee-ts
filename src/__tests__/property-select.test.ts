@@ -36,7 +36,9 @@ test('static property select WITHOUT default choice and WITH empty choice', () =
     const propB = builder.scalar.select.static('PROP_B', [
         { value: 1, displayValue: 'A' },
         { value: 2, displayValue: 'B' },
-    ], { value: null, displayValue: '...' });
+    ], {
+        emptyChoice: { value: null, displayValue: '...' }
+    });
 
     expect(propB.getChoices()).toStrictEqual([
         { value: null, displayValue: '...' },
@@ -93,8 +95,9 @@ test('derived property select', () => {
                 choices.push({ value: true, displayValue: 'Yes' })
             }
             return choices;
-        }
-    }, { value: null, displayValue: 'Undetermined' });
+        },
+        emptyChoice: { value: null, displayValue: 'Undetermined' }
+    });
 
     expect(propE.getValue()).toBe(false);
     expect(propF.getValue()).toBe(null);
@@ -132,8 +135,9 @@ test('async derived property select', async () => {
                 choices.push({ value: true, displayValue: 'Yes' })
             }
             return valueAfterTime(choices, 50);
-        }
-    }, { value: null, displayValue: 'Undetermined' });
+        },
+        emptyChoice: { value: null, displayValue: 'Undetermined' }
+    });
 
     expect(propG.getValue()).toBe(false);
     expect(propH.getValue()).toBe(null);

@@ -27,7 +27,7 @@ test('the default backpressure type is switch with debouncing', () => {
 test('testing backpressure type switch with debouncing', async () => {
     const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 300),
-        backpressureConfig: {
+        backpressure: {
             type: 'switch',
             debounceTime: 150
         }
@@ -79,7 +79,7 @@ test('testing backpressure type switch with debouncing', async () => {
 test('testing backpressure type switch with debouncing - no switch if not awaited', async () => {
     const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 300),
-        backpressureConfig: {
+        backpressure: {
             type: 'switch',
             debounceTime: 150
         }
@@ -111,7 +111,7 @@ test('testing backpressure type switch with debouncing - no switch if not awaite
 test('testing backpressure type skip', async () => {
     const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
         deriveAsync: (propA) => valueAfterTime(`<< ${propA.getDisplayValue()} >>`, 200),
-        backpressureConfig: {
+        backpressure: {
             type: 'skip'
         }
     });

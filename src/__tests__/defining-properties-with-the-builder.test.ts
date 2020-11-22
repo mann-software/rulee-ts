@@ -6,14 +6,14 @@ test('define number properties', () => {
     const [builder] = builderAndRuleEngineFactory();
 
     // A: you can use simpleProperty or specialised numberProperty - the following are equivalent
-    const numberProp = builder.scalar.simpleProperty('NUMBER_PROP', C.number.default, EmptyValueFcns.numberEmptyValueFcn);
+    const numberProp = builder.scalar.simpleProperty('NUMBER_PROP', C.number.default);
     const numberPropShort = builder.scalar.numberProperty('NUMBER_PROP_SHORT', {
         zeroIsConsideredAsEmpty: false, // can even be ommited here since false is the default
         valueConverter: C.number.default // can also be ommited here since C.number.default is the default
     });
 
     // B: the following is equivalent as well
-    const numberPropZeroIsEmpty = builder.scalar.simpleProperty('NUMBER_PROP_ZERO_IS_EMPTY', C.number.integer, EmptyValueFcns.defaultEmptyValueFcn);
+    const numberPropZeroIsEmpty = builder.scalar.simpleProperty('NUMBER_PROP_ZERO_IS_EMPTY', C.number.integer);
     const numberPropZeroIsEmptyShort = builder.scalar.numberProperty('NUMBER_PROP_ZERO_IS_EMPTY_SHORT', {
         valueConverter: C.number.integer,
         zeroIsConsideredAsEmpty: true
