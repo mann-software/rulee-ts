@@ -1,10 +1,10 @@
-name: ci-cd-workflow
+name: CI
 on:
   push:
     branches:
       - master
 jobs:
-  ci-cd-job:
+  ci:
     name: ci-cd-job
     runs-on: ubuntu-latest
     steps:

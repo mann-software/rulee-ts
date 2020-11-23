@@ -1,6 +1,8 @@
 # rulee-ts
+[![npm](https://img.shields.io/npm/v/rulee-ts)](https://www.npmjs.com/package/rulee-ts)
+[![CI](https://github.com/mann-software/rulee-ts/workflows/CI/badge.svg)](https://github.com/mann-software/rulee-ts/actions?query=workflow%3ACI)
 
-UI-centered rule engine to manage your business rules.
+> UI-centered rule engine to manage your business rules.
 
 Feature-rich to make things easy:
 - fully typed rule definitions
@@ -11,16 +13,11 @@ Feature-rich to make things easy:
 - complex ui behavior, e.g. backpressure handling included
 - and more ...
 
-## Badges
-
-[![npm](https://img.shields.io/npm/v/rulee-ts)](https://www.npmjs.com/package/rulee-ts)
-[![dependencies Status](https://david-dm.org/mann-software/rulee-ts/status.svg)](https://david-dm.org/mann-software/rulee-ts)
-
 ## Install
 
-Install via npm:
-
-    $ npm install rulee-ts
+```
+$ npm install rulee-ts
+```
 
 ## Getting started
 
