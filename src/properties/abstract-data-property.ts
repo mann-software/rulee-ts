@@ -6,7 +6,8 @@ import { PropertyScalar } from "./property-scalar";
 export type DataTypeAsProperty<D> =
     D extends (infer E)[] ? ListOfProperties<DataTypeAsProperty<E>, E> :
     D extends Record<string, unknown> ? GroupOfProperties<{ [K in keyof D]: DataTypeAsProperty<D[K]> }, D> :
-    D extends string | number | boolean | Date ? PropertyScalar<D> :
+    D extends boolean ? PropertyScalar<boolean> :
+    D extends string | number | Date ? PropertyScalar<D> :
     AbstractDataProperty<D>;
 
 export type DataTypeOfProperty<T> = T extends AbstractDataProperty<infer D> ? D : unknown;
