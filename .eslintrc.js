@@ -28,7 +28,6 @@ module.exports = {
         "@typescript-eslint/restrict-template-expressions": 0,
         "@typescript-eslint/array-type": 1,
         "@typescript-eslint/consistent-type-assertions": 1,
-        "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
         "@typescript-eslint/member-delimiter-style": 1,
         "camelcase": "off",
         "@typescript-eslint/naming-convention": [
