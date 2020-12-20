@@ -1,6 +1,6 @@
 import { AbstractProperty } from "../../properties/abstract-property";
-import { PropertyTemplate } from "../../properties/factory/property-template";
-import { GroupedProperties, GroupOfProperties } from "../../properties/group-of-properties";
+import { GroupOfPropertiesTemplate } from "../../properties/factory/property-template";
+import { PropertyGroup, GroupOfProperties, PropertyGroupData } from "../../properties/group-of-properties";
 import { ListIndex } from "../../properties/factory/list-index";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
@@ -22,22 +22,22 @@ const defaultImportFcn: any = <D extends Record<string, unknown>>(props: { [K in
 export class GroupOfPropertiesBuilder {
 
     constructor(
-        private readonly propertyGroup: <D>(id: string, properties: GroupedProperties<D>, exportFcn: (props: GroupedProperties<D>) => D | null, importFcn: (props: GroupedProperties<D>, data: D | null) => void) => GroupOfPropertiesImpl<GroupedProperties<D>, D>
+        private readonly propertyGroup: <T extends PropertyGroup>(id: string, properties: T, exportFcn: (props: T) => PropertyGroupData<T> | null, importFcn: (props: T, data: PropertyGroupData<T> | null) => void) => GroupOfPropertiesImpl<T>
     ) { }
 
-    template<D>(propertiesOfGroup: (idFcn: (id: string) => string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<GroupedProperties<D>, D>>) => GroupedProperties<D>): PropertyTemplate<GroupOfProperties<GroupedProperties<D>, D>, D> {
-        return (id: string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<GroupedProperties<D>, D>>) => this.propertyGroup(id, propertiesOfGroup(suffix => `${id}_${suffix}`, index, siblingAccess), defaultExportFcn, defaultImportFcn);
+    template<T extends PropertyGroup>(propertiesOfGroup: (idFcn: (id: string) => string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<T>>) => T): GroupOfPropertiesTemplate<T> {
+        return (id: string, index?: ListIndex, siblingAccess?: SiblingAccess<GroupOfProperties<T>>) => this.propertyGroup(id, propertiesOfGroup(suffix => `${id}_${suffix}`, index, siblingAccess), defaultExportFcn, defaultImportFcn);
     }
 
-    of<D>(id: string, propertiesOfGroup: GroupedProperties<D>): GroupOfProperties<GroupedProperties<D>, D> {
+    of<T extends PropertyGroup>(id: string, propertiesOfGroup: T): GroupOfProperties<T> {
         return this.propertyGroup(id, propertiesOfGroup, defaultExportFcn, defaultImportFcn);
     }
 
-    bindValidator<T extends { [id: string]: AbstractProperty }, D>(group: GroupOfProperties<T, D>, validator: (group: T) => ValidationResult | Promise<ValidationResult>) {
+    bindValidator<T extends PropertyGroup, D>(group: GroupOfProperties<T>, validator: (group: T) => ValidationResult | Promise<ValidationResult>) {
         const instance: ValidatorInstance<readonly AbstractProperty[]> = {
             getValidatedProperties: () => group.propertiesAsList,
             validate: () => validator(group.properties)
         };
-        (group as GroupOfPropertiesImpl<T, D>).addValidator(instance);
+        (group as GroupOfPropertiesImpl<T>).addValidator(instance);
     }
 }

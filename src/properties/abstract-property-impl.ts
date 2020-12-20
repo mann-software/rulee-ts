@@ -164,7 +164,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         const recomputingCount = this.nextRecomputingCount();
         await Promise.race([
             this.currentRecomputing,
-            new Promise(resolve => setTimeout(() => resolve(), debounceTime))
+            new Promise<void>(resolve => setTimeout(() => resolve(), debounceTime))
         ]);
         return this.handleAsyncUpdate(recomputingCount, true);
     }

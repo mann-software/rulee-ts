@@ -3,11 +3,15 @@ import { GroupOfProperties } from "./group-of-properties";
 import { ListOfProperties } from "./list-of-properties";
 import { PropertyScalar } from "./property-scalar";
 
+export type DataTypeToPropertyGroup<D extends Record<string, unknown>> = { [K in keyof D]: DataTypeAsProperty<D[K]> };
+
 export type DataTypeAsProperty<D> =
     D extends (infer E)[] ? ListOfProperties<DataTypeAsProperty<E>, E> :
-    D extends Record<string, unknown> ? GroupOfProperties<{ [K in keyof D]: DataTypeAsProperty<D[K]> }, D> :
+    D extends Record<string, unknown> ? GroupOfProperties<{ [K in keyof D]: DataTypeAsProperty<D[K]> }> :
     D extends boolean ? PropertyScalar<boolean> :
-    D extends string | number | Date ? PropertyScalar<D> :
+    D extends string ? PropertyScalar<D> :
+    D extends number ? PropertyScalar<D> :
+    D extends Date ? PropertyScalar<Date> :
     AbstractDataProperty<D>;
 
 export type DataTypeOfProperty<T> = T extends AbstractDataProperty<infer D> ? D : unknown;
@@ -23,8 +27,8 @@ export interface AbstractDataProperty<D> extends AbstractProperty {
     exportData(): D | null;
 
     /**
-     * Import some external data, e.g. received from somewhere
-     * Keep in mind: There are also data provider like ObjectValueProvider
+     * Import some external data, e.g. received from somewhere.
+     * As an alternative keep in mind that there are also data provider like ObjectValueProvider
      * that keep external data in sync
      * 
      * @param data external Data

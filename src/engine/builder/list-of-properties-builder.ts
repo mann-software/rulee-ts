@@ -1,4 +1,4 @@
-import { PropertyTemplate } from "../../properties/factory/property-template";
+import { ListOfPropertiesTemplate, PropertyTemplate } from "../../properties/factory/property-template";
 import { AbstractProperty } from "../../properties/abstract-property";
 import { PropertyId } from "../../properties/property-id";
 import { ListOfProperties } from "../../properties/list-of-properties";
@@ -27,7 +27,7 @@ export class ListOfPropertiesBuilder {
         return this.propertyList(id, listProvider, selectedIndices, selectionMode === SelectionMode.MultiSelect);
     }
 
-    template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListOfPropertiesBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): PropertyTemplate<ListOfProperties<T, D>, (D | null)[]> {
+    template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListOfPropertiesBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
     }
 

@@ -1,20 +1,21 @@
 import { AbstractProperty } from "./abstract-property";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
-import { GroupOfProperties } from "./group-of-properties";
+import { PropertyGroup, GroupOfProperties, PropertyGroupData } from "./group-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
+import { DataTypeOfProperty } from "./abstract-data-property";
 
 /**
  * Manages an ordered set of properties
  */
-export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty }, D> extends AbstractPropertyImpl<D> implements GroupOfProperties<T, D> {
+export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractPropertyImpl<PropertyGroupData<T>> implements GroupOfProperties<T> {
 
     readonly propertiesAsList: readonly AbstractProperty[];
 
     constructor(
         readonly id: string,
         readonly properties: T,
-        private readonly exportFcn: (props: T) => D | null,
-        private readonly importFcn: (props: T, data: D | null) => void,
+        private readonly exportFcn: (props: T) => PropertyGroupData<T> | null,
+        private readonly importFcn: (props: T, data: PropertyGroupData<T> | null) => void,
         updateHandler: RuleEngineUpdateHandler
     ) {
         super(updateHandler);
@@ -52,16 +53,16 @@ export class GroupOfPropertiesImpl<T extends { [id: string]: AbstractProperty },
     // -- data relevant -
     // ------------------
 
-    exportData(): D | null {
+    exportData(): PropertyGroupData<T> | null {
         return this.exportFcn(this.properties);
     }
 
-    importData(data: D | null): void {
+    importData(data: PropertyGroupData<T> | null): void {
         this.importFcn(this.properties, data);
         this.needsAnUpdate();
     }
 
-    compareData(a: D | null, b: D | null): boolean {
+    compareData(a: PropertyGroupData<T> | null, b: PropertyGroupData<T> | null): boolean {
         return true; // TODO
     }
     
