@@ -27,6 +27,9 @@ import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { PropertyGroup } from "../../properties/group-of-properties";
+import { PropertyTemplate } from "../../properties/factory/property-template";
+import { ListIndex } from "../../properties/factory/list-index";
+import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 
 export class Builder {
 
@@ -159,6 +162,14 @@ export class Builder {
                     this.dependencyGraph.addDependency(dependent, prop, { validation: true });
                 }
             });
+        };
+    }
+
+    decorateTemplate<T extends AbstractDataProperty<D>, D>(template: PropertyTemplate<T, D>, decorator: (property: T) => void): PropertyTemplate<T, D> {
+        return (id: string, index?: ListIndex, siblingAccess?: SiblingAccess<T>) => {
+            const property = template(id, index, siblingAccess);
+            decorator(property);
+            return property;
         };
     }
 
