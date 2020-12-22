@@ -2,7 +2,6 @@ import { AbstractProperty } from "./abstract-property";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { PropertyGroup, GroupOfProperties, PropertyGroupData } from "./group-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
-import { DataTypeOfProperty } from "./abstract-data-property";
 
 /**
  * Manages an ordered set of properties
@@ -14,8 +13,6 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
     constructor(
         readonly id: string,
         readonly properties: T,
-        private readonly exportFcn: (props: T) => PropertyGroupData<T> | null,
-        private readonly importFcn: (props: T, data: PropertyGroupData<T> | null) => void,
         updateHandler: RuleEngineUpdateHandler
     ) {
         super(updateHandler);
@@ -54,11 +51,18 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
     // ------------------
 
     exportData(): PropertyGroupData<T> | null {
-        return this.exportFcn(this.properties);
+        return Object.keys(this.properties).reduce((res: {[key: string]: unknown}, cur: string) => {
+            res[cur] = this.properties[cur].exportData();
+            return res;
+        }, {}) as PropertyGroupData<T>;
     }
 
     importData(data: PropertyGroupData<T> | null): void {
-        this.importFcn(this.properties, data);
+        if (data != null) {
+            Object.keys(this.properties).forEach(key => {
+                this.properties[key].importData(data[key]);
+            });
+        }
         this.needsAnUpdate();
     }
 

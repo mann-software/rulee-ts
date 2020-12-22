@@ -26,6 +26,7 @@ import { ListProvider } from "../../provider/list-provider/list-provider";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
+import { PropertyGroup } from "../../properties/group-of-properties";
 
 export class Builder {
 
@@ -70,8 +71,7 @@ export class Builder {
             this.defaultEmptyChoice,
         );
         this.group = new GroupOfPropertiesBuilder(
-            <T extends { [id: string]: AbstractProperty }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) =>
-                this.groupOfProperties(id, properties, exportFcn, importFcn)
+            <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
         );
         this.list =  new ListOfPropertiesBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, listProvider: ListProvider<T>, selectedIndices: number[], isMultiSelect: boolean) =>
@@ -115,8 +115,8 @@ export class Builder {
         );
     }
 
-    private groupOfProperties<T extends { [id: string]: AbstractProperty }, D>(id: string, properties: T, exportFcn: (props: T) => D | null, importFcn: (props: T, data: D | null) => void) {
-        const prop = new GroupOfPropertiesImpl(id, properties, exportFcn, importFcn, this.ruleEngine);
+    private groupOfProperties<T extends PropertyGroup>(id: string, properties: T) {
+        const prop = new GroupOfPropertiesImpl(id, properties, this.ruleEngine);
         this.addProperty(prop);
         this.addDependencies(this.dependencyGraph, prop.propertiesAsList, prop, { value: true });
         return prop;
