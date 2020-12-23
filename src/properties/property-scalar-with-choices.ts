@@ -6,6 +6,12 @@ export interface PropertyScalarWithChoices<T, V> extends PropertyScalar<T> {
     awaitChoices(): Promise<Choice<V>[]>;
 }
 
+export function isPropertyScalarWithChoices(property: PropertyScalar<unknown> | PropertyScalarWithChoices<unknown, unknown>):
+    property is PropertyScalarWithChoices<unknown, unknown>
+{
+    return "getChoices" in property;
+}
+
 export const upgradeAsPropertyWithChoices = <T, V>(propertyScalar: PropertyScalar<T>, choicesSource: (() => Choice<V>[]) | PropertyScalar<Choice<V>[]>) => {
     const upgradedProperty = propertyScalar as unknown as PropertyScalarWithChoices<T, V>;
     if (choicesSource instanceof Function) {
