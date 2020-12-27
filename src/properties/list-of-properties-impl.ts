@@ -216,6 +216,14 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     // -- data relevant -
     // ------------------
 
+    setToInitialState(): void {
+        if (!this.isReadOnly()) {
+            this.listProvider.clearList();
+        } else {
+            this.listProvider.getList().forEach(prop => prop.setToInitialState());
+        }
+    }
+
     exportData(): (D | null)[] {
         return this.listProvider.getList().map(prop => prop.exportData());
     }

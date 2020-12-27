@@ -52,7 +52,7 @@ export class PropertyScalarRuleBinding<T> {
     defineInitialValue(value: T): PropertyScalarRuleBinding<T> {
         alwaysAssertThat(!this.property.isReadOnly(), () => `${this.property.id}: Can not define initial value on read only property`);
         this.property.defineInitialValue(value);
-        this.property.setToInitialValue();
+        this.property.setToInitialState();
         return this;
     }
     

@@ -1,14 +1,14 @@
-import { AbstractProperty } from "./abstract-property";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { PropertyGroup, GroupOfProperties, PropertyGroupData } from "./group-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
+import { AbstractDataProperty } from "./abstract-data-property";
 
 /**
  * Manages an ordered set of properties
  */
 export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractPropertyImpl<PropertyGroupData<T>> implements GroupOfProperties<T> {
 
-    readonly propertiesAsList: readonly AbstractProperty[];
+    readonly propertiesAsList: readonly AbstractDataProperty<unknown>[];
 
     constructor(
         readonly id: string,
@@ -49,6 +49,10 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
     // ------------------
     // -- data relevant -
     // ------------------
+
+    setToInitialState(): void {
+        this.propertiesAsList.forEach(prop => prop.setToInitialState());
+    }
 
     exportData(): PropertyGroupData<T> | null {
         return Object.keys(this.properties).reduce((res: {[key: string]: unknown}, cur: string) => {

@@ -133,7 +133,7 @@ export class PropertyScalarBuilder {
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
             const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, undefined, config);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choices[0]?.value);
-            prop.setToInitialValue();
+            prop.setToInitialState();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
 
@@ -161,7 +161,7 @@ export class PropertyScalarBuilder {
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
             const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource], config, [choicesSource]);
             prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getNonNullValue()[0]?.value);
-            prop.setToInitialValue();
+            prop.setToInitialState();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         }
     }

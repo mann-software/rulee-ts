@@ -22,6 +22,11 @@ export type DataTypeOfProperty<T> = T extends AbstractDataProperty<infer D> ? D 
 export interface AbstractDataProperty<D> extends AbstractProperty {
 
     /**
+     * (Re)sets the data to the initial state
+     */
+    setToInitialState(): void;
+
+    /**
      * Export the data, e.g. to store it somewhere
      */
     exportData(): D | null;

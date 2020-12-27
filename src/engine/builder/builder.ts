@@ -106,7 +106,7 @@ export class Builder {
                 prop.definePlaceholder(config.placeholder);
             }
         }
-        prop.setToInitialValue();
+        prop.setToInitialState();
         return prop;
     }
 

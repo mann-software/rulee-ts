@@ -23,7 +23,9 @@ const now = new Date();
 beforeEach(() => {
     [builder] = builderAndRuleEngineFactory();
     simpleTemplate = builder.group.template<DataTypeToPropertyGroup<SimpleModel>>(idFcn => {
-        const aString = builder.scalar.stringProperty(idFcn('A_STRING'));
+        const aString = builder.scalar.stringProperty(idFcn('A_STRING'), {
+            initialValue: 'init'
+        });
         const aBoolean = builder.scalar.booleanProperty(idFcn('A_BOOLEAN'));
         const aNumber = builder.scalar.numberProperty(idFcn('A_NUMBER'));
         const aDate = builder.scalar.dateProperty(idFcn('A_DATE'));
@@ -65,6 +67,14 @@ test('group of properties with SimpleModel', () => {
         aNumber: 42,
         aBoolean: true,
         aDate: now
+    });
+
+    group.setToInitialState();
+    expect(group.exportData()).toStrictEqual({
+        aString: 'init',
+        aNumber: null,
+        aBoolean: null,
+        aDate: null
     });
 });
 

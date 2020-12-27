@@ -36,6 +36,9 @@ test('list of property: add existing property', () => {
     expect(propA.getValue()).toBe('abc');
     expect(propList.getProperty(0)?.id).toBe('PROP_LIST_0_ITEM');
     expect(propA.id).toBe('PROP_A');
+    
+    propList.setToInitialState();
+    expect(propList.exportData()).toStrictEqual([]);
 });
 
 test('list of property: add properties and select property', () => {

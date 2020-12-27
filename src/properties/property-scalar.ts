@@ -10,10 +10,6 @@ export function isPropertyScalar(property: AbstractProperty): property is Proper
 
 export interface PropertyScalar<D> extends AbstractDataProperty<D> {
     /**
-     * (Re)sets the value to the defined initial value
-     */
-    setToInitialValue(): void;
-    /**
      * Gets the initial value
      */
     getInitialValue(): D | null;

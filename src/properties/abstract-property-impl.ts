@@ -351,6 +351,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     abstract isAsynchronous(): boolean;
     abstract isProcessing(): boolean;
     abstract isReadOnly(): boolean;
+    abstract setToInitialState(): void;
     abstract exportData(): D | null;
     abstract importData(data: D | null): void;
     abstract compareData(a: D | null, b: D | null): boolean;
