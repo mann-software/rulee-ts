@@ -83,6 +83,7 @@ export interface ListOfProperties<T extends AbstractProperty, D> extends Abstrac
 
     getSelectedIndices(): number[];
     getSelectedProperties(): { property: T; index: number }[];
+    getSelectedProperty(): { property: T; index: number } | undefined;
 
     unselectPropertyAtIndex(index: number): void;
     unselectProperty(property: T): void;

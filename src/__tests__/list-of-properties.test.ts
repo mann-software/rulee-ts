@@ -70,6 +70,7 @@ test('list of property: select properties multiple properties and move propertie
     propList.addProperties(3);
 
     expect(propList.getSelectedIndices()).toHaveLength(0);
+    expect(propList.getSelectedProperty()).toBe(undefined);
     expect(propList.length).toBe(3);
 
     propList.getProperty(0)?.setValue('0');
@@ -85,6 +86,9 @@ test('list of property: select properties multiple properties and move propertie
         { index: 0, property: propList.getProperty(0) },
         { index: 1, property: propList.getProperty(1) }
     ]);
+    expect(propList.getSelectedProperty()).toStrictEqual(
+        { index: 0, property: propList.getProperty(0) }
+    );
     expect(propList.isPropertySelected(propList.getProperty(0)!)).toBe(true);
     expect(propList.isPropertySelectedAtIndex(1)).toBe(true);
     expect(propList.isPropertySelectedAtIndex(2)).toBe(false);

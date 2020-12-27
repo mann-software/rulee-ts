@@ -1,15 +1,16 @@
+import { AbstractProperty } from "./abstract-property";
 import { Choice } from "./choice";
 import { PropertyScalar } from "./property-scalar";
+import { PropertyScalarImpl } from "./property-scalar-impl";
 
 export interface PropertyScalarWithChoices<T, V> extends PropertyScalar<T> {
     getChoices(): Choice<V>[];
     awaitChoices(): Promise<Choice<V>[]>;
 }
 
-export function isPropertyScalarWithChoices(property: PropertyScalar<unknown> | PropertyScalarWithChoices<unknown, unknown>):
-    property is PropertyScalarWithChoices<unknown, unknown>
+export function isPropertyScalarWithChoices(property: AbstractProperty): property is PropertyScalarWithChoices<unknown, unknown>
 {
-    return "getChoices" in property;
+    return property instanceof PropertyScalarImpl && "getChoices" in property;
 }
 
 export const upgradeAsPropertyWithChoices = <T, V>(propertyScalar: PropertyScalar<T>, choicesSource: (() => Choice<V>[]) | PropertyScalar<Choice<V>[]>) => {

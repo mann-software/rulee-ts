@@ -1,5 +1,12 @@
 import { AttributeId } from "../attributes/attribute-id";
 import { AbstractDataProperty } from "./abstract-data-property";
+import { AbstractProperty } from "./abstract-property";
+import { PropertyScalarImpl } from "./property-scalar-impl";
+
+export function isPropertyScalar(property: AbstractProperty): property is PropertyScalar<unknown>
+{
+    return property instanceof PropertyScalarImpl;
+}
 
 export interface PropertyScalar<D> extends AbstractDataProperty<D> {
     /**

@@ -1,6 +1,5 @@
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { ListOfProperties } from "./list-of-properties";
-import { AbstractProperty } from "./abstract-property";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { ListProvider } from "../provider/list-provider/list-provider";
 import { OwnerRelation } from "../dependency-graph/dependency-graph";
@@ -169,6 +168,13 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         return this.selectedIndices.map(index =>
             ({ index, property: this.getProperty(index)!})
         );
+    }
+
+    getSelectedProperty(): { property: T; index: number } | undefined {
+        const firstSelected = this.selectedIndices[0];
+        if (firstSelected !== undefined) {
+            return ({ index: firstSelected, property: this.getProperty(firstSelected)!});
+        }
     }
 
     unselectPropertyAtIndex(index: number): void {
