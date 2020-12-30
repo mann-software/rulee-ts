@@ -9,16 +9,34 @@ export function isPropertyScalar(property: AbstractProperty): property is Proper
 }
 
 export interface PropertyScalar<D> extends AbstractDataProperty<D> {
+
     /**
      * Gets the initial value
      */
     getInitialValue(): D | null;
+
     /**
-     * Performs a conversion on getValue() according to the used converter
+     * Calls getValue() and performs a conversion according to the used converter
      */
     getDisplayValue(): string;
-    setDisplayValue(value: string | null): void;
+
+    /**
+     * Calls awaitValue() and performs a conversion according to the used converter
+     */
     awaitDisplayValue(): Promise<string>;
+
+    /**
+     * Performs a conversion according to the used converter and then calls setValue(converted)
+     * @param value display value
+     */
+    setDisplayValue(value: string | null): void;
+
+    /**
+     * Gets the current value but will not check if an update is needed.
+     * For this to be done, awaitValue() needs to be called
+     */
+    getValue(): D | null;
+
     /**
      * Like getValue but returns the fallback value of the used converter if the
      * value is null.
@@ -28,16 +46,19 @@ export interface PropertyScalar<D> extends AbstractDataProperty<D> {
      * null or else its the value of the first choice.
      */
     getNonNullValue(): D;
-    /**
-     * Gets the current value
-     */
-    getValue(): D | null;
-    setValue(value: D | null): void;
+
     /**
      * Triggers an update if the property needs an update and then
      * return the up-to-date value
      */
     awaitValue(): Promise<D | null>;
+
+    /**
+     * Sets the given value
+     * @param value given value
+     */
+    setValue(value: D | null): void;
+
     get<A>(id: AttributeId<A>): A | undefined;
     isRequired(): boolean;
     isVisible(): boolean;

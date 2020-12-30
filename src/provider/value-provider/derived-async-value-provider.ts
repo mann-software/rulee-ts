@@ -19,9 +19,9 @@ export class DerivedAsyncValueProvider<T, Dependencies extends readonly Abstract
         });
     }
 
-    setValue(value: T | null): void {
+    setValue(value: T | null): Promise<void> | void {
         if (this.set) {
-            void this.set(value, ...this.dependencies);
+            return this.set(value, ...this.dependencies);
         }
     }
 

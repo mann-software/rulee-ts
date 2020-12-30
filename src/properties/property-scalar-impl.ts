@@ -69,7 +69,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
             this.currentValue = initialValue;
         }
         if (!this.isReadOnly()) {
-            this.valueProvider.setValue(initialValue);
+            this.setValue(initialValue);
         }
         Logger.trace(() => `PropertyScalarImpl.setToInitialState ${this.id}: ${initialValue}`);
     }
@@ -158,8 +158,16 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     setValue(value: T | null) {
         if (value !== this.getCurrentValue()) {
-            this.valueProvider.setValue(value);
-            this.needsAnUpdate();
+            const setFeedback = this.valueProvider.setValue(value);
+            if (setFeedback !== undefined) {
+                setFeedback.then(() => {
+                    this.needsAnUpdate();
+                }, err => {
+                    this.tellValueChangeListeners(listener => listener.updateFailed?.(err));
+                });
+            } else {
+                this.needsAnUpdate();
+            }
         }
     }
 

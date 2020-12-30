@@ -190,11 +190,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         });
 
         if (this.isProcessing() && !wasAlreadyProcessing) {
-            this.tellValueChangeListeners(listener => {
-                if (listener.startsAsyncUpdate) {
-                    listener.startsAsyncUpdate()
-                }
-            });
+            this.tellValueChangeListeners(listener => listener.startsAsyncUpdate?.());
         }
         return this.updatedPromise();
     }
@@ -216,11 +212,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             this.updateHandler.needsAnUpdate(this);
         }
 
-        this.tellValueChangeListeners(listener => {
-            if (listener.needsAnUpdate) {
-                listener.needsAnUpdate()
-            }
-        });
+        this.tellValueChangeListeners(listener => listener.needsAnUpdate?.());
     }
 
     hasBeenUpdated() {
@@ -230,11 +222,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     errorWhileUpdating(error: any): void {
         this.updatedListeners?.forEach(ul => ul.reject(error));
         delete this.updatedListeners;
-        this.tellValueChangeListeners(listener => {
-            if (listener.updateFailed) {
-                listener.updateFailed(error);
-            }
-        });
+        this.tellValueChangeListeners(listener => listener.updateFailed?.(error));
     }
 
     dependencyHasBeenUpdated(dependency: PropertyDependency) {
@@ -244,11 +232,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 this.updateHandler.invalidateValidationResults(this.validators);
             }
         }
-        this.tellValueChangeListeners(listener => {
-            if (listener.dependencyHasBeenUpdated) {
-                listener.dependencyHasBeenUpdated(dependency);
-            }
-        });
+        this.tellValueChangeListeners(listener => listener.dependencyHasBeenUpdated?.(dependency));
     }
 
     internallyRequiresEagerUpdate(): boolean {
@@ -286,11 +270,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                     }
                 });
             }
-            this.tellValueChangeListeners(listener => {
-                if (listener.validated) {
-                    listener.validated();
-                }
-            });
+            this.tellValueChangeListeners(listener => listener.validated?.());
         }
         return this.getValidationMessages();
     }

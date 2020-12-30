@@ -10,7 +10,7 @@ export interface ValueProvider<T> {
      * Set the current value. Supported if not read-only
      * @param value new value
      */
-    setValue(value: T | null): void;
+    setValue(value: T | null): Promise<void> | void;
 
     /**
      * Indicates that geting the value requires asynchronous processing.
