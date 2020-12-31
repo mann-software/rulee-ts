@@ -80,6 +80,17 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         return result;
     }
 
+    updatePropertyData(data: D | null, atIndex: number): void {
+        this.getProperty(atIndex)?.importData(data);
+    }
+
+    updateProperty(property: AbstractDataProperty<D>, atIndex: number): void {
+        const prop = this.getProperty(atIndex);
+        if (prop) {
+            property.transferData(prop);
+        }
+    }
+
     swapProperties(indexA: number, indexB: number): void {
         if (indexA !== indexB) {
             this.listProvider.moveProperty(indexA, indexB);

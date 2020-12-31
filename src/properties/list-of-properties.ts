@@ -49,6 +49,20 @@ export interface ListOfProperties<T extends AbstractProperty, D> extends Abstrac
     addPropertyData(data: (D | null)[], atIndex?: number): T[];
 
     /**
+     * Update the data of the property with the given data at the given index
+     * @param data given data
+     * @param atIndex given index
+     */
+    updatePropertyData(data: D | null, atIndex: number): void;
+
+    /**
+     * Update the data of the property with the data of the given property at the given index
+     * @param property given property
+     * @param atIndex given index
+     */
+    updateProperty(property: AbstractDataProperty<D>, atIndex: number): void;
+
+    /**
      * Swaps the position of two properties
      * @param indexA property at index A
      * @param indexB property at index B
