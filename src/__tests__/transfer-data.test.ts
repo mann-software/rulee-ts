@@ -2,7 +2,6 @@ import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { PropertyScalar } from "../properties/property-scalar";
-import { RuleEngine } from "../engine/rule-engine";
 import { valueAfterTime } from "./utils/timing-utils";
 
 let builder: Builder;
@@ -11,10 +10,9 @@ let propB: PropertyScalar<string>;
 let propBNumber: PropertyScalar<number>;
 let propC: PropertyScalar<number>;
 let propD: PropertyScalar<number>;
-let ruleEngine: RuleEngine;
 
 beforeEach(() => {
-    [builder, ruleEngine] = builderAndRuleEngineFactory();
+    [builder] = builderAndRuleEngineFactory();
     propA = builder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
     propB = builder.scalar.stringProperty('PROP_B', { initialValue: '42' });
     propBNumber = builder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
@@ -32,7 +30,7 @@ test('transfer data', () => {
     expect(propB.getValue()).toBe('42');
     expect(propC.getValue()).toBe(5);
 
-    ruleEngine.transferData(propA, propB);
+    propA.transferData(propB);
 
     expect(propA.getValue()).toBe('abc');
     expect(propB.getValue()).toBe('abc');
@@ -44,7 +42,7 @@ test('transfering data triggers async derivations', () => {
     expect(propA.getValue()).toBe('abc');
     expect(propB.getValue()).toBe('42');
 
-    ruleEngine.transferData(propA, propB);
+    propA.transferData(propB);
 
     expect(propA.getValue()).toBe('abc');
     expect(propB.getValue()).toBe('abc');

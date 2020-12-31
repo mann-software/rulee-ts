@@ -40,6 +40,12 @@ export interface AbstractDataProperty<D> extends AbstractProperty {
      */
     importData(data: D | null): void;
 
+    /**
+     * Transfers the data from this to the other property
+     * @param toProperty other property
+     */
+    transferData(toProperty: AbstractDataProperty<D>): void;
+
     // todo: put this in extra interface and implement diff, but also implement for diff an enabled flag
     compareData(a: D | null, b: D | null): boolean;
 }

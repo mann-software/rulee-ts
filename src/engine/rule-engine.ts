@@ -70,12 +70,12 @@ export class RuleEngine implements RuleEngineUpdateHandler {
             return;
         }
         const listenerA = {
-            updated: () => this.transferData(propertyA, propertyB)
+            updated: () => propertyA.transferData(propertyB)
         } as ValueChangeListener;
         const listenerB = {
-            updated: () => this.transferData(propertyB, propertyA)
+            updated: () => propertyB.transferData(propertyA)
         } as ValueChangeListener;
-        this.transferData(propertyA, propertyB);
+        propertyA.transferData(propertyB);
         propertyA.registerValueChangedListener(listenerA);
         propertyB.registerValueChangedListener(listenerB);
         this.dataLinks.set(dataLinkKey, [listenerA, listenerB]);
@@ -101,10 +101,6 @@ export class RuleEngine implements RuleEngineUpdateHandler {
         return propertyA.id < propertyB.id
             ? `${propertyA.id}<->${propertyB.id}`
             : `${propertyB.id}<->${propertyA.id}`;
-    }
-
-    transferData<D>(fromProperty: AbstractDataProperty<D>, toProperty: AbstractDataProperty<D>): void {
-        toProperty.importData(fromProperty.exportData());
     }
 
     // -----------------------------------------------------------------------

@@ -40,6 +40,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private validators?: ValidatorInstance<readonly AbstractProperty[]>[];
     private validationMessages: ValidationMessage[] = [];
 
+    private readonly valueChangeListeners: ValueChangeListener[] = [];
+
+    abstract id: string;
+    backpressureConfig?: BackpressureConfig;
 
     constructor(
         protected updateHandler: RuleEngineUpdateHandler,
@@ -47,10 +51,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     ) {
         this.backpressureConfig = backpressureConfig;
     }
-
-    private readonly valueChangeListeners: ValueChangeListener[] = [];
-
-    abstract id: string;
 
     // ---------------------------------------------------------------------------------------
     // -- handing internallyUpdate -----------------------------------------------------------
@@ -325,8 +325,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     // --------------------------------------------------------------------------------------
-
-    backpressureConfig?: BackpressureConfig;
+    
+    transferData(toProperty: AbstractDataProperty<D>): void {
+        toProperty.importData(this.exportData());
+    }
 
     abstract isAsynchronous(): boolean;
     abstract isProcessing(): boolean;
