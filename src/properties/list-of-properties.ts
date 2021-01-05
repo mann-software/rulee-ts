@@ -4,7 +4,7 @@ import { AbstractDataProperty } from "./abstract-data-property";
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
  */
-export interface ListOfProperties<T extends AbstractProperty, D> extends AbstractProperty, AbstractDataProperty<(D | null)[]> {
+export interface ListOfProperties<T extends AbstractProperty, D> extends AbstractDataProperty<(D | null)[]> {
 
     /**
      * Number of properties in list

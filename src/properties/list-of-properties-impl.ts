@@ -1,27 +1,33 @@
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { ListOfProperties } from "./list-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
-import { ListProvider } from "../provider/list-provider/list-provider";
 import { OwnerRelation } from "../dependency-graph/dependency-graph";
 import { AbstractDataProperty } from "./abstract-data-property";
+import { ListIndexImpl } from "./factory/list-index-impl";
+import { PropertyTemplate } from "./factory/property-template";
+import { SiblingAccess } from "../provider/list-provider/sibling-access";
 
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
  */
-export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D> {
+export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D>, SiblingAccess<T> {
+
+    private internalList: { prop: T; index: ListIndexImpl }[] = [];
+    readonly siblingCount = this.list.length;
+    private readonly selectedIndices: number[] = [];
+    private nxtId = 0;
 
     get length() {
-        return this.listProvider.getList().length;
+        return this.internalList.length;
     }
 
     get list() {
-        return this.listProvider.getList();
+        return this.internalList.map(el => el.prop);
     }
 
     constructor(
         readonly id: string,
-        private readonly listProvider: ListProvider<T>,
-        private readonly selectedIndices: number[],
+        private readonly propertyTemplate: PropertyTemplate<T, D>,
         private readonly isMultiSelect: boolean = false,
         updateHandler: RuleEngineUpdateHandler,
         private readonly ownerRelation: OwnerRelation,
@@ -42,13 +48,13 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     }
 
     getProperty(index: number): T | undefined {
-        return this.listProvider.getProperty(index);
+        return this.internalList[index]?.prop;
     }
 
     addProperty(property?: T, atIndex?: number, dontNotify?: boolean): T {
-        const prop = this.listProvider.addProperty(atIndex);
+        const prop = this.addPropertyInternal(atIndex);
         if (property) {
-            prop.importData(property.exportData());
+            property.transferData(prop);
         }
         this.ownerRelation.addOwnerDependency(this, prop);
         if (!dontNotify) {
@@ -71,13 +77,35 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     addPropertyData(data: (D | null)[], atIndex?: number): T[] {
         const result = data.map((d, i) => {
             const index = atIndex !== undefined ? atIndex + i : undefined;
-            const prop = this.listProvider.addProperty(index);
+            const prop = this.addPropertyInternal(index);
             prop.importData(d);
             this.ownerRelation.addOwnerDependency(this, prop);
             return prop;
         });
         this.needsAnUpdate();
         return result;
+    }
+
+    private addPropertyInternal(atIndex?: number): T {
+        const propId = `${this.id}_${this.nxtId}`;
+        this.nxtId++;
+        const idx = atIndex ?? this.internalList.length;
+        const index = new ListIndexImpl(idx, this.internalList, idx => this.selectedIndices.includes(idx));
+        const prop = this.propertyTemplate(propId, index, this);
+        if (atIndex !== undefined) {
+            this.internalList.splice(atIndex, 0, {prop, index});
+            this.adjustIndices(atIndex + 1);
+        } else {
+            this.internalList.push({prop, index});
+        }
+        return prop;
+    }
+
+    private adjustIndices(start?: number, end?: number) {
+        const to = end || this.internalList.length;
+        for (let i = start ?? 0; i < to; i++) {
+            this.internalList[i].index.index = i;
+        }
     }
 
     updatePropertyData(data: D | null, atIndex: number): void {
@@ -93,11 +121,11 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
 
     swapProperties(indexA: number, indexB: number): void {
         if (indexA !== indexB) {
-            this.listProvider.moveProperty(indexA, indexB);
+            this.movePropertyInternal(indexA, indexB);
             if (indexA < indexB) {
-                this.listProvider.moveProperty(indexB - 1, indexA);
+                this.movePropertyInternal(indexB - 1, indexA);
             } else {
-                this.listProvider.moveProperty(indexB + 1, indexA);
+                this.movePropertyInternal(indexB + 1, indexA);
             }
             const aIdx = this.selectedIndices.indexOf(indexA);
             const bIdx = this.selectedIndices.indexOf(indexB);
@@ -113,12 +141,26 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     }
 
     moveProperty(fromIndex: number, toIndex: number): void {
-        this.listProvider.moveProperty(fromIndex, toIndex);
+        this.movePropertyInternal(fromIndex, toIndex);
         const selectedIdx = this.selectedIndices.indexOf(fromIndex);
         if (selectedIdx >= 0) {
             this.selectedIndices.splice(fromIndex, 1, toIndex);
         }
         this.needsAnUpdate();
+    }
+
+    private movePropertyInternal(from: number, to: number): void {
+        if (from !== to) {
+            const [prop] = this.internalList.splice(from, 1);
+            if (prop) {
+                this.internalList.splice(to, 0, prop);
+                if (from < to) {
+                    this.adjustIndices(from);
+                } else {
+                    this.adjustIndices(to);
+                }
+            }
+        }
     }
 
     removePropertyAtIndex(index: number): T | undefined {
@@ -133,15 +175,16 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
 
             }
         }
-        const result = this.listProvider.removeByIndex(index);
-        if (result) {
+        if (index >= 0 && index < this.internalList.length) {
+            const [removed] = this.internalList.splice(index, 1);
+            this.adjustIndices(index);
             this.needsAnUpdate();
+            return removed?.prop;
         }
-        return result;
     }
 
     removeProperty(property: T): boolean {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         return idx >= 0 && this.removePropertyAtIndex(idx) !== undefined;
     }
 
@@ -158,7 +201,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     }
 
     selectProperty(property: T): void {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         this.selectPropertyAtIndex(idx);
     }
 
@@ -167,7 +210,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     }
 
     isPropertySelected(property: T): boolean {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         return this.isPropertySelectedAtIndex(idx);
     }
 
@@ -197,7 +240,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     }
 
     unselectProperty(property: T): void {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         this.unselectPropertyAtIndex(idx);
     }
 
@@ -222,27 +265,44 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         return false; // TODO
     }
 
+    // interface: SiblingAccess
+
+    getSibling(atIndex: number): T | undefined {
+        return this.getProperty(atIndex);
+    }
+
+    someSibling(predicate: (sibling: T, index?: number) => unknown) {
+        return this.internalList.some((el) => predicate(el.prop, el.index.idx));
+    }
+
+    everySibling(predicate: (sibling: T, index?: number) => unknown) {
+        return this.internalList.every((el, index) => predicate(el.prop, index));
+    }
+
+    reduceSiblings<R>(callbackfn: (previousValue: R, sibling: T, index?: number) => R, initialValue: R) {
+        return this.internalList.reduce<R>((res, el, i) => callbackfn(res, el.prop, i), initialValue);
+    }
+
+    filterSiblings(predicate: (sibling: T, index?: number) => unknown): T[] {
+        return this.internalList.filter((el, i) => predicate(el.prop, i)).map(el => el.prop);
+    }
 
     // ------------------
     // -- data relevant -
     // ------------------
 
     setToInitialState(): void {
-        if (!this.isReadOnly()) {
-            this.listProvider.clearList();
-        } else {
-            this.listProvider.getList().forEach(prop => prop.setToInitialState());
-        }
+        this.internalList = [];
     }
 
     exportData(): (D | null)[] {
-        return this.listProvider.getList().map(prop => prop.exportData());
+        return this.internalList.map(prop => prop.prop.exportData());
     }
 
     importData(data: (D | null)[]): void {
-        this.listProvider.clearList();
+        this.setToInitialState();
         data.forEach((entry: D | null) => {
-            const prop = this.listProvider.addProperty();
+            const prop = this.addPropertyInternal();
             prop.importData(entry);
         });
         this.needsAnUpdate();
@@ -255,4 +315,5 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     // ------------------
     // -- data relevant: end
     // ------------------
+    
 }

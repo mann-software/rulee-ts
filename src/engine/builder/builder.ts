@@ -22,7 +22,6 @@ import { BackpressureConfig } from "../../properties/backpressure/backpressure-c
 import { Choice } from "../../properties/choice";
 import { ListOfPropertiesBuilder } from "./list-of-properties-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
-import { ListProvider } from "../../provider/list-provider/list-provider";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
@@ -77,8 +76,8 @@ export class Builder {
             <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
         );
         this.list =  new ListOfPropertiesBuilder(
-            <T extends AbstractDataProperty<D>, D>(id: string, listProvider: ListProvider<T>, selectedIndices: number[], isMultiSelect: boolean) =>
-                this.listOfProperties<T, D>(id, listProvider, selectedIndices, isMultiSelect)
+            <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) =>
+                this.listOfProperties<T, D>(id, itemTemplate, selectedIndices, isMultiSelect)
         );
     }
 
@@ -125,8 +124,8 @@ export class Builder {
         return prop;
     }
 
-    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, listProvider: ListProvider<T>, selectedIndices: number[], isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
-        const prop = new ListOfPropertiesImpl<T, D>(id, listProvider, selectedIndices, isMultiSelect, this.ruleEngine, this.dependencyGraph);
+    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
+        const prop = new ListOfPropertiesImpl<T, D>(id, itemTemplate, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
         return prop;
     }
