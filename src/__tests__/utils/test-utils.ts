@@ -12,7 +12,7 @@ export const emptyButRequiredMessage: ValidationMessage = {
 const defaultOptions: BuilderOptions = { emptyButRequiredMessage };
 
 export const builderAndRuleEngineFactory: (options?: Partial<BuilderOptions>) => [Builder, RuleEngine] = (options?: Partial<BuilderOptions>) => {
-    const ruleEngine = new RuleEngine();
     const mergedOptions = !options ? defaultOptions : { ...defaultOptions, ...options };
-    return [ruleEngine.builder(mergedOptions), ruleEngine];
+    const ruleEngine = new RuleEngine(mergedOptions);
+    return [ruleEngine.getBuilder(), ruleEngine];
 };
