@@ -29,4 +29,4 @@ Contributions to rulee-ts are very welcome! Please contact [andre@mann-software.
 
 ## License
 
-Copyright (c) 2020 Andre Mann and Contributors licensed under BSD 3-Clause License.
+Copyright (c) 2021 Andre Mann and Contributors licensed under BSD 3-Clause License.
