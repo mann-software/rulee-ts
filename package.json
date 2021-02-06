@@ -1,6 +1,6 @@
 {
   "name": "rulee-ts",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "UI-centered rule engine to manage your business rules with TypeScript",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.ts",

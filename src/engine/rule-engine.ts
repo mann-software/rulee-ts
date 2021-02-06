@@ -11,9 +11,12 @@ import { ValidationResult } from "../validators/validation-result";
 import { ValidationTypes } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
+import { PropertyGroup } from "../properties/group-of-properties";
+import { Module } from "./modules/module";
 
 export class RuleEngine implements RuleEngineUpdateHandler {
 
+    private readonly builder: Builder;
     private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
     private readonly validations = new WeakMap<ValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
@@ -27,11 +30,38 @@ export class RuleEngine implements RuleEngineUpdateHandler {
     }
 
     /**
-     * Creates a builder to define your business rules
+     * Creates a rule engine for your business rules
      * @param options for the builder
      */
-    builder(options: BuilderOptions) {
-        return new Builder(options, this, this.dependencyGraph, this.propertyMap);
+    constructor(options: BuilderOptions) {
+        this.builder = new Builder(options, this, this.dependencyGraph, this.propertyMap);
+    }
+
+    /**
+     * Creates a module that is indended to bundle a larger number of properties.
+     * The properties are initialized lazy. This helps the boot time of your app by
+     * loading larger parts as soon as they are needed on a page.
+     */
+    defineModule<S extends PropertyGroup>(initFcn: (builder: Builder) => S): Module<S> {
+        return new Module(initFcn, this.builder);
+    }
+
+    /**
+     * Returns the Builder to define new properties.
+     * The preferred way is to define modules via defineModule().
+     */
+    getBuilder(): Builder {
+        return this.builder;
+    }
+
+    /**
+     * Returns the property for the given id. However, the preferred way is to 
+     * create a module and access the property via Module.getProperties(). This
+     * ensures that the property exists.
+     * @param id of the property
+     */
+    getPropertyById(id: string): AbstractProperty | undefined {
+        return this.propertyMap[id];
     }
 
     takeSnapShot(key = 'default'): Snapshot {

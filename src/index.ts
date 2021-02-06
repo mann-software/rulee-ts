@@ -14,6 +14,7 @@ export * from "./engine/builder/list-of-properties-builder";
 export * from "./engine/builder/property-scalar-builder";
 export * from "./engine/builder/property-scalar-rule-binding";
 export * from "./engine/builder/trigger-builder";
+export * from "./engine/modules/module";
 export * from "./engine/snapshot/snapshot";
 export * from "./properties/abstract-data-property";
 export * from "./properties/abstract-property";
