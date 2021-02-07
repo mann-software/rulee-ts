@@ -3,7 +3,7 @@ import { AbstractProperty } from "../../properties/abstract-property";
 import { PropertyId } from "../../properties/property-id";
 import { ListOfProperties } from "../../properties/list-of-properties";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
-import { ListIndex } from "../../properties/factory/list-index";
+import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";

@@ -1,7 +1,7 @@
 import { AbstractProperty } from "../../properties/abstract-property";
 import { GroupOfPropertiesTemplate } from "../../properties/factory/property-template";
 import { PropertyGroup, GroupOfProperties } from "../../properties/group-of-properties";
-import { ListIndex } from "../../properties/factory/list-index";
+import { ListIndex } from "../../properties/lists/index/list-index";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { ValidatorInstance } from "../validation/validator-instance-impl";

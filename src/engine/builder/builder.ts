@@ -27,7 +27,7 @@ import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { PropertyGroup } from "../../properties/group-of-properties";
 import { PropertyTemplate } from "../../properties/factory/property-template";
-import { ListIndex } from "../../properties/factory/list-index";
+import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 
 export class Builder {

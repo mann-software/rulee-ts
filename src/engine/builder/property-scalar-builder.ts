@@ -22,7 +22,7 @@ import { SelectValueProvider } from "../../provider/value-provider/choices/selec
 import { TypeaheadValueProvider } from "../../provider/value-provider/choices/typeahead-value-provider";
 import { TypeaheadValueConverter } from "../../value-converter/choices/typeahead-value-converter";
 import { PropertyScalarWithChoices, upgradeAsPropertyWithChoices } from "../../properties/property-scalar-with-choices";
-import { ListIndex } from "../../properties/factory/list-index";
+import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { Rule } from "../../rules/rule";
 
