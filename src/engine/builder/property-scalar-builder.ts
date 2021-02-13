@@ -14,7 +14,7 @@ import { DerivedValueProvider } from "../../provider/value-provider/derived-valu
 import { DerivedAsyncValueProvider } from "../../provider/value-provider/derived-async-value-provider";
 import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { PropertyTemplate } from "../../properties/factory/property-template";
-import { EmptyValueFcn, EmptyValueFcns } from "../../provider/value-provider/empty-value-fcn";
+import { EmptyValueFcn, EmptyValueFcns } from "../../provider/empty-value-fcn";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { ChoiceListConverter } from "../../value-converter/choices/choice-list-converter";
 import { assertThat } from "../../util/assertions/assertions";
@@ -25,17 +25,12 @@ import { PropertyScalarWithChoices, upgradeAsPropertyWithChoices } from "../../p
 import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { Rule } from "../../rules/rule";
+import { PropertyConfig } from "./builder-options";
 
 export interface PropertyScalarValueConfig<T> {
     valueConverter?: ValueConverter<T>;
     initialValue?: T | null;
     emptyValueFcn?: EmptyValueFcn<T>;
-}
-
-export interface PropertyScalarConfig {
-    placeholder?: string;
-    label?: string;
-    labelAndPlaceholder?: string;
 }
 
 export class PropertyScalarBuilder {
@@ -47,7 +42,7 @@ export class PropertyScalarBuilder {
             emptyValueFcn: EmptyValueFcn<T>,
             converter: ValueConverter<T>,
             dependencies?: readonly AbstractProperty[],
-            propertyConfig?: PropertyScalarConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
+            propertyConfig?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
         private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
@@ -65,14 +60,14 @@ export class PropertyScalarBuilder {
         throw new Error('Not supported, yet');
     }
 
-    simpleProperty<T>(id: PropertyId, valueConverter: ValueConverter<T>, config?: PropertyScalarConfig & {
+    simpleProperty<T>(id: PropertyId, valueConverter: ValueConverter<T>, config?: PropertyConfig & {
         emptyValueFcn?: EmptyValueFcn<T>;
         initialValue?: T | null;
     }): PropertyScalar<T> {
         return this.propertyScalar(id, new SimpleValueProvider<T>(), config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn, valueConverter, undefined, config);
     }
 
-    stringProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<string>): PropertyScalar<string> {
+    stringProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<string>): PropertyScalar<string> {
         config = this.defaultInitValue('', config);
         return this.propertyScalar(id, new SimpleValueProvider<string>(),
             config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn,
@@ -82,7 +77,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    numberProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<number> & {
+    numberProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<number> & {
         zeroIsConsideredAsEmpty?: boolean;
     }): PropertyScalar<number> {
         assertThat(() => !config?.zeroIsConsideredAsEmpty || !config?.emptyValueFcn, () => `${id}: Provide either zeroIsConsideredAsEmpty or emptyValueFcn.`);
@@ -95,7 +90,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    booleanProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<boolean>): PropertyScalar<boolean> {
+    booleanProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<boolean>): PropertyScalar<boolean> {
         return this.propertyScalar(id, new SimpleValueProvider<boolean>(),
             config?.emptyValueFcn ?? EmptyValueFcns.booleanEmptyValueFcn,
             config?.valueConverter ?? C.boolean.default,
@@ -104,7 +99,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    dateProperty(id: PropertyId, config?: PropertyScalarConfig & PropertyScalarValueConfig<Date>): PropertyScalar<Date> {
+    dateProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<Date>): PropertyScalar<Date> {
         return this.propertyScalar(id, new SimpleValueProvider<Date>(),
             config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn,
             config?.valueConverter ?? C.date.iso,
@@ -126,7 +121,7 @@ export class PropertyScalarBuilder {
     }
 
     select = {
-        static: <T>(id: PropertyId, choices: Choice<T>[], config?: PropertyScalarConfig & { emptyChoice?: Choice<T> }) => {
+        static: <T>(id: PropertyId, choices: Choice<T>[], config?: PropertyConfig & { emptyChoice?: Choice<T> }) => {
             const emptyChoice = config?.emptyChoice ?? this.defaultEmptyChoice;
             const provider = new ChoiceValueProvider<T>(choices, emptyChoice);
             const converter = new SelectValueConverter<T>(choices, emptyChoice);
@@ -137,7 +132,7 @@ export class PropertyScalarBuilder {
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
 
-        derived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyScalarConfig & {
+        derived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyConfig & {
             derive: (...dependencies: Dependencies) => Choice<T>[];
             emptyChoice?: Choice<T>;
         }) => {
@@ -145,7 +140,7 @@ export class PropertyScalarBuilder {
             return this.select.withPropertySource(id, choicesSourceProperty, config);
         },
 
-        asyncDerived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyScalarConfig & {
+        asyncDerived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyConfig & {
             deriveAsync: (...dependencies: Dependencies) => Promise<Choice<T>[]>;
             emptyChoice?: Choice<T>;
             backpressure?: BackpressureConfig;
@@ -154,7 +149,7 @@ export class PropertyScalarBuilder {
             return this.select.withPropertySource(id, choicesSourceProperty, config);
         },
 
-        withPropertySource: <T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, config?: PropertyScalarConfig & { emptyChoice?: Choice<T> }) => {
+        withPropertySource: <T>(id: PropertyId, choicesSource: PropertyScalar<Choice<T>[]>, config?: PropertyConfig & { emptyChoice?: Choice<T> }) => {
             const emptyChoice = config?.emptyChoice ?? this.defaultEmptyChoice;
             const provider = new SelectValueProvider<T>(choicesSource, emptyChoice);
             const converter = new SelectValueConverter<T>(() => choicesSource.getNonNullValue(), emptyChoice);
@@ -167,7 +162,7 @@ export class PropertyScalarBuilder {
     }
 
     typeahead = {
-        async: <T>(id: PropertyId, config: PropertyScalarConfig & {
+        async: <T>(id: PropertyId, config: PropertyConfig & {
             fetchChoices: (currentText: string) => Promise<Choice<T>[]>;
             minimumTextLength?: number;
         }): PropertyScalarWithChoices<[T | null, string], T> => {
@@ -184,7 +179,7 @@ export class PropertyScalarBuilder {
             return this.typeahead.withPropertySource(id, inputSourceProperty, choicesSourceProperty, config);
         },
 
-        withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>, config?: PropertyScalarConfig): PropertyScalarWithChoices<[T | null, string], T> => {
+        withPropertySource: <T>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: PropertyScalar<Choice<T>[]>, config?: PropertyConfig): PropertyScalarWithChoices<[T | null, string], T> => {
             const provider = new TypeaheadValueProvider<T>(inputSource, choicesSource);
             const converter = new TypeaheadValueConverter<T>();
             const emptyValueFcn: EmptyValueFcn<[T | null, string]> = (val) => val?.[0] == null;
@@ -193,7 +188,7 @@ export class PropertyScalarBuilder {
         }
     }
 
-    objectProperty<T, O>(id: PropertyId, valueConverter: ValueConverter<T>, obj: O, config: PropertyScalarConfig & {
+    objectProperty<T, O>(id: PropertyId, valueConverter: ValueConverter<T>, obj: O, config: PropertyConfig & {
         get: (obj: O) => T | null;
         set: (obj: O, val: T | null) => void;
         emptyValueFcn?: EmptyValueFcn<T>;
@@ -204,7 +199,7 @@ export class PropertyScalarBuilder {
     derived = {
         sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
             return (
-                config: PropertyScalarConfig & {
+                config: PropertyConfig & {
                     derive: Rule<[...dependencies: Dependencies], T | null>;
                     inverse?: (val: T | null, ...dependencies: Dependencies) => void;
                     emptyValueFcn?: EmptyValueFcn<T>;
@@ -217,7 +212,7 @@ export class PropertyScalarBuilder {
 
         async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
             return (
-                config: PropertyScalarConfig & {
+                config: PropertyConfig & {
                     deriveAsync: Rule<[...dependencies: Dependencies], Promise<T | null>>;
                     inverseAsync?: (val: T | null, ...dependencies: Dependencies) => Promise<void>;
                     backpressure?: BackpressureConfig;

@@ -9,7 +9,7 @@ import { ValidationMessage } from "../validators/validation-message";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { Logger } from "../util/logger/logger";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
-import { EmptyValueFcn } from "../provider/value-provider/empty-value-fcn";
+import { EmptyValueFcn } from "../provider/empty-value-fcn";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { assertThat } from "../util/assertions/assertions";
 

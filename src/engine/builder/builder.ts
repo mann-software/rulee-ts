@@ -9,14 +9,14 @@ import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { ValueProvider } from "../../provider/value-provider/value-provider";
 import { DependencyGraph } from "../../dependency-graph/dependency-graph";
 import { AbstractPropertyWithInternals } from "../../properties/abstract-property-impl";
-import { PropertyScalarBuilder, PropertyScalarConfig, PropertyScalarValueConfig } from "./property-scalar-builder";
+import { PropertyScalarBuilder, PropertyScalarValueConfig } from "./property-scalar-builder";
 import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
-import { BuilderOptions } from "./builder-options";
+import { BuilderOptions, PropertyConfig } from "./builder-options";
 import { ScalarValidator } from "../../validators/scalar-validator";
 import { V } from "../../validators/common/common-validators";
-import { EmptyValueFcn } from "../../provider/value-provider/empty-value-fcn";
+import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { Choice } from "../../properties/choice";
@@ -29,6 +29,8 @@ import { PropertyGroup } from "../../properties/group-of-properties";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
+import { ListProvider } from "../../provider/list-provider/list-provider";
+import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
 
 export class Builder {
 
@@ -67,7 +69,7 @@ export class Builder {
         }
 
         this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyScalarConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
                 this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, propertyConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
             this.defaultEmptyChoice,
@@ -77,11 +79,13 @@ export class Builder {
         );
         this.list =  new ListOfPropertiesBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) =>
-                this.listOfProperties<T, D>(id, itemTemplate, selectedIndices, isMultiSelect)
+                this.listOfProperties<T, D>(id, itemTemplate, selectedIndices, isMultiSelect),
+            <T>(id: PropertyId, provider: ListProvider<T>, converter?: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
+                this.propertyList(id, provider, converter, dependencies, propertyConfig, ownedProperties),
         );
     }
 
-    private propertyScalar<T>(id: PropertyId,provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: PropertyScalarConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, config?.backpressure ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
@@ -128,6 +132,10 @@ export class Builder {
         const prop = new ListOfPropertiesImpl<T, D>(id, itemTemplate, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
         return prop;
+    }
+
+    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, converter?: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyArrayListImpl<T> {
+        throw new Error('TODO'); // TODO
     }
 
     private addDependencies(dependencyGraph: DependencyGraph, from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) {

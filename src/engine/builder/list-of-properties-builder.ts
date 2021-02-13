@@ -8,6 +8,13 @@ import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
+import { Rule } from "../../rules/rule";
+import { EmptyValueFcns } from "../../provider/empty-value-fcn";
+import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
+import { PropertyConfig } from "./builder-options";
+import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
+import { ListProvider } from "../../provider/list-provider/list-provider";
+import { ValueConverter } from "../../value-converter/value-converter";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -16,16 +23,27 @@ export enum SelectionMode {
 export class ListOfPropertiesBuilder {
 
     constructor(
-        private readonly propertyList: <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>
+        private readonly listOfProperties: <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>,
+        private readonly propertyList: <T>(
+            id: PropertyId,
+            provider: ListProvider<T>,
+            converter?: ValueConverter<T>,
+            dependencies?: readonly AbstractProperty[],
+            propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig },
+            ownedProperties?: readonly AbstractProperty[],
+        ) => PropertyArrayListImpl<T>,
     ) {}
 
     create<T extends AbstractDataProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, selectionMode?: SelectionMode): ListOfProperties<T, D> {
         const selectedIndices: number[] = [];
-        return this.propertyList(id, itemTemplate, selectedIndices, selectionMode === SelectionMode.MultiSelect);
+        return this.listOfProperties(id, itemTemplate, selectedIndices, selectionMode === SelectionMode.MultiSelect);
     }
 
     template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListOfPropertiesBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
+    }
+
+    derived = {
     }
 
     bindValidator<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<T[]>) {

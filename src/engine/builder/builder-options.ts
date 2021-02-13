@@ -18,3 +18,9 @@ export interface BuilderOptions {
      */
     defaultBackpressureConfig?: BackpressureConfig;
 }
+
+export interface PropertyConfig {
+    placeholder?: string;
+    label?: string;
+    labelAndPlaceholder?: string;
+}
