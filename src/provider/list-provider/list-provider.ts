@@ -9,5 +9,5 @@ export interface ListProvider<D> extends Provider {
     getProperties(): Promise<D[]>;
     addProperty(propertyData: D, index?: number): Promise<void>;
     updateProperty(propertyData: D, index: number): Promise<void>;
-    removeProperty(propertyData: D, index: number): Promise<void>;
+    removeProperty(index: number): Promise<void>;
 }

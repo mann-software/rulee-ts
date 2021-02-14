@@ -3,60 +3,96 @@ import { ListProvider } from "../provider/list-provider/list-provider";
 import { ValidationMessage } from "../validators/validation-message";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
+import { AddOperation } from "./lists/operations/add-operation";
+import { ListOperation } from "./lists/operations/operation";
+import { RemoveOperation } from "./lists/operations/remove-opertaion";
 import { PropertyArrayListAsync } from "./property-array-list";
 import { PropertyId } from "./property-id";
 
 export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListAsync<T> {
 
+    private workingList: T[] = [];
+    private operationPipe: ListOperation<T>[] = [];
+
     constructor(
         readonly id: PropertyId,
-        private readonly listProvider: ListProvider<T[]>,
+        private readonly listProvider: ListProvider<T>,
         updateHandler: RuleEngineUpdateHandler,
         backpressureConfig?: BackpressureConfig,
     ) {
-        super(updateHandler, backpressureConfig);
+        super(updateHandler, { type: 'skip' });
     }
-    awaitAddingElement(el: T): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    awaitRemovingElement(el: T): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    awaitElement(atIndex: number): Promise<T> {
-        throw new Error("Method not implemented.");
-    }
+
     getElement(atIndex: number): T {
-        throw new Error("Method not implemented.");
+        return this.workingList[atIndex];
     }
-    addElement(el: T): void {
-        throw new Error("Method not implemented.");
+    async awaitElement(atIndex: number): Promise<T> {
+        await this.awaitAsyncUpdate();
+        return this.getElement(atIndex);
     }
-    removeElement(el: T): void {
-        throw new Error("Method not implemented.");
+
+    addElement(el: T, index?: number): void {
+        const op = new AddOperation<T>(Promise.resolve(), el, index);
+        this.operationPipe.push(op);
+        this.needsAnUpdate();
+    }
+    async awaitAddingElement(el: T, index?: number): Promise<void> {
+        this.addElement(el, index);
+        return this.awaitAsyncUpdate();
+    }
+
+    removeElement(index: number): void {
+        const op = new RemoveOperation<T>(Promise.resolve(), index);
+        this.operationPipe.push(op);
+        this.needsAnUpdate();
+    }
+    async awaitRemovingElement(index: number): Promise<void> {
+        this.removeElement(index);
+        return this.awaitAsyncUpdate();
     }
     
     protected internallySyncUpdate(): void {
-        throw new Error("Method not implemented.");
+        this.operationPipe.forEach(op => op.apply(this.workingList));
     }
-    protected internallyAsyncUpdate<V>(): { asyncPromise: Promise<V>; resolve: (value: V) => void } {
-        throw new Error("Method not implemented.");
+
+    protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
+        const synchronize = async () => {
+            let operation: ListOperation<T> | undefined;
+            operation = this.operationPipe.shift();
+            while (operation !== undefined) {
+                await operation.sync;
+                operation = this.operationPipe.shift();
+            }
+            return;
+        };
+        return {
+            asyncPromise: synchronize(),
+            resolve: () => {
+                return;
+            }
+        }
     }
+
     protected getSpecialisedValidationResult(): ValidationMessage[] {
         throw new Error("Method not implemented.");
     }
 
     isAsynchronous(): boolean {
-        throw new Error("Method not implemented.");
+        return this.listProvider.isAsynchronous();
     }
     isProcessing(): boolean {
-        throw new Error("Method not implemented.");
+        return this.listProvider.isProcessing();
     }
     isReadOnly(): boolean {
-        throw new Error("Method not implemented.");
+        return this.listProvider.isReadOnly();
     }
 
     setToInitialState(): void {
-        throw new Error("Method not implemented.");
+        this.operationPipe = [];
+        this.workingList = [];
+        void this.listProvider.getProperties().then(elements => {
+            this.workingList = elements;
+        });
     }
 
     exportData(): T[] | null {

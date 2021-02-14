@@ -11,13 +11,13 @@ export interface PropertyArrayListReadonlyAsync<T> extends PropertyArrayListRead
 }
 
 export interface PropertyArrayList<T> extends PropertyArrayListReadonly<T> {
-    addElement(el: T): void;
-    removeElement(el: T): void;
+    addElement(el: T, index?: number): void;
+    removeElement(index: number): void;
     // TODO further array methods
 }
 
 export interface PropertyArrayListAsync<T> extends PropertyArrayListReadonlyAsync<T>, PropertyArrayList<T> {
-    awaitAddingElement(el: T): Promise<void>;
-    awaitRemovingElement(el: T): Promise<void>;
+    awaitAddingElement(el: T, index?: number): Promise<void>;
+    awaitRemovingElement(index: number): Promise<void>;
     // TODO further array methods
 }
