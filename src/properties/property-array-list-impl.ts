@@ -27,7 +27,7 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
         return this.workingList[atIndex];
     }
     async awaitElement(atIndex: number): Promise<T> {
-        await this.awaitAsyncUpdate();
+        await this.syncList();
         return this.getElement(atIndex);
     }
 
@@ -38,7 +38,7 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
     async awaitAddingElement(el: T, index?: number): Promise<void> {
         this.addElement(el, index);
-        return this.awaitAsyncUpdate();
+        return this.syncList();
     }
 
     removeElement(index: number): void {
@@ -48,25 +48,31 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
     async awaitRemovingElement(index: number): Promise<void> {
         this.removeElement(index);
-        return this.awaitAsyncUpdate();
-    }
-    
-    protected internallySyncUpdate(): void {
-        this.operationPipe.forEach(op => op.apply(this.workingList));
+        return this.syncList();
     }
 
-    protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
-        const synchronize = async () => {
+    private async syncList(): Promise<void> {
+        if (this.isAsynchronous()) {
             let operation: ListOperation<T> | undefined;
             operation = this.operationPipe.shift();
             while (operation !== undefined) {
                 await operation.sync;
                 operation = this.operationPipe.shift();
             }
-            return;
-        };
+        } else {
+            this.operationPipe.forEach(op => op.apply(this.workingList));
+        }
+        // TODO tell value change listeners
+    }
+    
+    protected internallySyncUpdate(): void {
+        // TOOD dependency changed
+    }
+
+    protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
+        // TOOD dependency changed
         return {
-            asyncPromise: synchronize(),
+            asyncPromise: Promise.resolve(),
             resolve: () => {
                 return;
             }
@@ -96,12 +102,18 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
 
     exportData(): T[] | null {
-        throw new Error("Method not implemented.");
+        return this.workingList;
     }
     importData(data: T[] | null): void {
-        throw new Error("Method not implemented.");
+        this.workingList === data;
     }
-    compareData(a: T[] | null, b: T[] | null): boolean {
-        throw new Error("Method not implemented.");
+    compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
+        if (!compareFcn) {
+            compareFcn = (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
+        }
+        if (a == null || b == null) {
+            return a === b;
+        }
+        return a.length === b.length && a.every((val, i) => compareFcn!(val, b[i]));
     }
 }

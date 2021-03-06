@@ -15,6 +15,8 @@ import { PropertyConfig } from "./builder-options";
 import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
 import { ListProvider } from "../../provider/list-provider/list-provider";
 import { ValueConverter } from "../../value-converter/value-converter";
+import { PropertyArrayList } from "../../properties/property-array-list";
+import { ReadonlyListProvider } from "../../provider/list-provider/readonly-list-provider";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -27,7 +29,6 @@ export class ListOfPropertiesBuilder {
         private readonly propertyList: <T>(
             id: PropertyId,
             provider: ListProvider<T>,
-            converter?: ValueConverter<T>,
             dependencies?: readonly AbstractProperty[],
             propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
@@ -44,6 +45,29 @@ export class ListOfPropertiesBuilder {
     }
 
     derived = {
+        sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return (
+                config: PropertyConfig & {
+                    derive: Rule<[...dependencies: Dependencies], T[]>;
+                },
+            ) => {
+                const provider = new ReadonlyListProvider(config.derive);
+                return this.propertyList(id, provider, dependencies, config) as PropertyArrayList<T>;
+            }
+        },
+        /*
+        async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return (
+                config: PropertyConfig & {
+                    deriveAsync: Rule<[...dependencies: Dependencies], Promise<T[]>>;
+                    backpressure?: BackpressureConfig;
+                },
+            ) => {
+                const provider = new DerivedAsyncValueProvider<T, Dependencies>(dependencies, (deps) => config.deriveAsync(...deps), config?.inverseAsync);
+                return this.propertyList(id, provider, valueConverter, dependencies, config) as PropertyArrayList<T>;
+            }
+        }
+        */
     }
 
     bindValidator<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<T[]>) {

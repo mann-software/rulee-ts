@@ -80,8 +80,8 @@ export class Builder {
         this.list =  new ListOfPropertiesBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) =>
                 this.listOfProperties<T, D>(id, itemTemplate, selectedIndices, isMultiSelect),
-            <T>(id: PropertyId, provider: ListProvider<T>, converter?: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
-                this.propertyList(id, provider, converter, dependencies, propertyConfig, ownedProperties),
+            <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
+                this.propertyList(id, provider, dependencies, propertyConfig, ownedProperties),
         );
     }
 
@@ -134,7 +134,7 @@ export class Builder {
         return prop;
     }
 
-    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, converter?: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyArrayListImpl<T> {
+    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyArrayListImpl<T> {
         throw new Error('TODO'); // TODO
     }
 

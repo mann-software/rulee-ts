@@ -27,7 +27,7 @@ import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { Rule } from "../../rules/rule";
 import { PropertyConfig } from "./builder-options";
 
-export interface PropertyScalarValueConfig<T> {
+export interface PropertyScalarValueConfig<T> extends PropertyConfig {
     valueConverter?: ValueConverter<T>;
     initialValue?: T | null;
     emptyValueFcn?: EmptyValueFcn<T>;
@@ -42,7 +42,7 @@ export class PropertyScalarBuilder {
             emptyValueFcn: EmptyValueFcn<T>,
             converter: ValueConverter<T>,
             dependencies?: readonly AbstractProperty[],
-            propertyConfig?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
+            propertyConfig?: PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
         private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
@@ -67,7 +67,7 @@ export class PropertyScalarBuilder {
         return this.propertyScalar(id, new SimpleValueProvider<T>(), config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn, valueConverter, undefined, config);
     }
 
-    stringProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<string>): PropertyScalar<string> {
+    stringProperty(id: PropertyId, config?: PropertyScalarValueConfig<string>): PropertyScalar<string> {
         config = this.defaultInitValue('', config);
         return this.propertyScalar(id, new SimpleValueProvider<string>(),
             config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn,
@@ -77,7 +77,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    numberProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<number> & {
+    numberProperty(id: PropertyId, config?: PropertyScalarValueConfig<number> & {
         zeroIsConsideredAsEmpty?: boolean;
     }): PropertyScalar<number> {
         assertThat(() => !config?.zeroIsConsideredAsEmpty || !config?.emptyValueFcn, () => `${id}: Provide either zeroIsConsideredAsEmpty or emptyValueFcn.`);
@@ -90,7 +90,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    booleanProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<boolean>): PropertyScalar<boolean> {
+    booleanProperty(id: PropertyId, config?: PropertyScalarValueConfig<boolean>): PropertyScalar<boolean> {
         return this.propertyScalar(id, new SimpleValueProvider<boolean>(),
             config?.emptyValueFcn ?? EmptyValueFcns.booleanEmptyValueFcn,
             config?.valueConverter ?? C.boolean.default,
@@ -99,7 +99,7 @@ export class PropertyScalarBuilder {
         );
     }
 
-    dateProperty(id: PropertyId, config?: PropertyConfig & PropertyScalarValueConfig<Date>): PropertyScalar<Date> {
+    dateProperty(id: PropertyId, config?: PropertyScalarValueConfig<Date>): PropertyScalar<Date> {
         return this.propertyScalar(id, new SimpleValueProvider<Date>(),
             config?.emptyValueFcn ?? EmptyValueFcns.defaultEmptyValueFcn,
             config?.valueConverter ?? C.date.iso,
