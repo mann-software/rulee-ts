@@ -6,6 +6,7 @@ import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AddOperation } from "./lists/operations/add-operation";
 import { ListOperation } from "./lists/operations/operation";
 import { RemoveOperation } from "./lists/operations/remove-opertaion";
+import { UpdateOperation } from "./lists/operations/update-operation";
 import { PropertyArrayListAsync } from "./property-array-list";
 import { PropertyId } from "./property-id";
 
@@ -32,7 +33,7 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
 
     addElement(el: T, index?: number): void {
-        const op = new AddOperation<T>(Promise.resolve(), el, index);
+        const op = new AddOperation<T>(this.listProvider.addProperty(el, index), el, index);
         this.operationPipe.push(op);
         this.needsAnUpdate();
     }
@@ -41,8 +42,18 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
         return this.syncList();
     }
 
+    updateElement(el: T, index: number): void {
+        const op = new UpdateOperation<T>(this.listProvider.updateProperty(el, index), el, index);
+        this.operationPipe.push(op);
+        this.needsAnUpdate();
+    }
+    async awaitUpdateElement(el: T, index: number): Promise<void> {
+        this.updateElement(el, index);
+        return this.syncList();
+    }
+
     removeElement(index: number): void {
-        const op = new RemoveOperation<T>(Promise.resolve(), index);
+        const op = new RemoveOperation<T>(this.listProvider.removeProperty(index), index);
         this.operationPipe.push(op);
         this.needsAnUpdate();
     }
@@ -52,6 +63,7 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
 
     private async syncList(): Promise<void> {
+        await this.awaitAsyncUpdate();
         if (this.isAsynchronous()) {
             let operation: ListOperation<T> | undefined;
             operation = this.operationPipe.shift();
@@ -66,15 +78,15 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
     
     protected internallySyncUpdate(): void {
-        // TOOD dependency changed
+        this.workingList = this.listProvider.getProperties() as T[];
     }
 
     protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
-        // TOOD dependency changed
+        this.workingList = [];
         return {
-            asyncPromise: Promise.resolve(),
-            resolve: () => {
-                return;
+            asyncPromise: this.listProvider.getProperties() as Promise<T[]>,
+            resolve: (list: T[]) => {
+                this.workingList = list;
             }
         }
     }
@@ -95,10 +107,7 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
 
     setToInitialState(): void {
         this.operationPipe = [];
-        this.workingList = [];
-        void this.listProvider.getProperties().then(elements => {
-            this.workingList = elements;
-        });
+        this.needsAnUpdate(false);
     }
 
     exportData(): T[] | null {

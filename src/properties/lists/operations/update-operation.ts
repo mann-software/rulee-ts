@@ -5,7 +5,7 @@ export class UpdateOperation<T> implements ListOperation<T> {
     private old: T | undefined;
 
     constructor(
-        public sync: Promise<void>,
+        public sync: Promise<void> | void,
         private readonly update: T,
         private readonly index: number,
     ) {}

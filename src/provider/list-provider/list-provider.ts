@@ -6,8 +6,8 @@ import { Provider } from "../provider";
  * It can be implemented e.g. by REST-Api Calls.
  */
 export interface ListProvider<D> extends Provider {
-    getProperties(): Promise<D[]>;
-    addProperty(propertyData: D, index?: number): Promise<void>;
-    updateProperty(propertyData: D, index: number): Promise<void>;
-    removeProperty(index: number): Promise<void>;
+    getProperties(): Promise<D[]> | D[];
+    addProperty(propertyData: D, index?: number): Promise<void> | void;
+    updateProperty(propertyData: D, index: number): Promise<void> | void;
+    removeProperty(index: number): Promise<void> | void;
 }

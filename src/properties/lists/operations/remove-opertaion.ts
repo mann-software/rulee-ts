@@ -5,7 +5,7 @@ export class RemoveOperation<T> implements ListOperation<T> {
     private removed: T | undefined;
 
     constructor(
-        public sync: Promise<void>,
+        public sync: Promise<void> | void,
         private readonly index: number,
     ) {}
     
