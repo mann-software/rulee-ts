@@ -101,8 +101,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     /**
      * Checks if an update is needed and triggers the update if it is the case.
      */
-    protected checkAndTriggerUpdate(): void {
-        if (this.needsToRecompute !== false && this.automaticallyUpdate) {
+    protected syncUpdateIfNeeded(): void {
+        if (!this.isAsynchronous() && this.needsToRecompute !== false && this.automaticallyUpdate) {
             void this.updateHandler.updateValue(this);
         }
     }

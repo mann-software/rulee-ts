@@ -21,10 +21,20 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
         updateHandler: RuleEngineUpdateHandler,
         backpressureConfig?: BackpressureConfig,
     ) {
-        super(updateHandler, { type: 'skip' });
+        super(updateHandler, backpressureConfig);
+    }
+
+    getElements(): T[] {
+        this.syncUpdateIfNeeded();
+        return this.workingList;
+    }
+    async awaitElements(): Promise<T[]> {
+        await this.syncList();
+        return this.getElements();
     }
 
     getElement(atIndex: number): T {
+        this.syncUpdateIfNeeded();
         return this.workingList[atIndex];
     }
     async awaitElement(atIndex: number): Promise<T> {

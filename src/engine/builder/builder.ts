@@ -78,10 +78,10 @@ export class Builder {
             <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
         );
         this.list =  new ListOfPropertiesBuilder(
-            <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) =>
-                this.listOfProperties<T, D>(id, itemTemplate, selectedIndices, isMultiSelect),
-            <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
-                this.propertyList(id, provider, dependencies, propertyConfig, ownedProperties),
+            <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) =>
+                this.listOfProperties<T, D>(id, itemTemplate, isMultiSelect),
+            <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }) =>
+                this.propertyList(id, provider, dependencies, propertyConfig),
         );
     }
 
@@ -128,14 +128,20 @@ export class Builder {
         return prop;
     }
 
-    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
+    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean, ): ListOfPropertiesImpl<T, D> {
         const prop = new ListOfPropertiesImpl<T, D>(id, itemTemplate, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
         return prop;
     }
 
-    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyArrayListImpl<T> {
-        throw new Error('TODO'); // TODO
+    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }): PropertyArrayListImpl<T> {
+        const prop = new PropertyArrayListImpl(id, provider, this.ruleEngine, config?.backpressure);
+        this.addProperty(prop);
+        if (dependencies) {
+            this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
+        }
+        // TODO config values
+        return prop;
     }
 
     private addDependencies(dependencyGraph: DependencyGraph, from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) {

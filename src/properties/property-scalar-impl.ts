@@ -150,9 +150,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     }
 
     getValue(): T | null {
-        if (!this.isAsynchronous()) {
-            this.checkAndTriggerUpdate();
-        }
+        this.syncUpdateIfNeeded();
         return this.getCurrentValue();
     }
 

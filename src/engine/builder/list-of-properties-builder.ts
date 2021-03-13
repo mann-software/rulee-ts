@@ -15,7 +15,7 @@ import { PropertyConfig } from "./builder-options";
 import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
 import { ListProvider } from "../../provider/list-provider/list-provider";
 import { ValueConverter } from "../../value-converter/value-converter";
-import { PropertyArrayList } from "../../properties/property-array-list";
+import { PropertyArrayList, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
 import { ReadonlyListProvider } from "../../provider/list-provider/readonly-list-provider";
 
 export enum SelectionMode {
@@ -25,7 +25,7 @@ export enum SelectionMode {
 export class ListOfPropertiesBuilder {
 
     constructor(
-        private readonly listOfProperties: <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, selectedIndices: number[], isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>,
+        private readonly listOfProperties: <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>,
         private readonly propertyList: <T>(
             id: PropertyId,
             provider: ListProvider<T>,
@@ -36,8 +36,7 @@ export class ListOfPropertiesBuilder {
     ) {}
 
     create<T extends AbstractDataProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, selectionMode?: SelectionMode): ListOfProperties<T, D> {
-        const selectedIndices: number[] = [];
-        return this.listOfProperties(id, itemTemplate, selectedIndices, selectionMode === SelectionMode.MultiSelect);
+        return this.listOfProperties(id, itemTemplate, selectionMode === SelectionMode.MultiSelect);
     }
 
     template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListOfPropertiesBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
@@ -51,23 +50,20 @@ export class ListOfPropertiesBuilder {
                     derive: Rule<[...dependencies: Dependencies], T[]>;
                 },
             ) => {
-                const provider = new ReadonlyListProvider(config.derive);
-                return this.propertyList(id, provider, dependencies, config) as PropertyArrayList<T>;
+                const provider = new ReadonlyListProvider<T>(config.derive);
+                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonly<T>;
             }
         },
-        /*
         async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
             return (
                 config: PropertyConfig & {
-                    deriveAsync: Rule<[...dependencies: Dependencies], Promise<T[]>>;
-                    backpressure?: BackpressureConfig;
+                    derive: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                 },
             ) => {
-                const provider = new DerivedAsyncValueProvider<T, Dependencies>(dependencies, (deps) => config.deriveAsync(...deps), config?.inverseAsync);
-                return this.propertyList(id, provider, valueConverter, dependencies, config) as PropertyArrayList<T>;
+                const provider = new ReadonlyListProvider<T>(() => []); // TODO
+                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonlyAsync<T>;
             }
         }
-        */
     }
 
     bindValidator<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<T[]>) {
