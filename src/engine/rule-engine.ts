@@ -12,7 +12,7 @@ import { ValidationTypes } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { PropertyGroup } from "../properties/group-of-properties";
-import { Module } from "./modules/module";
+import { RuleSet } from "./rule-set/rule-set";
 
 export class RuleEngine implements RuleEngineUpdateHandler {
 
@@ -42,8 +42,8 @@ export class RuleEngine implements RuleEngineUpdateHandler {
      * The properties are initialized lazy. This helps the boot time of your app by
      * loading larger parts as soon as they are needed on a page.
      */
-    defineModule<S extends PropertyGroup>(initFcn: (builder: Builder) => S): Module<S> {
-        return new Module(initFcn, this.builder);
+    defineModule<S extends PropertyGroup>(initFcn: (builder: Builder) => S): RuleSet<S> {
+        return new RuleSet(initFcn, this.builder);
     }
 
     /**
@@ -56,7 +56,7 @@ export class RuleEngine implements RuleEngineUpdateHandler {
 
     /**
      * Returns the property for the given id. However, the preferred way is to 
-     * create a module and access the property via Module.getProperties(). This
+     * create a module and access the property via RuleSet.getProperties(). This
      * ensures that the property exists.
      * @param id of the property
      */
