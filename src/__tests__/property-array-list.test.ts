@@ -32,8 +32,9 @@ test('derived async list test', async () => {
     const promise = list.awaitElements().then(result => {
         expect(result).toStrictEqual([1, 2, 3]);
         expect(list.isProcessing()).toBe(false);
+        expect(list.getElements()).toStrictEqual([1, 2, 3]);
     });
     expect(list.isProcessing()).toBe(true);
+    expect(list.getElements()).toStrictEqual([]);
     return promise;
 });
-

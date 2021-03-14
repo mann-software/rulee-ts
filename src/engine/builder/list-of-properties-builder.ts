@@ -15,9 +15,11 @@ import { PropertyConfig } from "./builder-options";
 import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
 import { ListProvider } from "../../provider/list-provider/list-provider";
 import { ValueConverter } from "../../value-converter/value-converter";
-import { PropertyArrayList, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
+import { PropertyArrayListCrud, PropertyArrayListCrudAsync, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
 import { DerivedListProvider } from "../../provider/list-provider/derived-list-provider";
 import { DerivedAsyncListProvider } from "../../provider/list-provider/derived-async-list-provider";
+import { CrudAsyncListProvider } from "../../provider/list-provider/crud-async-list-provider";
+import { CrudListProvider } from "../../provider/list-provider/crud-list-provider";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -63,6 +65,38 @@ export class ListOfPropertiesBuilder {
             ) => {
                 const provider = new DerivedAsyncListProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps));
                 return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonlyAsync<T>;
+            }
+        }
+    }
+
+    crud = {
+        sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return (
+                config: PropertyConfig & {
+                    resourceProvider: Rule<[...dependencies: Dependencies], T[]>;
+                },
+            ) => {
+                const provider = new CrudListProvider<T, Dependencies>(dependencies, (deps) => config.resourceProvider(...deps));
+                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListCrud<T>;
+            }
+        },
+        async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return (
+                config: PropertyConfig & {
+                    getElements: Rule<[...dependencies: Dependencies], Promise<T[]>>;
+                    addElement: (propertyData: T, index?: number) => Promise<void>;
+                    updateElement: (propertyData: T, index: number) => Promise<void>;
+                    removeElement: (index: number) => Promise<void>;
+                },
+            ) => {
+                const provider = new CrudAsyncListProvider<T, Dependencies>(
+                    dependencies,
+                    config.addElement,
+                    (deps) => config.getElements(...deps),
+                    config.updateElement,
+                    config.removeElement
+                );
+                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListCrudAsync<T>;
             }
         }
     }

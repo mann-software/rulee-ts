@@ -7,10 +7,10 @@ import { AddOperation } from "./lists/operations/add-operation";
 import { ListOperation } from "./lists/operations/operation";
 import { RemoveOperation } from "./lists/operations/remove-opertaion";
 import { UpdateOperation } from "./lists/operations/update-operation";
-import { PropertyArrayListAsync } from "./property-array-list";
+import { PropertyArrayListCrudAsync } from "./property-array-list";
 import { PropertyId } from "./property-id";
 
-export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListAsync<T> {
+export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListCrudAsync<T> {
 
     private workingList: T[] = [];
     private operationPipe: ListOperation<T>[] = [];
