@@ -1,8 +1,8 @@
 import { AbstractProperty } from "../../properties/abstract-property";
-import { ListProvider } from "./list-provider";
+import { AsyncListProvider } from "./list-provider";
 
 
-export class CrudAsyncListProvider<T, Dependencies extends readonly AbstractProperty[]> implements ListProvider<T> {
+export class CrudAsyncListProvider<T, Dependencies extends readonly AbstractProperty[]> implements AsyncListProvider<T> {
 
     private processing = 0;
 

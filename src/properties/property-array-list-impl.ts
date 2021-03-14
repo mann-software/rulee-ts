@@ -1,5 +1,5 @@
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
-import { ListProvider } from "../provider/list-provider/list-provider";
+import { AsyncListProvider, ListProvider } from "../provider/list-provider/list-provider";
 import { ValidationMessage } from "../validators/validation-message";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
@@ -7,13 +7,12 @@ import { AddOperation } from "./lists/operations/add-operation";
 import { ListOperation } from "./lists/operations/operation";
 import { RemoveOperation } from "./lists/operations/remove-opertaion";
 import { UpdateOperation } from "./lists/operations/update-operation";
-import { PropertyArrayListCrudAsync } from "./property-array-list";
+import { PropertyArrayListCrud, PropertyArrayListCrudAsync } from "./property-array-list";
 import { PropertyId } from "./property-id";
 
-export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListCrudAsync<T> {
+export class PropertyArrayListSyncImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListCrud<T> {
 
     private workingList: T[] = [];
-    private operationPipe: ListOperation<T>[] = [];
 
     constructor(
         readonly id: PropertyId,
@@ -28,24 +27,107 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
         this.syncUpdateIfNeeded();
         return this.workingList;
     }
-    async awaitElements(): Promise<T[]> {
-        await this.syncList();
-        return this.getElements();
-    }
 
     getElement(atIndex: number): T {
         this.syncUpdateIfNeeded();
         return this.workingList[atIndex];
     }
+
+    addElement(el: T, index?: number): void {
+        this.listProvider.addProperty(el, index);
+        this.hasBeenUpdated();
+    }
+
+    updateElement(el: T, index: number): void {
+        this.listProvider.updateProperty(el, index);
+        this.hasBeenUpdated();
+    }
+
+    removeElement(index: number): void {
+        this.listProvider.removeProperty(index);
+        this.hasBeenUpdated();
+    }
+    
+    protected internallySyncUpdate(): void {
+        this.workingList = this.listProvider.getProperties();
+    }
+
+    protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
+        return {
+            asyncPromise: Promise.resolve(),
+            resolve: () => ({})
+        }
+    }
+
+    protected getSpecialisedValidationResult(): ValidationMessage[] {
+        throw new Error("Method not implemented.");
+    }
+
+    isAsynchronous(): boolean {
+        return this.listProvider.isAsynchronous();
+    }
+    isProcessing(): boolean {
+        return this.listProvider.isProcessing();
+    }
+    isReadOnly(): boolean {
+        return this.listProvider.isReadOnly();
+    }
+
+    setToInitialState(): void {
+        this.needsAnUpdate(false);
+    }
+
+    exportData(): T[] | null {
+        return this.workingList;
+    }
+    importData(data: T[] | null): void {
+        this.workingList = data ?? [];
+    }
+    compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
+        if (!compareFcn) {
+            compareFcn = (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
+        }
+        if (a == null || b == null) {
+            return a === b;
+        }
+        return a.length === b.length && a.every((val, i) => compareFcn!(val, b[i]));
+    }
+}
+
+export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListCrudAsync<T> {
+
+    private workingList: T[] = [];
+    private operationPipe: ListOperation<T>[] = [];
+
+    constructor(
+        readonly id: PropertyId,
+        private readonly listProvider: AsyncListProvider<T>,
+        updateHandler: RuleEngineUpdateHandler,
+        backpressureConfig?: BackpressureConfig,
+    ) {
+        super(updateHandler, backpressureConfig);
+    }
+
+    getElements(): T[] {
+        return this.workingList;
+    }
+    async awaitElements(): Promise<T[]> {
+        await this.syncList();
+        return this.workingList;
+    }
+
+    getElement(atIndex: number): T {
+        return this.workingList[atIndex];
+    }
     async awaitElement(atIndex: number): Promise<T> {
         await this.syncList();
-        return this.getElement(atIndex);
+        return this.workingList[atIndex];
     }
 
     addElement(el: T, index?: number): void {
-        const op = new AddOperation<T>(this.listProvider.addProperty(el, index), el, index);
+        const op = new AddOperation<T>(() => this.listProvider.addProperty(el, index), el, index);
         this.operationPipe.push(op);
-        this.needsAnUpdate();
+        this.hasBeenUpdated();
     }
     async awaitAddingElement(el: T, index?: number): Promise<void> {
         this.addElement(el, index);
@@ -53,9 +135,9 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
 
     updateElement(el: T, index: number): void {
-        const op = new UpdateOperation<T>(this.listProvider.updateProperty(el, index), el, index);
+        const op = new UpdateOperation<T>(() => this.listProvider.updateProperty(el, index), el, index);
         this.operationPipe.push(op);
-        this.needsAnUpdate();
+        this.hasBeenUpdated();
     }
     async awaitUpdateElement(el: T, index: number): Promise<void> {
         this.updateElement(el, index);
@@ -63,9 +145,9 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
     }
 
     removeElement(index: number): void {
-        const op = new RemoveOperation<T>(this.listProvider.removeProperty(index), index);
+        const op = new RemoveOperation<T>(() => this.listProvider.removeProperty(index), index);
         this.operationPipe.push(op);
-        this.needsAnUpdate();
+        this.hasBeenUpdated();
     }
     async awaitRemovingElement(index: number): Promise<void> {
         this.removeElement(index);
@@ -78,23 +160,30 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
             let operation: ListOperation<T> | undefined;
             operation = this.operationPipe.shift();
             while (operation !== undefined) {
-                await operation.sync;
+                try {
+                    operation.apply(this.workingList);
+                    await operation.sync();
+                } catch (err) {
+                    // TODO how to handle the error
+                    operation.undo(this.workingList);
+                }
                 operation = this.operationPipe.shift();
             }
         } else {
+            this.syncUpdateIfNeeded();
             this.operationPipe.forEach(op => op.apply(this.workingList));
         }
-        // TODO tell value change listeners
+        this.hasBeenUpdated();
     }
     
     protected internallySyncUpdate(): void {
-        this.workingList = this.listProvider.getProperties() as T[];
+        // no-op
     }
 
     protected internallyAsyncUpdate(): { asyncPromise: Promise<any>; resolve: (value: any) => void } {
         this.workingList = [];
         return {
-            asyncPromise: this.listProvider.getProperties() as Promise<T[]>,
+            asyncPromise: this.listProvider.getProperties(),
             resolve: (list: T[]) => {
                 this.workingList = list;
             }
@@ -124,7 +213,7 @@ export class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implemen
         return this.workingList;
     }
     importData(data: T[] | null): void {
-        this.workingList === data;
+        this.workingList = data ?? [];
     }
     compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
         if (!compareFcn) {

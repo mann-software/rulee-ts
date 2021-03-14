@@ -3,7 +3,7 @@ import { ListOperation } from "./operation";
 export class AddOperation<T> implements ListOperation<T> {
 
     constructor(
-        public sync: Promise<void> | void,
+        public sync: () => Promise<void> | void,
         private readonly element: T,
         private index?: number,
     ) {}

@@ -17,7 +17,7 @@ export class CrudListProvider<T, Dependencies extends readonly AbstractProperty[
     }
     addProperty(propertyData: T, index?: number): void {
         if (this.resource) {
-            if (index) {
+            if (index !== undefined) {
                 this.resource.splice(index, 0, propertyData);
             } else {
                 this.resource.push(propertyData);

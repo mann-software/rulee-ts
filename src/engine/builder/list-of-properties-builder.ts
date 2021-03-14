@@ -9,12 +9,10 @@ import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { Rule } from "../../rules/rule";
-import { EmptyValueFcns } from "../../provider/empty-value-fcn";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { PropertyConfig } from "./builder-options";
-import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
-import { ListProvider } from "../../provider/list-provider/list-provider";
-import { ValueConverter } from "../../value-converter/value-converter";
+import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
+import { AsyncListProvider, ListProvider } from "../../provider/list-provider/list-provider";
 import { PropertyArrayListCrud, PropertyArrayListCrudAsync, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
 import { DerivedListProvider } from "../../provider/list-provider/derived-list-provider";
 import { DerivedAsyncListProvider } from "../../provider/list-provider/derived-async-list-provider";
@@ -35,7 +33,14 @@ export class ListOfPropertiesBuilder {
             dependencies?: readonly AbstractProperty[],
             propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
-        ) => PropertyArrayListImpl<T>,
+        ) => PropertyArrayListSyncImpl<T>,
+        private readonly asyncPropertyList: <T>(
+            id: PropertyId,
+            provider: AsyncListProvider<T>,
+            dependencies?: readonly AbstractProperty[],
+            propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig },
+            ownedProperties?: readonly AbstractProperty[],
+        ) => PropertyArrayListAsyncImpl<T>,
     ) {}
 
     create<T extends AbstractDataProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, selectionMode?: SelectionMode): ListOfProperties<T, D> {
@@ -64,7 +69,7 @@ export class ListOfPropertiesBuilder {
                 },
             ) => {
                 const provider = new DerivedAsyncListProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps));
-                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonlyAsync<T>;
+                return this.asyncPropertyList(id, provider, dependencies, config) as PropertyArrayListReadonlyAsync<T>;
             }
         }
     }
@@ -72,11 +77,17 @@ export class ListOfPropertiesBuilder {
     crud = {
         sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
             return (
-                config: PropertyConfig & {
-                    resourceProvider: Rule<[...dependencies: Dependencies], T[]>;
+                config?: PropertyConfig & {
+                    resourceProvider?: Rule<[...dependencies: Dependencies], T[]>;
                 },
             ) => {
-                const provider = new CrudListProvider<T, Dependencies>(dependencies, (deps) => config.resourceProvider(...deps));
+                if (!config) {
+                    config = {};
+                }
+                if (!config.resourceProvider) {
+                    config.resourceProvider = () => [];
+                }
+                const provider = new CrudListProvider<T, Dependencies>(dependencies, (deps) => config!.resourceProvider!(...deps));
                 return this.propertyList(id, provider, dependencies, config) as PropertyArrayListCrud<T>;
             }
         },
@@ -96,7 +107,7 @@ export class ListOfPropertiesBuilder {
                     config.updateElement,
                     config.removeElement
                 );
-                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListCrudAsync<T>;
+                return this.asyncPropertyList(id, provider, dependencies, config) as PropertyArrayListCrudAsync<T>;
             }
         }
     }

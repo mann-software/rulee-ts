@@ -29,8 +29,8 @@ import { PropertyGroup } from "../../properties/group-of-properties";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
-import { ListProvider } from "../../provider/list-provider/list-provider";
-import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
+import { AsyncListProvider, ListProvider } from "../../provider/list-provider/list-provider";
+import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
 
 export class Builder {
 
@@ -82,6 +82,8 @@ export class Builder {
                 this.listOfProperties<T, D>(id, itemTemplate, isMultiSelect),
             <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }) =>
                 this.propertyList(id, provider, dependencies, propertyConfig),
+            <T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }) =>
+                this.asyncPropertyList(id, provider, dependencies, propertyConfig),
         );
     }
 
@@ -134,8 +136,18 @@ export class Builder {
         return prop;
     }
 
-    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }): PropertyArrayListImpl<T> {
-        const prop = new PropertyArrayListImpl(id, provider, this.ruleEngine, config?.backpressure);
+    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }): PropertyArrayListSyncImpl<T> {
+        const prop = new PropertyArrayListSyncImpl(id, provider, this.ruleEngine, config?.backpressure);
+        this.addProperty(prop);
+        if (dependencies) {
+            this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
+        }
+        // TODO config values
+        return prop;
+    }
+
+    private asyncPropertyList<T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }): PropertyArrayListAsyncImpl<T> {
+        const prop = new PropertyArrayListAsyncImpl(id, provider, this.ruleEngine, config?.backpressure);
         this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });

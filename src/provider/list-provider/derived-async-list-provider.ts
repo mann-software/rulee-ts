@@ -1,8 +1,7 @@
 import { AbstractProperty } from "../../properties/abstract-property";
-import { ListProvider } from "./list-provider";
+import { AsyncListProvider } from "./list-provider";
 
-
-export class DerivedAsyncListProvider<T, Dependencies extends readonly AbstractProperty[]> implements ListProvider<T> {
+export class DerivedAsyncListProvider<T, Dependencies extends readonly AbstractProperty[]> implements AsyncListProvider<T> {
 
     private processing = false;
 
@@ -19,14 +18,14 @@ export class DerivedAsyncListProvider<T, Dependencies extends readonly AbstractP
             this.processing = false;
         });
     }
-    addProperty(propertyData: T, index?: number): void {
-        // no-op
+    addProperty(propertyData: T, index?: number): Promise<void> {
+        return Promise.resolve();
     }
-    updateProperty(propertyData: T, index: number): void {
-        // no-op
+    updateProperty(propertyData: T, index: number): Promise<void> {
+        return Promise.resolve();
     }
-    removeProperty(index: number): void {
-        // no-op
+    removeProperty(index: number): Promise<void> {
+        return Promise.resolve();
     }
     isAsynchronous(): boolean {
         return true;
