@@ -16,7 +16,8 @@ import { PropertyArrayListImpl } from "../../properties/property-array-list-impl
 import { ListProvider } from "../../provider/list-provider/list-provider";
 import { ValueConverter } from "../../value-converter/value-converter";
 import { PropertyArrayList, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
-import { ReadonlyListProvider } from "../../provider/list-provider/readonly-list-provider";
+import { DerivedListProvider } from "../../provider/list-provider/derived-list-provider";
+import { DerivedAsyncListProvider } from "../../provider/list-provider/derived-async-list-provider";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -50,7 +51,7 @@ export class ListOfPropertiesBuilder {
                     derive: Rule<[...dependencies: Dependencies], T[]>;
                 },
             ) => {
-                const provider = new ReadonlyListProvider<T>(config.derive);
+                const provider = new DerivedListProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps));
                 return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonly<T>;
             }
         },
@@ -60,7 +61,7 @@ export class ListOfPropertiesBuilder {
                     derive: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                 },
             ) => {
-                const provider = new ReadonlyListProvider<T>(() => []); // TODO
+                const provider = new DerivedAsyncListProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps));
                 return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonlyAsync<T>;
             }
         }
