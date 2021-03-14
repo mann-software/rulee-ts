@@ -14,8 +14,9 @@ export class DerivedAsyncListProvider<T, Dependencies extends readonly AbstractP
     getProperties(): Promise<T[]> {
         this.processing = true;
         return this.properties(this.dependencies).then((result) => {
-            this.processing = false;
             return result;
+        }).finally(() => {
+            this.processing = false;
         });
     }
     addProperty(propertyData: T, index?: number): void {
