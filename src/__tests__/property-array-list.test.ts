@@ -38,3 +38,25 @@ test('derived async list test', async () => {
     expect(list.getElements()).toStrictEqual([]);
     return promise;
 });
+
+test('crud list test', () => {
+    const [builder] = builderAndRuleEngineFactory();
+    const list = builder.list.crud.sync<number, []>('LIST')();
+
+    expect(list.getElements()).toStrictEqual([]);
+
+    list.addElement(3);
+    expect(list.getElements()).toStrictEqual([3]);
+    
+    list.addElement(1, 0);
+    expect(list.getElements()).toStrictEqual([1, 3]);
+
+    list.updateElement(2, 1);
+    expect(list.getElements()).toStrictEqual([1, 2]);
+
+    list.removeElement(0);
+    expect(list.getElements()).toStrictEqual([2]);
+
+    list.removeElement(0);
+    expect(list.getElements()).toStrictEqual([]);
+});
