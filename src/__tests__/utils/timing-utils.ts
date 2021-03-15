@@ -10,9 +10,13 @@ export const executeAfterTime = <T>(exe: (() => T) | Promise<T>, timeMs: number)
         try {
             setTimeout(() => {
                 if (exe instanceof Promise) {
-                    void exe.then(val => resolve(val)).catch(err => { throw err; });
+                    void exe.then(val => resolve(val)).catch(err => reject(err));
                 } else {
-                    resolve(exe());
+                    try {
+                        resolve(exe());
+                    } catch (err) {
+                        reject(err);
+                    }
                 }
             }, timeMs);
         } catch (err) {
