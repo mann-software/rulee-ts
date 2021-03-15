@@ -33,7 +33,7 @@ export * from "./properties/factory/property-template";
 export * from "./properties/lists/index/list-index";
 export * from "./properties/lists/operations/add-operation";
 export * from "./properties/lists/operations/operation";
-export * from "./properties/lists/operations/remove-opertaion";
+export * from "./properties/lists/operations/remove-operation";
 export * from "./properties/lists/operations/update-operation";
 export * from "./properties/lists/selection/single-selection";
 export * from "./provider/empty-value-fcn";

@@ -5,7 +5,7 @@ import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AddOperation } from "./lists/operations/add-operation";
 import { ListOperation } from "./lists/operations/operation";
-import { RemoveOperation } from "./lists/operations/remove-opertaion";
+import { RemoveOperation } from "./lists/operations/remove-operation";
 import { UpdateOperation } from "./lists/operations/update-operation";
 import { PropertyArrayListCrud, PropertyArrayListCrudAsync } from "./property-array-list";
 import { PropertyId } from "./property-id";
@@ -98,6 +98,8 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
 
     private workingList: T[] = [];
     private operationPipe: ListOperation<T>[] = [];
+    private awaitUpdateBeforeApply?: boolean;
+    private syncPromise?: Promise<void>;
 
     constructor(
         readonly id: PropertyId,
@@ -113,7 +115,7 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
     }
     async awaitElements(): Promise<T[]> {
         await this.syncList();
-        return this.workingList;
+        return this.getElements();
     }
 
     getElement(atIndex: number): T {
@@ -121,59 +123,77 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
     }
     async awaitElement(atIndex: number): Promise<T> {
         await this.syncList();
-        return this.workingList[atIndex];
+        return this.getElement(atIndex);
     }
 
     addElement(el: T, index?: number): void {
-        const op = new AddOperation<T>(() => this.listProvider.addProperty(el, index), el, index);
-        this.operationPipe.push(op);
-        this.hasBeenUpdated();
+        void this.awaitAddingElement(el, index);
     }
     async awaitAddingElement(el: T, index?: number): Promise<void> {
-        this.addElement(el, index);
-        return this.syncList();
+        const op = new AddOperation<T>(() => this.listProvider.addProperty(el, index), el, index);
+        return this.pushOperation(op);
     }
 
     updateElement(el: T, index: number): void {
-        const op = new UpdateOperation<T>(() => this.listProvider.updateProperty(el, index), el, index);
-        this.operationPipe.push(op);
-        this.hasBeenUpdated();
+        void this.awaitUpdateElement(el, index);
     }
     async awaitUpdateElement(el: T, index: number): Promise<void> {
-        this.updateElement(el, index);
-        return this.syncList();
+        const op = new UpdateOperation<T>(() => this.listProvider.updateProperty(el, index), el, index);
+        return this.pushOperation(op);
     }
 
     removeElement(index: number): void {
-        const op = new RemoveOperation<T>(() => this.listProvider.removeProperty(index), index);
-        this.operationPipe.push(op);
-        this.hasBeenUpdated();
+        void this.awaitRemovingElement(index);
     }
     async awaitRemovingElement(index: number): Promise<void> {
-        this.removeElement(index);
+        const op = new RemoveOperation<T>(() => this.listProvider.removeProperty(index), index);
+        return this.pushOperation(op);
+    }
+
+    private async pushOperation(operation: ListOperation<T>) {
+        this.operationPipe.push(operation);
+        const updated = this.awaitAsyncUpdate();
+        if (updated) {
+            this.awaitUpdateBeforeApply = true;
+            await updated;
+            if (this.awaitUpdateBeforeApply) {
+                delete this.awaitUpdateBeforeApply;
+                this.operationPipe.forEach(op => op.apply(this.workingList));
+            }
+        } else {
+            operation.apply(this.workingList); // maybe add strategies later (e.g. only apply after sync)
+        }
+        this.hasBeenUpdated();
         return this.syncList();
     }
 
-    private async syncList(): Promise<void> {
+    private syncList(): Promise<void> {
+        if (!this.syncPromise) {
+            this.syncPromise = this.createSyncPromise().finally(() => {
+                this.syncPromise = undefined;
+            });
+        }
+        return this.syncPromise;   
+    }
+    
+    private async createSyncPromise() {
         await this.awaitAsyncUpdate();
-        if (this.isAsynchronous()) {
-            let operation: ListOperation<T> | undefined;
+        let operation: ListOperation<T> | undefined;
+        try {
             operation = this.operationPipe.shift();
             while (operation !== undefined) {
-                try {
-                    operation.apply(this.workingList);
-                    await operation.sync();
-                } catch (err) {
-                    // TODO how to handle the error
-                    operation.undo(this.workingList);
-                }
+                await operation.synchronize();
                 operation = this.operationPipe.shift();
             }
-        } else {
-            this.syncUpdateIfNeeded();
-            this.operationPipe.forEach(op => op.apply(this.workingList));
+        } catch (err) {
+            for (let i = this.operationPipe.length - 1; i >= 0; i--) {
+                this.operationPipe[i].undo(this.workingList);
+            }
+            operation?.undo(this.workingList);
+            this.operationPipe = [];
+            this.hasBeenUpdated();
+            throw err;
         }
-        this.hasBeenUpdated();
     }
     
     protected internallySyncUpdate(): void {
@@ -205,8 +225,13 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
     }
 
     setToInitialState(): void {
+        this.needsAnUpdate();
+    }
+    
+    needsAnUpdate(notifyOthers?: boolean) {
         this.operationPipe = [];
-        this.needsAnUpdate(false);
+        this.workingList = [];
+        super.needsAnUpdate(notifyOthers);
     }
 
     exportData(): T[] | null {

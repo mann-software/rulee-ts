@@ -70,15 +70,15 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
      * Awaits the async update. If needed, an update is triggered
      * @param thenFcn applied after update has finished
      */
-    protected awaitAsyncUpdate(): Promise<void> {
+    protected awaitAsyncUpdate(): Promise<void> | undefined {
         if (this.needsToRecompute !== false && this.automaticallyUpdate) {
             return this.updateHandler.updateValue(this);
         } else {
-            return this.updatedPromise();
+            return this.updatingPromise();
         }
     }
 
-    private updatedPromise() {
+    private updatingPromise(): Promise<void> | undefined {
         if (this.currentRecomputing) {
             return new Promise<void>((resolve, reject) => {
                 const ul = { resolve, reject } as UpdatedListener;
@@ -88,8 +88,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                     this.updatedListeners.push(ul);
                 }
             });
-        } else {
-            return Promise.resolve();
         }
     }
 
@@ -127,7 +125,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     internallyUpdate(): Promise<void> {
         if (this.needsToRecompute === false || (!this.automaticallyUpdate && !this.manuallyTriggered)) {
-            return this.updatedPromise();
+            return this.updatingPromise() ?? Promise.resolve();
         }
         this.needsToRecompute = false;
         delete this.manuallyTriggered;
@@ -156,7 +154,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 }
             case 'skip' as BackpressureType:
             default:
-                return this.updatedPromise();
+                return this.updatingPromise() ?? Promise.resolve();
         }
     }
 
@@ -172,7 +170,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private handleAsyncUpdate(recomputingCount: number, wasAlreadyProcessing: boolean): Promise<void> {
         if (recomputingCount !== this.recomputingCount) {
             Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount} is skipped (${this.recomputingCount})`);
-            return this.updatedPromise();
+            return this.updatingPromise() ?? Promise.resolve();
         }
         Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount}`);
         const update = this.internallyAsyncUpdate<unknown>();
@@ -192,7 +190,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         if (this.isProcessing() && !wasAlreadyProcessing) {
             this.tellValueChangeListeners(listener => listener.startsAsyncUpdate?.());
         }
-        return this.updatedPromise();
+        return this.updatingPromise() ?? Promise.resolve();
     }
     
     // ---------------------------------------------------------------------------------------
@@ -258,7 +256,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     async validate(): Promise<ValidationMessage[]> {
         if (this.needsToRevalidate !== false) {
             this.needsToRevalidate = false;
-            await this.awaitAsyncUpdate();
+            const updated = this.awaitAsyncUpdate();
+            if (updated) {
+                await updated;
+            }
             this.validationMessages = this.getSpecialisedValidationResult();
             if (this.validators) {
                 const results = await Promise.all(this.updateHandler.validate(this.validators));

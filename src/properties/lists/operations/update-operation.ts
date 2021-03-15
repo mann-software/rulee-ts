@@ -1,14 +1,16 @@
 import { ListOperation } from "./operation";
 
-export class UpdateOperation<T> implements ListOperation<T> {
+export class UpdateOperation<T> extends ListOperation<T> {
 
     private old: T | undefined;
 
     constructor(
-        public sync: () => Promise<void> | void,
+        public sync: () => Promise<void>,
         private readonly update: T,
         private readonly index: number,
-    ) {}
+    ) {
+        super(sync);
+    }
     
     apply(list: T[]): void {
         const [old] = list.splice(this.index, 1, this.update);

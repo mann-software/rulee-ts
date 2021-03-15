@@ -1,12 +1,14 @@
 import { ListOperation } from "./operation";
 
-export class AddOperation<T> implements ListOperation<T> {
+export class AddOperation<T> extends ListOperation<T> {
 
     constructor(
-        public sync: () => Promise<void> | void,
+        public sync: () => Promise<void>,
         private readonly element: T,
         private index?: number,
-    ) {}
+    ) {
+        super(sync);
+    }
     
     apply(list: T[]): void {
         if (this.index !== undefined) {
