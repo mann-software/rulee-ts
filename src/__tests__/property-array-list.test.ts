@@ -3,6 +3,49 @@ import { PropertyScalar } from "../properties/property-scalar";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
 
+test('load a list asynchronously and filter the list synchronously', async () => {
+    const [builder] = builderAndRuleEngineFactory();
+    const resources: Record<string, number[]> = {
+        'a': [1, 2, 3, 4, 5, 6],
+        'b': [5, 6, 7, 8]
+    };
+
+    const id = builder.scalar.stringProperty('RESOURCE_ID', { initialValue: 'a' });
+    const asyncResource = builder.list.derived.async<number, [PropertyScalar<string>]>('LIST', id)({
+        derive: (id) => valueAfterTime(resources[id.getNonNullValue()], 200)
+    });
+    const filterEven = builder.scalar.booleanProperty('FILTER_EVEN', { initialValue: true });
+    const filterOdd = builder.scalar.booleanProperty('FILTER_ODD', { initialValue: true });
+
+    const filteredList = builder.list.derived.sync('FILTERED_LIST', asyncResource, filterEven, filterOdd)({
+        derive: (resource, even, odd) => resource.getElements().filter(el => {
+            const isEven = el % 2 === 0;
+            return (isEven && even.getNonNullValue())
+                || (!isEven && odd.getNonNullValue());
+        })
+    })
+
+    expect(asyncResource.getElements()).toStrictEqual([]);
+    expect(filteredList.getElements()).toStrictEqual([]);
+
+    await asyncResource.awaitElements();
+    expect(asyncResource.getElements()).toStrictEqual([1, 2, 3, 4, 5, 6]);
+    expect(filteredList.getElements()).toStrictEqual([1, 2, 3, 4, 5, 6]);
+
+    filterEven.setValue(false);
+    expect(asyncResource.getElements()).toStrictEqual([1, 2, 3, 4, 5, 6]);
+    expect(filteredList.getElements()).toStrictEqual([1, 3, 5]);
+
+    id.setValue('b');
+    await asyncResource.awaitElements();
+    expect(asyncResource.getElements()).toStrictEqual([5, 6, 7, 8]);
+    expect(filteredList.getElements()).toStrictEqual([5, 7]);
+
+    filterEven.setValue(true);
+    filterOdd.setValue(false);
+    expect(filteredList.getElements()).toStrictEqual([6, 8]);
+});
+
 test('derived sync list test', () => {
     const [builder] = builderAndRuleEngineFactory();
 
