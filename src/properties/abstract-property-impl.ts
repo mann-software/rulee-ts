@@ -12,7 +12,7 @@ import { ValidatorInstance } from "../engine/validation/validator-instance-impl"
 import { AbstractDataProperty } from "./abstract-data-property";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
-    internallyUpdate(): Promise<void>;
+    internallyUpdate(): Promise<void> | void;
     hasBeenUpdated(): void;
     errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
@@ -111,7 +111,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 onTriggered: () => {
                     if (this.needsToRecompute !== false) {
                         this.manuallyTriggered = true;
-                        return this.updateHandler.updateValue(this);
+                        return this.updateHandler.updateValue(this) ?? Promise.resolve();
                     } else {
                         return Promise.resolve();
                     }
@@ -123,9 +123,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     // -----------------------------------------------------------------------------------
 
-    internallyUpdate(): Promise<void> {
+    internallyUpdate(): Promise<void> | void {
         if (this.needsToRecompute === false || (!this.automaticallyUpdate && !this.manuallyTriggered)) {
-            return this.updatingPromise() ?? Promise.resolve();
+            return this.updatingPromise();
         }
         this.needsToRecompute = false;
         delete this.manuallyTriggered;
@@ -137,7 +137,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             }
         } else {
             this.internallySyncUpdate();
-            return Promise.resolve();
         }
     }
 

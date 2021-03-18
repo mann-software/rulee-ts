@@ -155,16 +155,32 @@ export class RuleEngine implements RuleEngineUpdateHandler {
         }, 0);
     }
 
-    async updateValue(property: AbstractProperty): Promise<void> {
+    updateValue(property: AbstractProperty): Promise<void> | undefined {
+        const asyncUpdates = this.dependencyGraph.getAsyncDependencies(property.id)
+            ?.map(asyncDep => this.updateValue(asyncDep));
+        if (asyncUpdates?.length && asyncUpdates.some(update => !!update)) {
+            return Promise.all(asyncUpdates).then(() => 
+                this.updateValueInternal(property as AbstractPropertyWithInternals<unknown>)
+            ).catch((err) => {
+                (property as AbstractPropertyWithInternals<unknown>).errorWhileUpdating(err);
+            });
+        } else {
+            return this.updateValueInternal(property as AbstractPropertyWithInternals<unknown>);
+        }
+    }
+    
+    private updateValueInternal(property: AbstractPropertyWithInternals<unknown>): Promise<void> | undefined {
         try {
-            const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
-            if (asyncDeps?.length) {
-                await Promise.all(asyncDeps.map(asyncDep => this.updateValue(asyncDep)));
+            const updatePromise = property.internallyUpdate();
+            if (updatePromise) {
+                return updatePromise.then(() => {
+                    this.hasBeenUpdated(property);
+                }).catch(err => property.errorWhileUpdating(err));
+            } else {
+                this.hasBeenUpdated(property);
             }
-            await (property as AbstractPropertyWithInternals<unknown>).internallyUpdate();
-            this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>);
         } catch (err) {
-            (property as AbstractPropertyWithInternals<unknown>).errorWhileUpdating(err);
+            property.errorWhileUpdating(err);
         }
     }
 

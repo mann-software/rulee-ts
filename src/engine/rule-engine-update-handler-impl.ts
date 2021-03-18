@@ -15,7 +15,7 @@ export interface RuleEngineUpdateHandler {
      * need to be updated
      * @param property to update
      */
-    updateValue(property: AbstractProperty): Promise<void>;
+    updateValue(property: AbstractProperty): Promise<void> | undefined;
     /**
      * Call this to invalidate the last validation result for the given Validator
      * @param validators validators to invalidate
