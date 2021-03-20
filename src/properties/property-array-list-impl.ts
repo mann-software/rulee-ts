@@ -218,7 +218,7 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
         return this.listProvider.isAsynchronous();
     }
     isProcessing(): boolean {
-        return this.listProvider.isProcessing();
+        return this.listProvider.isProcessing() || !!this.syncPromise;
     }
     isReadOnly(): boolean {
         return this.listProvider.isReadOnly();

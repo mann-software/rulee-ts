@@ -69,6 +69,7 @@ test('derived async list test', async () => {
         derive: (count) => valueAfterTime(Array.from({length: count.getNonNullValue()}, (v, i) => i + 1), 200)
     });
 
+    expect(list.isProcessing()).toBe(false);
     const elements = await list.awaitElements();
     expect(elements).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
 
@@ -201,26 +202,33 @@ test('async crud list test - resource switching', async () => {
 test('async crud list test - sync failed', async () => {
     const [list, id] = setupAsyncCrudList();
 
-    await list.awaitElements();
+    expect(list.isProcessing()).toBe(false);
+    const elementsPromise = list.awaitElements();
+    expect(list.isProcessing()).toBe(true);
+    await elementsPromise;
+    expect(list.isProcessing()).toBe(false);
     expect(list.getElements()).toStrictEqual([1, 2, 3]);
 
     list.addElement(0, 0);
+    expect(list.isProcessing()).toBe(true);
     expect(list.getElements()).toStrictEqual([0, 1, 2, 3]);
 
     list.updateElement(42, 1);
     expect(list.getElements()).toStrictEqual([0, 42, 2, 3]);
 
     list.removeElement(3); // sync will throw an error
-    expect(list.getElements()).toStrictEqual([0, 42, 2]); // no sync, yet
+    expect(list.getElements()).toStrictEqual([0, 42, 2]); // no sync error, yet
 
     list.addElement(7, 2); // this will be undone as well
     list.updateElement(11, 3);
-    expect(list.getElements()).toStrictEqual([0, 42, 7, 11]); // no sync, yet
+    expect(list.getElements()).toStrictEqual([0, 42, 7, 11]); // no sync error, yet
 
+    expect(list.isProcessing()).toBe(true);
     return list.awaitElements().then(elements => {
         expect(true).toBe(false); // sync should fail
     }).catch(err => {
         expect(err).toStrictEqual(new Error('removeElement: sync error'));
+        expect(list.isProcessing()).toBe(false);
         expect(list.getElements()).toStrictEqual([0, 42, 2, 3]);
     });
 });
