@@ -132,20 +132,20 @@ export class PropertyScalarBuilder {
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         },
 
-        derived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyConfig & {
+        derived: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => <T>(config: PropertyConfig & {
             derive: (...dependencies: Dependencies) => Choice<T>[];
             emptyChoice?: Choice<T>;
         }) => {
-            const choicesSourceProperty = this.derived.sync(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(config);
+            const choicesSourceProperty = this.derived.sync(`${id}__choices__`, ...dependencies)(new ChoiceListConverter<T>(), config);
             return this.select.withPropertySource(id, choicesSourceProperty, config);
         },
 
-        asyncDerived: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => (config: PropertyConfig & {
+        asyncDerived: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => <T>(config: PropertyConfig & {
             deriveAsync: (...dependencies: Dependencies) => Promise<Choice<T>[]>;
             emptyChoice?: Choice<T>;
             backpressure?: BackpressureConfig;
         }) => {
-            const choicesSourceProperty = this.derived.async(`${id}__choices__`, new ChoiceListConverter<T>(), ...dependencies)(config);
+            const choicesSourceProperty = this.derived.async(`${id}__choices__`, ...dependencies)(new ChoiceListConverter<T>(), config);
             return this.select.withPropertySource(id, choicesSourceProperty, config);
         },
 
@@ -167,7 +167,7 @@ export class PropertyScalarBuilder {
             minimumTextLength?: number;
         }): PropertyScalarWithChoices<[T | null, string], T> => {
             const inputSourceProperty = this.stringProperty(`${id}__input__`);
-            const choicesSourceProperty = this.derived.async(`${id}__choices__`, new ChoiceListConverter<T>(), inputSourceProperty)({
+            const choicesSourceProperty = this.derived.async(`${id}__choices__`, inputSourceProperty)(new ChoiceListConverter<T>(), {
                 deriveAsync: (inputProperty) => {
                     const text = inputProperty.getNonNullValue();
                     if (config.minimumTextLength && text.length < config.minimumTextLength) {
@@ -197,8 +197,9 @@ export class PropertyScalarBuilder {
     }
 
     derived = {
-        sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
-            return (
+        sync: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return <T>(
+                valueConverter: ValueConverter<T>,
                 config: PropertyConfig & {
                     derive: Rule<[...dependencies: Dependencies], T | null>;
                     inverse?: (val: T | null, ...dependencies: Dependencies) => void;
@@ -210,8 +211,9 @@ export class PropertyScalarBuilder {
             }
         },
 
-        async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, valueConverter: ValueConverter<T>, ...dependencies: Dependencies) => {
-            return (
+        async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return <T>(
+                valueConverter: ValueConverter<T>,
                 config: PropertyConfig & {
                     deriveAsync: Rule<[...dependencies: Dependencies], Promise<T | null>>;
                     inverseAsync?: (val: T | null, ...dependencies: Dependencies) => Promise<void>;

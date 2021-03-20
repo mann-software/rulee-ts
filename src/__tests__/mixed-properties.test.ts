@@ -17,7 +17,7 @@ test('list of group properties with sum-property', () => {
         return { propA, propB }
     });
     const propList = builder.list.create('PROP_LIST', template);
-    const sumProp = builder.scalar.derived.sync('SUM', C.number.default, propList)({
+    const sumProp = builder.scalar.derived.sync('SUM', propList)(C.number.default, {
         derive: (propList) => propList.list.reduce((res, item) => res + item.properties.propA.getNonNullValue(), 0)
     });
 
@@ -54,7 +54,7 @@ test('list of lists', async () => {
     outerList.addProperties(2);
     expect(outerList.exportData()).toStrictEqual([[], []]);
 
-    const atLeastOneTrue = builder.scalar.derived.sync('AT_LEAST_ONE_TRUE', C.boolean.default, outerList)({
+    const atLeastOneTrue = builder.scalar.derived.sync('AT_LEAST_ONE_TRUE', outerList)(C.boolean.default, {
         derive: (outerList) => outerList.list.some(innerList => innerList.list.some(element => element.getNonNullValue()))
     });
     expect(atLeastOneTrue.getValue()).toBe(false);

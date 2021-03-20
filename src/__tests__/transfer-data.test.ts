@@ -16,10 +16,10 @@ beforeEach(() => {
     propA = builder.scalar.stringProperty('PROP_A', { initialValue: 'abc' });
     propB = builder.scalar.stringProperty('PROP_B', { initialValue: '42' });
     propBNumber = builder.scalar.numberProperty('PROP_B_NUMBER', { zeroIsConsideredAsEmpty: true });
-    propC = builder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
+    propC = builder.scalar.derived.sync('PROP_C', propA, propB)(C.number.default, {
         derive: (propA, propB) => propA.getNonNullValue().length + propB.getNonNullValue().length
     });
-    propD = builder.scalar.derived.async('PROP_D', C.number.default, propB)({
+    propD = builder.scalar.derived.async('PROP_D', propB)(C.number.default, {
         deriveAsync: (propA) => valueAfterTime(propA.getNonNullValue().length, 40)
     });
 });

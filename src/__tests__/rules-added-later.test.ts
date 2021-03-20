@@ -11,7 +11,7 @@ beforeEach(() => {
 
 test('add further rules later on while already in use - simple setup', () => {
     const propA = builder.scalar.stringProperty('PROP_A', { initialValue: 'A'});
-    const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
+    const propB = builder.scalar.derived.async('PROP_B', propA)(C.string.identity, {
         deriveAsync: (propA) => valueAfterTime(`B: ${propA.getDisplayValue()}`, 2000)
     });
 
@@ -20,7 +20,7 @@ test('add further rules later on while already in use - simple setup', () => {
     expect(propB.isProcessing()).toBe(true);
 
     // while propLaterOn is processing, define another rule that (indirectly) depends on propB
-    const propLaterOn = builder.scalar.derived.async('PROP_LATER_ON', C.string.identity, propB)({
+    const propLaterOn = builder.scalar.derived.async('PROP_LATER_ON', propB)(C.string.identity, {
         deriveAsync: (propB) => valueAfterTime(propB.getDisplayValue(), 50)
     });
 
@@ -40,15 +40,15 @@ test('add further rules later on while already in use - simple setup', () => {
 
 test('add further rules later on while already in use - complex setup', () => {
     const propA = builder.scalar.stringProperty('PROP_A', { initialValue: 'A'});
-    const propB = builder.scalar.derived.async('PROP_B', C.string.identity, propA)({
+    const propB = builder.scalar.derived.async('PROP_B', propA)(C.string.identity, {
         deriveAsync: (propA) => valueAfterTime(`B: ${propA.getDisplayValue()}`, 2000)
     });
-    const propC = builder.scalar.derived.sync('PROP_C', C.string.identity, propB)({
+    const propC = builder.scalar.derived.sync('PROP_C', propB)(C.string.identity, {
         derive: (propB) => `C: ${propB.getDisplayValue()}`
     });
 
     const propAA = builder.scalar.stringProperty('PROP_AA', { initialValue: 'AA'});
-    const propBB = builder.scalar.derived.async('PROP_BB', C.string.identity, propAA)({
+    const propBB = builder.scalar.derived.async('PROP_BB', propAA)(C.string.identity, {
         deriveAsync: (propAA) => valueAfterTime(`BB: ${propAA.getDisplayValue()}`, 1000)
     });
 
@@ -58,7 +58,7 @@ test('add further rules later on while already in use - complex setup', () => {
     expect(propBB.isProcessing()).toBe(false);
 
     // while propB is processing, define another rule that (indirectly) depends on propB
-    const propLaterOn = builder.scalar.derived.async('PROP_LATER_ON', C.string.identity, propC, propBB)({
+    const propLaterOn = builder.scalar.derived.async('PROP_LATER_ON', propC, propBB)(C.string.identity, {
         deriveAsync: (propC, propBB) => valueAfterTime(`${propC.getDisplayValue()}|${propBB.getDisplayValue()}`, 50)
     });
 

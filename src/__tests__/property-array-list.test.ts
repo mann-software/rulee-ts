@@ -11,7 +11,7 @@ test('load a list asynchronously and filter the list synchronously', async () =>
     };
 
     const id = builder.scalar.stringProperty('RESOURCE_ID', { initialValue: 'a' });
-    const asyncResource = builder.list.derived.async<number, [PropertyScalar<string>]>('LIST', id)({
+    const asyncResource = builder.list.derived.async('LIST', id)<number>({
         derive: (id) => valueAfterTime(resources[id.getNonNullValue()], 200)
     });
     const filterEven = builder.scalar.booleanProperty('FILTER_EVEN', { initialValue: true });
@@ -87,7 +87,7 @@ test('derived async list test', async () => {
 
 test('crud list test', () => {
     const [builder] = builderAndRuleEngineFactory();
-    const list = builder.list.crud.sync<number, []>('LIST')();
+    const list = builder.list.crud.sync('LIST')<number>();
 
     expect(list.getElements()).toStrictEqual([]);
 
@@ -138,7 +138,7 @@ function setupAsyncCrudList(): [PropertyArrayListCrudAsync<number>, PropertyScal
     const [builder] = builderAndRuleEngineFactory();
 
     const id = builder.scalar.stringProperty('ID', { initialValue: 'a' });
-    const list = builder.list.crud.async<number, [PropertyScalar<string>]>('LIST', id)({
+    const list = builder.list.crud.async('LIST', id)<number>({
         getElements: (id) => valueAfterTime(resources[id.getNonNullValue()].slice() ?? [], 200),
         addElement: (data, index) => executeAfterTime(() => {
             if (index !== undefined) {

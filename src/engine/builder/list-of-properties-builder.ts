@@ -52,8 +52,8 @@ export class ListOfPropertiesBuilder {
     }
 
     derived = {
-        sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
-            return (
+        sync: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return <T>(
                 config: PropertyConfig & {
                     derive: Rule<[...dependencies: Dependencies], T[]>;
                 },
@@ -62,8 +62,8 @@ export class ListOfPropertiesBuilder {
                 return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonly<T>;
             }
         },
-        async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
-            return (
+        async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return <T>(
                 config: PropertyConfig & {
                     derive: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                 },
@@ -75,8 +75,8 @@ export class ListOfPropertiesBuilder {
     }
 
     crud = {
-        sync: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
-            return (
+        sync: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return <T>(
                 config?: PropertyConfig & {
                     resourceProvider?: Rule<[...dependencies: Dependencies], T[]>;
                 },
@@ -91,8 +91,8 @@ export class ListOfPropertiesBuilder {
                 return this.propertyList(id, provider, dependencies, config) as PropertyArrayListCrud<T>;
             }
         },
-        async: <T, Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
-            return (
+        async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
+            return <T>(
                 config: PropertyConfig & {
                     getElements: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                     addElement: (propertyData: T, index?: number) => Promise<void>;

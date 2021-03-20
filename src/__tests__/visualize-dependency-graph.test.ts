@@ -11,13 +11,13 @@ beforeEach(() => {
 test('list of group properties with sum-property', () => {
     const template = builder.group.template((idFcn, index) => {
         const propA = builder.scalar.stringProperty(idFcn('PROP_A'));
-        const propB = builder.scalar.derived.async(idFcn('PROP_B'), C.number.default, propA)({
+        const propB = builder.scalar.derived.async(idFcn('PROP_B'), propA)(C.number.default, {
             deriveAsync: (propA) => Promise.resolve(propA.getNonNullValue().length)
         });
         return { propA, propB }
     });
     const propList = builder.list.create('PROP_LIST', template);
-    builder.scalar.derived.sync('SUM', C.number.default, propList)({
+    builder.scalar.derived.sync('SUM', propList)(C.number.default, {
         derive: (propList) => propList.list.reduce((res, item) => res + item.properties.propB.getNonNullValue(), 0)
     });
 
