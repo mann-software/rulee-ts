@@ -7,7 +7,7 @@ import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
-import { ScalarValidator } from "../../validators/scalar-validator";
+import { SinglePropertyValidator } from "../../validators/single-property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 
 export enum TextInterpreter {
@@ -20,7 +20,7 @@ export class PropertyScalarRuleBinding<T> {
     
     constructor(
         property: PropertyScalar<T>,
-        private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>,
+        private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>,
         private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void
     ) {
         this.property = property as PropertyScalarImpl<T>;
@@ -28,7 +28,7 @@ export class PropertyScalarRuleBinding<T> {
 
     // ------------------
 
-    addScalarValidator(validator: ScalarValidator<T>): PropertyScalarRuleBinding<T> {
+    addScalarValidator(validator: SinglePropertyValidator<PropertyScalar<T>>): PropertyScalarRuleBinding<T> {
         this.property.addScalarValidator(validator);
         return this;
     }

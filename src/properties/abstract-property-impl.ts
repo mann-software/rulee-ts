@@ -10,6 +10,7 @@ import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
 import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
+import { SinglePropertyValidator } from "../validators/single-property-validator";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void> | void;
@@ -41,6 +42,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private validationMessages: ValidationMessage[] = [];
 
     private readonly valueChangeListeners: ValueChangeListener[] = [];
+
+    protected singlePropertyValidators: SinglePropertyValidator<any>[] = [];
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
@@ -239,11 +242,16 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // ---------------------------------------------------------------------------------------
     // -- handing internallyValidate  --------------------------------------------------------
     // ---------------------------------------------------------------------------------------
-    
-    /**
-     * Used for specialised synchronous Validations like ScalarValidators
-     */
-    protected abstract getSpecialisedValidationResult(): ValidationMessage[];
+
+    protected getSinglePropertyValidationResults() {
+        return this.singlePropertyValidators.reduce((res, sv) => {
+            const msg = sv(this);
+            if (msg) {
+                res.push(msg);
+            }
+            return res;
+        }, [] as ValidationMessage[]);
+    }
 
     addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>) {
         if (!this.validators) {
@@ -259,7 +267,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             if (updated) {
                 await updated;
             }
-            this.validationMessages = this.getSpecialisedValidationResult();
+            this.validationMessages = this.getSinglePropertyValidationResults();
             if (this.validators) {
                 const results = await Promise.all(this.updateHandler.validate(this.validators));
                 results.forEach(result => {

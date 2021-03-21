@@ -53,7 +53,7 @@ export * from "./rules/rule";
 export * from "./util/assertions/assertion-error";
 export * from "./util/assertions/assertions";
 export * from "./util/logger/logger";
-export * from "./validators/scalar-validator";
+export * from "./validators/single-property-validator";
 export * from "./validators/validation-message";
 export * from "./validators/validation-result";
 export * from "./validators/validation-type";

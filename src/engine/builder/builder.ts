@@ -14,7 +14,7 @@ import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { BuilderOptions, PropertyConfig } from "./builder-options";
-import { ScalarValidator } from "../../validators/scalar-validator";
+import { SinglePropertyValidator } from "../../validators/single-property-validator";
 import { V } from "../../validators/common/common-validators";
 import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
@@ -38,7 +38,7 @@ export class Builder {
         return Object.values(this.propertyMap);
     }
     
-    private readonly notEmptyIfRequiredValidator: ScalarValidator<unknown>;
+    private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>;
     private readonly defaultEmptyChoice: Choice<any> | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
 

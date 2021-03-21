@@ -59,10 +59,6 @@ export class PropertyArrayListSyncImpl<T> extends AbstractPropertyImpl<T[]> impl
         }
     }
 
-    protected getSpecialisedValidationResult(): ValidationMessage[] {
-        throw new Error("Method not implemented.");
-    }
-
     isAsynchronous(): boolean {
         return this.listProvider.isAsynchronous();
     }
@@ -208,10 +204,6 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
                 this.workingList = list;
             }
         }
-    }
-
-    protected getSpecialisedValidationResult(): ValidationMessage[] {
-        throw new Error("Method not implemented.");
     }
 
     isAsynchronous(): boolean {

@@ -47,10 +47,6 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         throw new Error("Method not implemented.");
     }
 
-    protected getSpecialisedValidationResult() {
-        return [];
-    }
-
     getProperty(index: number): T | undefined {
         return this.internalList[index]?.prop;
     }
