@@ -38,11 +38,11 @@ export class RuleEngine implements RuleEngineUpdateHandler {
     }
 
     /**
-     * Creates a module that is indended to bundle a larger number of properties.
+     * Creates a rule set that is indended to bundle a larger number of properties.
      * The properties are initialized lazy. This helps the boot time of your app by
      * loading larger parts as soon as they are needed on a page.
      */
-    defineModule<S extends PropertyGroup>(initFcn: (builder: Builder) => S): RuleSet<S> {
+    defineRuleSet<S extends PropertyGroup>(initFcn: (builder: Builder) => S): RuleSet<S> {
         return new RuleSet(initFcn, this.builder);
     }
 

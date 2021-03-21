@@ -241,7 +241,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // ---------------------------------------------------------------------------------------
     
     /**
-     * Used for specialised synchronous Validations: ScalarValidators
+     * Used for specialised synchronous Validations like ScalarValidators
      */
     protected abstract getSpecialisedValidationResult(): ValidationMessage[];
 

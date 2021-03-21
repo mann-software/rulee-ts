@@ -12,7 +12,7 @@ test('load a module lazy', () => {
     }
 
     const initSpy = jest.fn(init);
-    const module = engine.defineModule(initSpy);
+    const module = engine.defineRuleSet(initSpy);
 
     const props = module.getProperties();
     
