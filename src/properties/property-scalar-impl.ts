@@ -80,10 +80,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     // -- bindings (RuleBindingPropertyScalar)
     // ------------------
 
-    addScalarValidator(validator: SinglePropertyValidator<PropertyScalar<T>>) {
-        this.singlePropertyValidators.push(validator);
-    }
-
     defineInitialValue(value: T | null) {
         this.initialValue = value;
     }

@@ -45,7 +45,7 @@ export class PropertyScalarBuilder {
             propertyConfig?: PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
-        private readonly bindPropertScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
+        private readonly bindPropertyScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
         private readonly defaultEmptyChoice: Choice<any> | undefined,
     ) {
         assertThat(() => !defaultEmptyChoice || defaultEmptyChoice.value === null, () => 'value of defaultEmptyChoice must be null to match every Choice<T>')
@@ -228,7 +228,7 @@ export class PropertyScalarBuilder {
     }
 
     bind<T>(prop: PropertyScalar<T>): PropertyScalarRuleBinding<T> {
-        return this.bindPropertScalar(prop);
+        return this.bindPropertyScalar(prop);
     }
 
 }

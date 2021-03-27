@@ -243,6 +243,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyValidate  --------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
+    addSinglePropertyValidator(validator: SinglePropertyValidator<any>) {
+        this.singlePropertyValidators.push(validator);
+    }
+
     protected getSinglePropertyValidationResults() {
         return this.singlePropertyValidators.reduce((res, sv) => {
             const msg = sv(this);

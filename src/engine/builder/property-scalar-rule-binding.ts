@@ -29,7 +29,7 @@ export class PropertyScalarRuleBinding<T> {
     // ------------------
 
     addScalarValidator(validator: SinglePropertyValidator<PropertyScalar<T>>): PropertyScalarRuleBinding<T> {
-        this.property.addScalarValidator(validator);
+        this.property.addSinglePropertyValidator(validator);
         return this;
     }
 
@@ -140,7 +140,7 @@ export class PropertyScalarRuleBinding<T> {
             dependencies: dependencies,
             getValue: fcn
         } as Attribute<boolean>);
-        this.property.addScalarValidator(this.notEmptyIfRequiredValidator);
+        this.property.addSinglePropertyValidator(this.notEmptyIfRequiredValidator);
     }
     
     // ------------------
