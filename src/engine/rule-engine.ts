@@ -184,14 +184,7 @@ export class RuleEngine implements RuleEngineUpdateHandler {
         }
     }
 
-    /**
-     * Notify other properties that depend on the value of the updated property.
-     *
-     * Note: Here all dependencies except a value dependency are relevant. E.g. visibility, validation, etc.
-     *
-     * @param property updated property
-     */
-    private hasBeenUpdated(property: AbstractPropertyWithInternals<unknown>) {
+    hasBeenUpdated(property: AbstractPropertyWithInternals<unknown>) { // TODO hide from public interface
         property.hasBeenUpdated();
         this.dependencyGraph.traverseDepthFirst(
             property.id,

@@ -35,17 +35,17 @@ export class PropertyArrayListSyncImpl<T> extends AbstractPropertyImpl<T[]> impl
 
     addElement(el: T, index?: number): void {
         this.listProvider.addProperty(el, index);
-        this.hasBeenUpdated();
+        this.updateHandler.hasBeenUpdated(this);
     }
 
     updateElement(el: T, index: number): void {
         this.listProvider.updateProperty(el, index);
-        this.hasBeenUpdated();
+        this.updateHandler.hasBeenUpdated(this);
     }
 
     removeElement(index: number): void {
         this.listProvider.removeProperty(index);
-        this.hasBeenUpdated();
+        this.updateHandler.hasBeenUpdated(this);
     }
     
     protected internallySyncUpdate(): void {
@@ -148,18 +148,23 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
 
     private async pushOperation(operation: ListOperation<T>) {
         this.operationPipe.push(operation);
-        const updated = this.awaitAsyncUpdate();
-        if (updated) {
-            this.awaitUpdateBeforeApply = true;
-            await updated;
-            if (this.awaitUpdateBeforeApply) {
-                delete this.awaitUpdateBeforeApply;
-                this.operationPipe.forEach(op => op.apply(this.workingList));
+        try {
+            const updated = this.awaitAsyncUpdate();
+            if (updated) {
+                this.awaitUpdateBeforeApply = true;
+                await updated;
+                if (this.awaitUpdateBeforeApply) {
+                    delete this.awaitUpdateBeforeApply;
+                    this.operationPipe.forEach(op => op.apply(this.workingList));
+                }
+            } else {
+                operation.apply(this.workingList); // maybe add strategies later (e.g. only apply after sync)
             }
-        } else {
-            operation.apply(this.workingList); // maybe add strategies later (e.g. only apply after sync)
+            this.updateHandler.hasBeenUpdated(this);
+        } catch (err) {
+            delete this.awaitUpdateBeforeApply;
+            this.errorWhileUpdating(err);
         }
-        this.hasBeenUpdated();
         return this.syncList();
     }
 
@@ -173,9 +178,9 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
     }
     
     private async createSyncPromise() {
-        await this.awaitAsyncUpdate();
         let operation: ListOperation<T> | undefined;
         try {
+            await this.awaitAsyncUpdate();
             operation = this.operationPipe.shift();
             while (operation !== undefined) {
                 await operation.synchronize();
@@ -187,8 +192,8 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
             }
             operation?.undo(this.workingList);
             this.operationPipe = [];
-            this.hasBeenUpdated();
-            throw err;
+            this.errorWhileUpdating(err);
+            this.updateHandler.hasBeenUpdated(this);
         }
     }
     

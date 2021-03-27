@@ -224,11 +224,18 @@ test('async crud list test - sync failed', async () => {
     expect(list.getElements()).toStrictEqual([0, 42, 7, 11]); // no sync error, yet
 
     expect(list.isProcessing()).toBe(true);
+
+    let failed = 0;
+    list.registerValueChangedListener({
+        updated: () => ({}),
+        updateFailed: (err) => {
+            expect(err).toStrictEqual(new Error('removeElement: sync error'));
+            expect(list.getElements()).toStrictEqual([0, 42, 2, 3]);
+            failed++;
+        }
+    });
+
     return list.awaitElements().then(elements => {
-        expect(true).toBe(false); // sync should fail
-    }).catch(err => {
-        expect(err).toStrictEqual(new Error('removeElement: sync error'));
-        expect(list.isProcessing()).toBe(false);
-        expect(list.getElements()).toStrictEqual([0, 42, 2, 3]);
+        expect(failed).toBe(1); // sync should fail
     });
 });
