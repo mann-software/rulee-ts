@@ -1,7 +1,6 @@
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { AsyncListProvider, ListProvider } from "../provider/list-provider/list-provider";
-import { ValidationMessage } from "../validators/validation-message";
-import { AbstractPropertyImpl } from "./abstract-property-impl";
+import { AbstractPropertyImpl, AbstractPropertyWithInternals } from "./abstract-property-impl";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AddOperation } from "./lists/operations/add-operation";
 import { ListOperation } from "./lists/operations/operation";
@@ -10,9 +9,34 @@ import { UpdateOperation } from "./lists/operations/update-operation";
 import { PropertyArrayListCrud, PropertyArrayListCrudAsync } from "./property-array-list";
 import { PropertyId } from "./property-id";
 
-export class PropertyArrayListSyncImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListCrud<T> {
+export abstract class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> {
+    
+    protected workingList: T[] = [];
+    
+    setToInitialState(): void {
+        this.needsAnUpdate(false);
+    }
 
-    private workingList: T[] = [];
+    exportData(): T[] | null {
+        return this.workingList;
+    }
+
+    importData(data: T[] | null): void {
+        this.workingList = data ?? [];
+    }
+
+    compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
+        if (!compareFcn) {
+            compareFcn = (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
+        }
+        if (a == null || b == null) {
+            return a === b;
+        }
+        return a.length === b.length && a.every((val, i) => compareFcn!(val, b[i]));
+    }
+}
+
+export class PropertyArrayListSyncImpl<T> extends PropertyArrayListImpl<T> implements PropertyArrayListCrud<T> {
 
     constructor(
         readonly id: PropertyId,
@@ -68,31 +92,10 @@ export class PropertyArrayListSyncImpl<T> extends AbstractPropertyImpl<T[]> impl
     isReadOnly(): boolean {
         return this.listProvider.isReadOnly();
     }
-
-    setToInitialState(): void {
-        this.needsAnUpdate(false);
-    }
-
-    exportData(): T[] | null {
-        return this.workingList;
-    }
-    importData(data: T[] | null): void {
-        this.workingList = data ?? [];
-    }
-    compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
-        if (!compareFcn) {
-            compareFcn = (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
-        }
-        if (a == null || b == null) {
-            return a === b;
-        }
-        return a.length === b.length && a.every((val, i) => compareFcn!(val, b[i]));
-    }
 }
 
-export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListCrudAsync<T> {
+export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> implements PropertyArrayListCrudAsync<T> {
 
-    private workingList: T[] = [];
     private operationPipe: ListOperation<T>[] = [];
     private awaitUpdateBeforeApply?: boolean;
     private syncPromise?: Promise<void>;
@@ -220,30 +223,10 @@ export class PropertyArrayListAsyncImpl<T> extends AbstractPropertyImpl<T[]> imp
     isReadOnly(): boolean {
         return this.listProvider.isReadOnly();
     }
-
-    setToInitialState(): void {
-        this.needsAnUpdate();
-    }
     
     needsAnUpdate(notifyOthers?: boolean) {
         this.operationPipe = [];
         this.workingList = [];
         super.needsAnUpdate(notifyOthers);
-    }
-
-    exportData(): T[] | null {
-        return this.workingList;
-    }
-    importData(data: T[] | null): void {
-        this.workingList = data ?? [];
-    }
-    compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
-        if (!compareFcn) {
-            compareFcn = (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
-        }
-        if (a == null || b == null) {
-            return a === b;
-        }
-        return a.length === b.length && a.every((val, i) => compareFcn!(val, b[i]));
     }
 }

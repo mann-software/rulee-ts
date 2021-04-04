@@ -21,3 +21,8 @@ export interface PropertyArrayListCrudAsync<T> extends PropertyArrayListReadonly
     awaitUpdateElement(el: T, index: number): Promise<void>;
     awaitRemovingElement(index: number): Promise<void>;
 }
+
+export type PropertyArrayList<T> = PropertyArrayListReadonly<T> | 
+    PropertyArrayListReadonlyAsync<T> |
+    PropertyArrayListCrud<T> |
+    PropertyArrayListCrudAsync<T>;
