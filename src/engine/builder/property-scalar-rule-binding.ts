@@ -28,12 +28,12 @@ export class PropertyScalarRuleBinding<T> {
 
     // ------------------
 
-    addScalarValidator(validator: SinglePropertyValidator<PropertyScalar<T>>): PropertyScalarRuleBinding<T> {
+    addValidator(validator: SinglePropertyValidator<PropertyScalar<T>>): PropertyScalarRuleBinding<T> {
         this.property.addSinglePropertyValidator(validator);
         return this;
     }
 
-    addAsyncScalarValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBinding<T> {
+    addAsyncValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBinding<T> {
         const propList = [this.property];
         this.property.addValidator({
             getValidatedProperties: () => propList,

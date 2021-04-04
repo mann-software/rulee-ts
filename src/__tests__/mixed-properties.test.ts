@@ -40,7 +40,7 @@ test('list of lists', async () => {
     const innerTemplate = builder.list.template('INNER_LIST', (listBuilder, id) => {
         return listBuilder.create(id, builder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
             const prop = scalarBuilder.booleanProperty(id);
-            scalarBuilder.bind(prop).addScalarValidator(
+            scalarBuilder.bind(prop).addValidator(
                 (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
                     text: 'At most one element is allowed to be true',
                     type: ValidationTypes.Error

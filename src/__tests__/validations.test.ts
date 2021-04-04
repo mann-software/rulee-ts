@@ -17,7 +17,7 @@ beforeEach(() => {
 
 test('scalar validation test', async () => {
     const prop = builder.scalar.stringProperty('PROP');
-    builder.scalar.bind(prop).addScalarValidator(p => p.getNonNullValue().length > 0 ? undefined : someError);
+    builder.scalar.bind(prop).addValidator(p => p.getNonNullValue().length > 0 ? undefined : someError);
     
     let msgs = await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([someError]);
@@ -31,7 +31,7 @@ test('async scalar validation test', async () => {
     const validationResult: ValidationMessage[] = [];
 
     const prop = builder.scalar.stringProperty('PROP');
-    builder.scalar.bind(prop).addAsyncScalarValidator(() => valueAfterTime(validationResult, 50));
+    builder.scalar.bind(prop).addAsyncValidator(() => valueAfterTime(validationResult, 50));
 
     await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([]);
@@ -73,9 +73,9 @@ test('validator combination test', async () => {
 
 test('validator list test', async () => {
     const list = builder.list.create('LIST', (id) => builder.scalar.booleanProperty(id));
-    builder.list.bindValidator(list, (...props) => {
-        if (props.every(prop => !prop.getValue())) {
-            return [someError];
+    builder.list.bindListOfProperties(list).addValidator((listProp) => {
+        if (listProp.list.every(prop => !prop.getValue())) {
+            return someError;
         }
     });
 

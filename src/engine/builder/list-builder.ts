@@ -13,11 +13,13 @@ import { BackpressureConfig } from "../../properties/backpressure/backpressure-c
 import { PropertyConfig } from "./builder-options";
 import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
 import { AsyncListProvider, ListProvider } from "../../provider/list-provider/list-provider";
-import { PropertyArrayListCrud, PropertyArrayListCrudAsync, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
+import { PropertyArrayList, PropertyArrayListCrud, PropertyArrayListCrudAsync, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
 import { DerivedListProvider } from "../../provider/list-provider/derived-list-provider";
 import { DerivedAsyncListProvider } from "../../provider/list-provider/derived-async-list-provider";
 import { CrudAsyncListProvider } from "../../provider/list-provider/crud-async-list-provider";
 import { CrudListProvider } from "../../provider/list-provider/crud-list-provider";
+import { ListOfPropertiesRuleBinding } from "./list-of-properties-rule-bindings";
+import { PropertyArrayListRuleBinding } from "./property-array-list-rule-binding";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -114,12 +116,12 @@ export class ListBuilder {
 
     // ------------------
 
-    bindValidator<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<T[]>) {
-        const instance: ValidatorInstance<AbstractProperty[]> = {
-            getValidatedProperties: () => list.list,
-            validate: validator as Validator<AbstractProperty[]>
-        };
-        (list as ListOfPropertiesImpl<T, D>).addValidator(instance);
+    bindListOfProperties<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>): ListOfPropertiesRuleBinding<T, D> {
+        return new ListOfPropertiesRuleBinding<T, D>(list)
+    }
+
+    bindPropertyArrayList<D>(list: PropertyArrayList<D>): PropertyArrayListRuleBinding<D> {
+        return new PropertyArrayListRuleBinding(list);
     }
 
 }
