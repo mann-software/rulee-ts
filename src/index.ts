@@ -10,7 +10,7 @@ export * from "./engine/rule-engine";
 export * from "./engine/builder/builder-options";
 export * from "./engine/builder/builder";
 export * from "./engine/builder/group-of-properties-builder";
-export * from "./engine/builder/list-of-properties-builder";
+export * from "./engine/builder/list-builder";
 export * from "./engine/builder/property-scalar-builder";
 export * from "./engine/builder/property-scalar-rule-binding";
 export * from "./engine/builder/trigger-builder";

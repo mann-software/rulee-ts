@@ -23,7 +23,7 @@ export enum SelectionMode {
     MultiSelect, SingleSelect
 }
 
-export class ListOfPropertiesBuilder {
+export class ListBuilder {
 
     constructor(
         private readonly listOfProperties: <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>,
@@ -47,7 +47,7 @@ export class ListOfPropertiesBuilder {
         return this.listOfProperties(id, itemTemplate, selectionMode === SelectionMode.MultiSelect);
     }
 
-    template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListOfPropertiesBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
+    template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
     }
 
@@ -112,6 +112,8 @@ export class ListOfPropertiesBuilder {
         }
     }
 
+    // ------------------
+
     bindValidator<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, validator: Validator<T[]>) {
         const instance: ValidatorInstance<AbstractProperty[]> = {
             getValidatedProperties: () => list.list,
@@ -119,4 +121,5 @@ export class ListOfPropertiesBuilder {
         };
         (list as ListOfPropertiesImpl<T, D>).addValidator(instance);
     }
+
 }

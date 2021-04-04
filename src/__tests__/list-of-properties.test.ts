@@ -1,6 +1,6 @@
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
-import { SelectionMode } from "../engine/builder/list-of-properties-builder";
+import { SelectionMode } from "../engine/builder/list-builder";
 
 let builder: Builder;
 

@@ -20,7 +20,7 @@ import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { Choice } from "../../properties/choice";
-import { ListOfPropertiesBuilder } from "./list-of-properties-builder";
+import { ListBuilder } from "./list-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
@@ -45,7 +45,7 @@ export class Builder {
     readonly scalar: PropertyScalarBuilder;
     readonly group: GroupOfPropertiesBuilder;
     readonly trigger = new TriggerBuilder();
-    readonly list: ListOfPropertiesBuilder;
+    readonly list: ListBuilder;
 
     constructor(
         options: BuilderOptions,
@@ -77,7 +77,7 @@ export class Builder {
         this.group = new GroupOfPropertiesBuilder(
             <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
         );
-        this.list =  new ListOfPropertiesBuilder(
+        this.list =  new ListBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) =>
                 this.listOfProperties<T, D>(id, itemTemplate, isMultiSelect),
             <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }) =>
@@ -142,7 +142,7 @@ export class Builder {
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
         }
-        // TODO config values
+        // TODO config values  
         return prop;
     }
 
@@ -152,7 +152,7 @@ export class Builder {
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
         }
-        // TODO config values
+        // TODO config values   
         return prop;
     }
 
