@@ -52,7 +52,7 @@ export class PropertyArrayListSyncImpl<T> extends PropertyArrayListImpl<T> imple
         return this.workingList;
     }
 
-    getElement(atIndex: number): T {
+    getElement(atIndex: number): T | undefined {
         this.syncUpdateIfNeeded();
         return this.workingList[atIndex];
     }
@@ -117,10 +117,10 @@ export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> impl
         return this.getElements();
     }
 
-    getElement(atIndex: number): T {
+    getElement(atIndex: number): T | undefined {
         return this.workingList[atIndex];
     }
-    async awaitElement(atIndex: number): Promise<T> {
+    async awaitElement(atIndex: number): Promise<T | undefined> {
         await this.syncList();
         return this.getElement(atIndex);
     }

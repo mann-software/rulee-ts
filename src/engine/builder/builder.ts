@@ -67,16 +67,6 @@ export class Builder {
                 displayValue: options.defaultEmptyChoiceDisplayValue
             };
         }
-
-        this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
-                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, propertyConfig, ownedProperties),
-            <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
-            this.defaultEmptyChoice,
-        );
-        this.group = new GroupOfPropertiesBuilder(
-            <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
-        );
         this.list =  new ListBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) =>
                 this.listOfProperties<T, D>(id, itemTemplate, isMultiSelect),
@@ -84,6 +74,16 @@ export class Builder {
                 this.propertyList(id, provider, dependencies, propertyConfig),
             <T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig }) =>
                 this.asyncPropertyList(id, provider, dependencies, propertyConfig),
+        );
+        this.group = new GroupOfPropertiesBuilder(
+            <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
+        );
+        this.scalar = new PropertyScalarBuilder(
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
+                this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, propertyConfig, ownedProperties),
+            <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
+            this.defaultEmptyChoice,
+            this.list,
         );
     }
 
@@ -136,7 +136,7 @@ export class Builder {
         return prop;
     }
 
-    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }): PropertyArrayListSyncImpl<T> {
+    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & { backpressure?: BackpressureConfig }): PropertyArrayListSyncImpl<T> {
         const prop = new PropertyArrayListSyncImpl(id, provider, this.ruleEngine, config?.backpressure);
         this.addProperty(prop);
         if (dependencies) {
@@ -146,7 +146,7 @@ export class Builder {
         return prop;
     }
 
-    private asyncPropertyList<T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }): PropertyArrayListAsyncImpl<T> {
+    private asyncPropertyList<T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyConfig & { backpressure?: BackpressureConfig }): PropertyArrayListAsyncImpl<T> {
         const prop = new PropertyArrayListAsyncImpl(id, provider, this.ruleEngine, config?.backpressure);
         this.addProperty(prop);
         if (dependencies) {

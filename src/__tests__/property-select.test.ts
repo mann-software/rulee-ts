@@ -162,13 +162,14 @@ test('async derived property select', async () => {
     propG.setValue(true);
     expect(propH.getValue()).toBe(true);
     expect(propH.getDisplayValue()).toBe('');
+    expect(propH.isProcessing()).toBe(true);
     expect(propH.getChoices()).toStrictEqual([
-        { value: null, displayValue: 'Undetermined' },
-        { value: false, displayValue: 'No' }
+        { value: null, displayValue: 'Undetermined' }
     ]);
 
     await propH.awaitValue();
     expect(propH.getDisplayValue()).toBe('Yes');
+    expect(propH.isProcessing()).toBe(false);
     expect(propH.getChoices()).toStrictEqual([
         { value: null, displayValue: 'Undetermined' },
         { value: false, displayValue: 'No' },

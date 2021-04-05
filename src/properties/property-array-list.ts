@@ -1,12 +1,12 @@
 import { AbstractDataProperty } from "./abstract-data-property";
 
 export interface PropertyArrayListReadonly<T> extends AbstractDataProperty<T[]> {
-    getElement(atIndex: number): T;
+    getElement(atIndex: number): T | undefined;
     getElements(): T[];
 }
 
 export interface PropertyArrayListReadonlyAsync<T> extends PropertyArrayListReadonly<T> {
-    awaitElement(atIndex: number): Promise<T>;
+    awaitElement(atIndex: number): Promise<T | undefined>;
     awaitElements(): Promise<T[]>;
 }
 

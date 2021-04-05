@@ -5,8 +5,6 @@ import { ListOfProperties } from "../../properties/list-of-properties";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
-import { Validator } from "../../validators/validator";
-import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { Rule } from "../../rules/rule";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
