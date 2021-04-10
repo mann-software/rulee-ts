@@ -60,6 +60,15 @@ test('list of property: add properties and select property', () => {
 
     propList.selectPropertyAtIndex(1);
     expect(propList.getProperty(1)?.isRequired()).toBe(true);
+
+    propList.swapProperties(0, 1);
+    expect(propList.getProperty(1)?.isRequired()).toBe(false);
+    expect(propList.isPropertySelectedAtIndex(0)).toBe(true);
+    expect(propList.isPropertySelectedAtIndex(1)).toBe(false);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(0), index: 0 }]);
+
+    propList.unselectProperty(propList.getProperty(0));
+    expect(propList.isPropertySelectedAtIndex(0)).toBe(false);
 });
 
 test('list of property: select properties multiple properties and move properties around', () => {

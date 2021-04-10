@@ -216,7 +216,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         let prop: { prop: T; index: ListIndexImpl } | undefined;
         if (this.isMultiSelect) {
             prop = this.internalList.find(p => p.index.isSelected);
-        } else if (this.singleSelection?.idx) {
+        } else if (this.singleSelection?.idx !== undefined) {
             prop = this.internalList[this.singleSelection.idx];
         }
         return prop && { property: prop.prop, index: prop.index.idx };
@@ -230,9 +230,11 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         this.needsAnUpdate();
     }
 
-    unselectProperty(property: T): void {
-        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
-        this.unselectPropertyAtIndex(idx);
+    unselectProperty(property: T | undefined): void {
+        if (property !== undefined) {
+            const idx = this.internalList.findIndex(el => el.prop.id === property.id);
+            this.unselectPropertyAtIndex(idx);
+        }
     }
 
     unselectAll(): void {
