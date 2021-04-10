@@ -14,8 +14,9 @@ export class DerivedAsyncValueProvider<T, Dependencies extends readonly Abstract
     getValue(): Promise<T | null> {
         this.processing = true;
         return this.get(this.dependencies).then(result => {
+            return result;
+        }).finally(() => {
             this.processing = false;
-            return Promise.resolve(result);
         });
     }
 

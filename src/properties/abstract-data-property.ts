@@ -17,7 +17,7 @@ export type DataTypeAsProperty<D> =
 export type DataTypeOfProperty<T> = T extends AbstractDataProperty<infer D> ? D : unknown;
 
 /**
- * Interface to import/export/synchronize data of properties
+ * Extends the interface AbstractProperty with methods to import/export/synchronize data of properties
  */
 export interface AbstractDataProperty<D> extends AbstractProperty {
 

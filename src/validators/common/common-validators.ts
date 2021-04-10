@@ -1,5 +1,5 @@
 import { PropertyScalar } from "../../properties/property-scalar";
-import { ScalarValidator } from "../scalar-validator";
+import { SinglePropertyValidator } from "../single-property-validator";
 import { ValidationMessage } from "../validation-message";
 
 export const V = {
@@ -13,4 +13,4 @@ export const NotEmptyIfRequiredValidator = (valiationMessageProvider: () => Vali
     } else {
         return valiationMessageProvider();
     }
-}) as ScalarValidator<unknown>;
+}) as SinglePropertyValidator<PropertyScalar<unknown>>;

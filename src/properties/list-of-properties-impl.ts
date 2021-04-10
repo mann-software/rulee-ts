@@ -1,32 +1,42 @@
 import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { ListOfProperties } from "./list-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
-import { ListProvider } from "../provider/list-provider/list-provider";
 import { OwnerRelation } from "../dependency-graph/dependency-graph";
 import { AbstractDataProperty } from "./abstract-data-property";
+import { ListIndexImpl } from "./lists/index/list-index-impl";
+import { PropertyTemplate } from "./factory/property-template";
+import { SiblingAccess } from "../provider/list-provider/sibling-access";
+import { SingleSelection } from "./lists/selection/single-selection";
 
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
  */
-export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D> {
+export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D>, SiblingAccess<T> {
+
+    private internalList: { prop: T; index: ListIndexImpl }[] = [];
+    readonly siblingCount = this.list.length;
+    private readonly singleSelection?: SingleSelection;
+    private nxtId = 0;
 
     get length() {
-        return this.listProvider.getList().length;
+        return this.internalList.length;
     }
 
     get list() {
-        return this.listProvider.getList();
+        return this.internalList.map(el => el.prop);
     }
 
     constructor(
         readonly id: string,
-        private readonly listProvider: ListProvider<T>,
-        private readonly selectedIndices: number[],
-        private readonly isMultiSelect: boolean = false,
+        private readonly propertyTemplate: PropertyTemplate<T, D>,
+        private readonly isMultiSelect: boolean,
         updateHandler: RuleEngineUpdateHandler,
         private readonly ownerRelation: OwnerRelation,
     ) {
         super(updateHandler);
+        if (!isMultiSelect) {
+            this.singleSelection = new SingleSelection();
+        }
     }
 
     protected internallySyncUpdate(): void {
@@ -37,18 +47,14 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         throw new Error("Method not implemented.");
     }
 
-    protected getSpecialisedValidationResult() {
-        return [];
-    }
-
     getProperty(index: number): T | undefined {
-        return this.listProvider.getProperty(index);
+        return this.internalList[index]?.prop;
     }
 
     addProperty(property?: T, atIndex?: number, dontNotify?: boolean): T {
-        const prop = this.listProvider.addProperty(atIndex);
+        const prop = this.addPropertyInternal(atIndex);
         if (property) {
-            prop.importData(property.exportData());
+            property.transferData(prop);
         }
         this.ownerRelation.addOwnerDependency(this, prop);
         if (!dontNotify) {
@@ -71,13 +77,35 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     addPropertyData(data: (D | null)[], atIndex?: number): T[] {
         const result = data.map((d, i) => {
             const index = atIndex !== undefined ? atIndex + i : undefined;
-            const prop = this.listProvider.addProperty(index);
+            const prop = this.addPropertyInternal(index);
             prop.importData(d);
             this.ownerRelation.addOwnerDependency(this, prop);
             return prop;
         });
         this.needsAnUpdate();
         return result;
+    }
+
+    private addPropertyInternal(atIndex?: number): T {
+        const propId = `${this.id}_${this.nxtId}`;
+        this.nxtId++;
+        const idx = atIndex ?? this.internalList.length;
+        const index = new ListIndexImpl(idx, this.internalList);
+        const prop = this.propertyTemplate(propId, index, this);
+        if (atIndex !== undefined) {
+            this.internalList.splice(atIndex, 0, {prop, index});
+            this.adjustIndices(atIndex + 1);
+        } else {
+            this.internalList.push({prop, index});
+        }
+        return prop;
+    }
+
+    private adjustIndices(start?: number, end?: number) {
+        const to = end || this.internalList.length;
+        for (let i = start ?? 0; i < to; i++) {
+            this.internalList[i].index.idx = i;
+        }
     }
 
     updatePropertyData(data: D | null, atIndex: number): void {
@@ -93,117 +121,129 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
 
     swapProperties(indexA: number, indexB: number): void {
         if (indexA !== indexB) {
-            this.listProvider.moveProperty(indexA, indexB);
+            this.movePropertyInternal(indexA, indexB);
             if (indexA < indexB) {
-                this.listProvider.moveProperty(indexB - 1, indexA);
+                this.movePropertyInternal(indexB - 1, indexA);
             } else {
-                this.listProvider.moveProperty(indexB + 1, indexA);
+                this.movePropertyInternal(indexB + 1, indexA);
             }
-            const aIdx = this.selectedIndices.indexOf(indexA);
-            const bIdx = this.selectedIndices.indexOf(indexB);
-            if (aIdx >= 0) {
-                if (bIdx === -1) {
-                    this.selectedIndices.splice(aIdx, 1, indexB);
-                }
-            } else if (bIdx >= 0) {
-                this.selectedIndices.splice(bIdx, 1, indexA);
-            }
+            this.singleSelection?.swapProperties(indexA, indexB);
             this.needsAnUpdate();
         }
     }
 
     moveProperty(fromIndex: number, toIndex: number): void {
-        this.listProvider.moveProperty(fromIndex, toIndex);
-        const selectedIdx = this.selectedIndices.indexOf(fromIndex);
-        if (selectedIdx >= 0) {
-            this.selectedIndices.splice(fromIndex, 1, toIndex);
-        }
+        this.movePropertyInternal(fromIndex, toIndex);
+        this.singleSelection?.moveProperty(fromIndex, toIndex);
         this.needsAnUpdate();
     }
 
-    removePropertyAtIndex(index: number): T | undefined {
-        const idx = this.selectedIndices.indexOf(index);
-        if (idx >= 0) {
-            this.selectedIndices.splice(idx, 1);
-            for (let i = 0; i < this.selectedIndices.length; i++) {
-                const selected = this.selectedIndices[i];
-                if (selected > index) {
-                    this.selectedIndices.splice(i, 1, selected - 1);
+    private movePropertyInternal(from: number, to: number): void {
+        if (from !== to) {
+            const [prop] = this.internalList.splice(from, 1);
+            if (prop) {
+                this.internalList.splice(to, 0, prop);
+                if (from < to) {
+                    this.adjustIndices(from);
+                } else {
+                    this.adjustIndices(to);
                 }
-
             }
         }
-        const result = this.listProvider.removeByIndex(index);
-        if (result) {
+    }
+
+    removePropertyAtIndex(index: number): T | undefined {
+        this.singleSelection?.removePropertyAtIndex(index);
+        if (index >= 0 && index < this.internalList.length) {
+            const [removed] = this.internalList.splice(index, 1);
+            this.adjustIndices(index);
             this.needsAnUpdate();
+            return removed?.prop;
         }
-        return result;
     }
 
     removeProperty(property: T): boolean {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         return idx >= 0 && this.removePropertyAtIndex(idx) !== undefined;
     }
 
     selectPropertyAtIndex(index: number): void {
-        if (this.isMultiSelect) {
-            if (!this.selectedIndices.includes(index)) {
-                this.selectedIndices.push(index);
-                this.needsAnUpdate();
-            }
-        } else {
-            this.selectedIndices.splice(0, this.selectProperty.length, index);
-            this.needsAnUpdate();
+        if (this.internalList[index]) {
+            this.internalList[index].index.isSelected = true;
         }
+        if (this.singleSelection) {
+            this.singleSelection.idx = index;
+        }
+        this.needsAnUpdate();
     }
 
     selectProperty(property: T): void {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         this.selectPropertyAtIndex(idx);
     }
 
     isPropertySelectedAtIndex(index: number): boolean {
-        return this.selectedIndices.includes(index);
+        if (this.isMultiSelect) {
+            return this.internalList[index]?.index.isSelected ?? false;
+        } else {
+            return this.singleSelection?.idx === index
+        }
     }
 
     isPropertySelected(property: T): boolean {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
+        const idx = this.internalList.findIndex(el => el.prop.id === property.id);
         return this.isPropertySelectedAtIndex(idx);
     }
 
     getSelectedIndices(): number[] {
-        return [...this.selectedIndices];
+        if (this.isMultiSelect) {
+            return this.internalList.filter(p => p.index.isSelected).map(p => p.index.idx);
+        } else {
+            return this.singleSelection?.idx ? [this.singleSelection?.idx] : [];
+        }
     }
 
     getSelectedProperties(): { property: T; index: number }[] {
-        return this.selectedIndices.map(index =>
-            ({ index, property: this.getProperty(index)!})
-        );
+        if (this.isMultiSelect) {
+            return this.internalList.filter(p => p.index.isSelected).map(p => ({ property: p.prop, index: p.index.idx }));
+        } else {
+            const p = this.getSelectedProperty();
+            return p ? [p] : [];
+        }
     }
 
     getSelectedProperty(): { property: T; index: number } | undefined {
-        const firstSelected = this.selectedIndices[0];
-        if (firstSelected !== undefined) {
-            return ({ index: firstSelected, property: this.getProperty(firstSelected)!});
+        let prop: { prop: T; index: ListIndexImpl } | undefined;
+        if (this.isMultiSelect) {
+            prop = this.internalList.find(p => p.index.isSelected);
+        } else if (this.singleSelection?.idx !== undefined) {
+            prop = this.internalList[this.singleSelection.idx];
         }
+        return prop && { property: prop.prop, index: prop.index.idx };
     }
 
     unselectPropertyAtIndex(index: number): void {
-        const idxOfIndex = this.selectedIndices.findIndex(selected => selected === index);
-        if (idxOfIndex >= 0) {
-            this.selectedIndices.splice(idxOfIndex, 1);
-            this.needsAnUpdate();
+        this.internalList[index].index.isSelected = false;
+        if (this.singleSelection?.idx === index) {
+            this.singleSelection.idx = undefined;
+        }
+        this.needsAnUpdate();
+    }
+
+    unselectProperty(property: T | undefined): void {
+        if (property !== undefined) {
+            const idx = this.internalList.findIndex(el => el.prop.id === property.id);
+            this.unselectPropertyAtIndex(idx);
         }
     }
 
-    unselectProperty(property: T): void {
-        const idx = this.listProvider.getList().findIndex(el => el.id === property.id);
-        this.unselectPropertyAtIndex(idx);
-    }
-
     unselectAll(): void {
-        this.selectedIndices.splice(0, this.selectedIndices.length);
-        this.needsAnUpdate();
+        if (this.isMultiSelect) {
+            this.internalList.forEach(el => el.index.isSelected = false);
+            this.needsAnUpdate();
+        } else if (this.singleSelection?.idx) {
+            this.unselectPropertyAtIndex(this.singleSelection.idx);
+        }
     }
 
     isValid(): boolean {
@@ -222,27 +262,44 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         return false; // TODO
     }
 
+    // interface: SiblingAccess
+
+    getSibling(atIndex: number): T | undefined {
+        return this.getProperty(atIndex);
+    }
+
+    someSibling(predicate: (sibling: T, index?: number) => unknown) {
+        return this.internalList.some((el) => predicate(el.prop, el.index.idx));
+    }
+
+    everySibling(predicate: (sibling: T, index?: number) => unknown) {
+        return this.internalList.every((el, index) => predicate(el.prop, index));
+    }
+
+    reduceSiblings<R>(callbackfn: (previousValue: R, sibling: T, index?: number) => R, initialValue: R) {
+        return this.internalList.reduce<R>((res, el, i) => callbackfn(res, el.prop, i), initialValue);
+    }
+
+    filterSiblings(predicate: (sibling: T, index?: number) => unknown): T[] {
+        return this.internalList.filter((el, i) => predicate(el.prop, i)).map(el => el.prop);
+    }
 
     // ------------------
     // -- data relevant -
     // ------------------
 
     setToInitialState(): void {
-        if (!this.isReadOnly()) {
-            this.listProvider.clearList();
-        } else {
-            this.listProvider.getList().forEach(prop => prop.setToInitialState());
-        }
+        this.internalList = [];
     }
 
     exportData(): (D | null)[] {
-        return this.listProvider.getList().map(prop => prop.exportData());
+        return this.internalList.map(prop => prop.prop.exportData());
     }
 
     importData(data: (D | null)[]): void {
-        this.listProvider.clearList();
+        this.setToInitialState();
         data.forEach((entry: D | null) => {
-            const prop = this.listProvider.addProperty();
+            const prop = this.addPropertyInternal();
             prop.importData(entry);
         });
         this.needsAnUpdate();
@@ -255,4 +312,5 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     // ------------------
     // -- data relevant: end
     // ------------------
+    
 }

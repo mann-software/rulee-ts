@@ -1,4 +1,5 @@
 import { AbstractProperty } from "../properties/abstract-property";
+import { AbstractPropertyWithInternals } from "../properties/abstract-property-impl";
 import { ValidationResult } from "../validators/validation-result";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 
@@ -15,7 +16,7 @@ export interface RuleEngineUpdateHandler {
      * need to be updated
      * @param property to update
      */
-    updateValue(property: AbstractProperty): Promise<void>;
+    updateValue(property: AbstractProperty): Promise<void> | undefined;
     /**
      * Call this to invalidate the last validation result for the given Validator
      * @param validators validators to invalidate

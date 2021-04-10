@@ -10,9 +10,10 @@ import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
 import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
+import { SinglePropertyValidator } from "../validators/single-property-validator";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
-    internallyUpdate(): Promise<void>;
+    internallyUpdate(): Promise<void> | void;
     hasBeenUpdated(): void;
     errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
@@ -42,6 +43,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     private readonly valueChangeListeners: ValueChangeListener[] = [];
 
+    protected singlePropertyValidators: SinglePropertyValidator<any>[] = [];
+
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
 
@@ -70,15 +73,15 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
      * Awaits the async update. If needed, an update is triggered
      * @param thenFcn applied after update has finished
      */
-    protected awaitAsyncUpdate(): Promise<void> {
+    protected awaitAsyncUpdate(): Promise<void> | undefined {
         if (this.needsToRecompute !== false && this.automaticallyUpdate) {
             return this.updateHandler.updateValue(this);
         } else {
-            return this.updatedPromise();
+            return this.updatingPromise();
         }
     }
 
-    private updatedPromise() {
+    private updatingPromise(): Promise<void> | undefined {
         if (this.currentRecomputing) {
             return new Promise<void>((resolve, reject) => {
                 const ul = { resolve, reject } as UpdatedListener;
@@ -88,8 +91,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                     this.updatedListeners.push(ul);
                 }
             });
-        } else {
-            return Promise.resolve();
         }
     }
 
@@ -101,8 +102,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     /**
      * Checks if an update is needed and triggers the update if it is the case.
      */
-    protected checkAndTriggerUpdate(): void {
-        if (this.needsToRecompute !== false && this.automaticallyUpdate) {
+    protected syncUpdateIfNeeded(): void {
+        if (!this.isAsynchronous() && this.needsToRecompute !== false && this.automaticallyUpdate) {
             void this.updateHandler.updateValue(this);
         }
     }
@@ -113,7 +114,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 onTriggered: () => {
                     if (this.needsToRecompute !== false) {
                         this.manuallyTriggered = true;
-                        return this.updateHandler.updateValue(this);
+                        return this.updateHandler.updateValue(this) ?? Promise.resolve();
                     } else {
                         return Promise.resolve();
                     }
@@ -125,9 +126,9 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     // -----------------------------------------------------------------------------------
 
-    internallyUpdate(): Promise<void> {
+    internallyUpdate(): Promise<void> | void {
         if (this.needsToRecompute === false || (!this.automaticallyUpdate && !this.manuallyTriggered)) {
-            return this.updatedPromise();
+            return this.updatingPromise();
         }
         this.needsToRecompute = false;
         delete this.manuallyTriggered;
@@ -139,7 +140,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             }
         } else {
             this.internallySyncUpdate();
-            return Promise.resolve();
         }
     }
 
@@ -156,7 +156,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
                 }
             case 'skip' as BackpressureType:
             default:
-                return this.updatedPromise();
+                return this.updatingPromise() ?? Promise.resolve();
         }
     }
 
@@ -172,7 +172,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private handleAsyncUpdate(recomputingCount: number, wasAlreadyProcessing: boolean): Promise<void> {
         if (recomputingCount !== this.recomputingCount) {
             Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount} is skipped (${this.recomputingCount})`);
-            return this.updatedPromise();
+            return this.updatingPromise() ?? Promise.resolve();
         }
         Logger.trace(() => `Property.handleAsyncUpdate ${this.id}: ${recomputingCount}`);
         const update = this.internallyAsyncUpdate<unknown>();
@@ -192,17 +192,17 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         if (this.isProcessing() && !wasAlreadyProcessing) {
             this.tellValueChangeListeners(listener => listener.startsAsyncUpdate?.());
         }
-        return this.updatedPromise();
+        return this.updatingPromise() ?? Promise.resolve();
     }
     
     // ---------------------------------------------------------------------------------------
     // -- handing internallyUpdate: END ------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    needsAnUpdate(notifyOthers?: boolean): void {
+    needsAnUpdate(notifyOthers?: boolean, needsToRecompute?: boolean, needsToRevalidate?: boolean): void {
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
-        this.needsToRecompute = true;
-        this.needsToRevalidate = true;
+        this.needsToRecompute = needsToRecompute ?? true;
+        this.needsToRevalidate = needsToRevalidate ?? true;
         if (this.validators) {
             this.updateHandler.invalidateValidationResults(this.validators);
         }
@@ -242,11 +242,20 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // ---------------------------------------------------------------------------------------
     // -- handing internallyValidate  --------------------------------------------------------
     // ---------------------------------------------------------------------------------------
-    
-    /**
-     * Used for specialised synchronous Validations: ScalarValidators
-     */
-    protected abstract getSpecialisedValidationResult(): ValidationMessage[];
+
+    addSinglePropertyValidator(validator: SinglePropertyValidator<any>) {
+        this.singlePropertyValidators.push(validator);
+    }
+
+    protected getSinglePropertyValidationResults() {
+        return this.singlePropertyValidators.reduce((res, sv) => {
+            const msg = sv(this);
+            if (msg) {
+                res.push(msg);
+            }
+            return res;
+        }, [] as ValidationMessage[]);
+    }
 
     addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>) {
         if (!this.validators) {
@@ -258,8 +267,11 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     async validate(): Promise<ValidationMessage[]> {
         if (this.needsToRevalidate !== false) {
             this.needsToRevalidate = false;
-            await this.awaitAsyncUpdate();
-            this.validationMessages = this.getSpecialisedValidationResult();
+            const updated = this.awaitAsyncUpdate();
+            if (updated) {
+                await updated;
+            }
+            this.validationMessages = this.getSinglePropertyValidationResults();
             if (this.validators) {
                 const results = await Promise.all(this.updateHandler.validate(this.validators));
                 results.forEach(result => {

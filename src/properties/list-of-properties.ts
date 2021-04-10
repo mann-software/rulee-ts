@@ -4,7 +4,7 @@ import { AbstractDataProperty } from "./abstract-data-property";
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
  */
-export interface ListOfProperties<T extends AbstractProperty, D> extends AbstractProperty, AbstractDataProperty<(D | null)[]> {
+export interface ListOfProperties<T extends AbstractProperty, D> extends AbstractDataProperty<(D | null)[]> {
 
     /**
      * Number of properties in list
@@ -100,7 +100,7 @@ export interface ListOfProperties<T extends AbstractProperty, D> extends Abstrac
     getSelectedProperty(): { property: T; index: number } | undefined;
 
     unselectPropertyAtIndex(index: number): void;
-    unselectProperty(property: T): void;
+    unselectProperty(property: T | undefined): void;
     unselectAll(): void;
 
 }

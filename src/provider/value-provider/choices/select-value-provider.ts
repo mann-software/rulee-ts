@@ -1,13 +1,13 @@
 import { Choice } from "../../../properties/choice";
-import { PropertyScalar } from "../../../properties/property-scalar";
+import { PropertyArrayListReadonly } from "../../../properties/property-array-list";
 import { ValueProvider } from "../value-provider";
 
-export class SelectValueProvider<T> implements ValueProvider<T> {
+export class SelectValueProvider<T, S extends PropertyArrayListReadonly<Choice<T>>> implements ValueProvider<T> {
 
     private value: T | null;
 
     constructor(
-        private readonly choicesSource: PropertyScalar<Choice<T>[]>,
+        private readonly choicesSource: S,
         private readonly emptyChoice?: Choice<T>
     ) {
         this.value = emptyChoice?.value ?? null;
@@ -22,11 +22,11 @@ export class SelectValueProvider<T> implements ValueProvider<T> {
     }
 
     getChoices() {
-        const choices = this.choicesSource.getValue();
+        const choices = this.choicesSource.getElements();
         if (this.emptyChoice) {
-            return choices ? [this.emptyChoice, ...choices] : [this.emptyChoice];
+            return choices.length ? [this.emptyChoice, ...choices] : [this.emptyChoice];
         }
-        return choices ?? [];
+        return choices;
     }
 
     isAsynchronous(): boolean {

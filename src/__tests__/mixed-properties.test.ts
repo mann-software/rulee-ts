@@ -9,6 +9,58 @@ beforeEach(() => {
     [builder] = builderAndRuleEngineFactory();
 });
 
+test('array list with sum property', () => {
+    const hint42 = {
+        text: 'Greater 42',
+        type: ValidationTypes.Hint
+    };
+
+    const arrayList = builder.list.crud.sync('LIST')<number>();
+    const sumProp = builder.scalar.derived.sync('SUM', arrayList)(C.number.default, {
+        derive: (list) => list.getElements().reduce((res, cur) => res + cur, 0)
+    });
+    builder.scalar.bind(sumProp)
+        .defineVisibility(arrayList)((sum, list) => sum.getNonNullValue() > arrayList.length)
+        .addValidator(sum => {
+            if (sum.getNonNullValue() > 42) {
+                return hint42;
+            }
+        })
+
+    expect(sumProp.getValue()).toBe(0);
+    expect(sumProp.isVisible()).toBe(false);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([]);
+
+    arrayList.addElement(7);
+
+    expect(sumProp.getValue()).toBe(7);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([]);
+    
+    arrayList.addElement(40);
+
+    expect(sumProp.getValue()).toBe(47);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([hint42]);
+
+    arrayList.removeElement(0);
+
+    expect(sumProp.getValue()).toBe(40);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([]);
+
+    arrayList.updateElement(43, 0);
+
+    expect(sumProp.getValue()).toBe(43);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([hint42]);
+});
+
 test('list of group properties with sum-property', () => {
     const template = builder.group.template((id, index) => {
         const propA = builder.scalar.numberProperty(id('PROP_A'));
@@ -17,7 +69,7 @@ test('list of group properties with sum-property', () => {
         return { propA, propB }
     });
     const propList = builder.list.create('PROP_LIST', template);
-    const sumProp = builder.scalar.derived.sync('SUM', C.number.default, propList)({
+    const sumProp = builder.scalar.derived.sync('SUM', propList)(C.number.default, {
         derive: (propList) => propList.list.reduce((res, item) => res + item.properties.propA.getNonNullValue(), 0)
     });
 
@@ -40,7 +92,7 @@ test('list of lists', async () => {
     const innerTemplate = builder.list.template('INNER_LIST', (listBuilder, id) => {
         return listBuilder.create(id, builder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
             const prop = scalarBuilder.booleanProperty(id);
-            scalarBuilder.bind(prop).addScalarValidator(
+            scalarBuilder.bind(prop).addValidator(
                 (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
                     text: 'At most one element is allowed to be true',
                     type: ValidationTypes.Error
@@ -54,7 +106,7 @@ test('list of lists', async () => {
     outerList.addProperties(2);
     expect(outerList.exportData()).toStrictEqual([[], []]);
 
-    const atLeastOneTrue = builder.scalar.derived.sync('AT_LEAST_ONE_TRUE', C.boolean.default, outerList)({
+    const atLeastOneTrue = builder.scalar.derived.sync('AT_LEAST_ONE_TRUE', outerList)(C.boolean.default, {
         derive: (outerList) => outerList.list.some(innerList => innerList.list.some(element => element.getNonNullValue()))
     });
     expect(atLeastOneTrue.getValue()).toBe(false);

@@ -12,7 +12,7 @@ import { ValidationTypes } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { PropertyGroup } from "../properties/group-of-properties";
-import { Module } from "./modules/module";
+import { RuleSet } from "./rule-set/rule-set";
 
 export class RuleEngine implements RuleEngineUpdateHandler {
 
@@ -38,12 +38,12 @@ export class RuleEngine implements RuleEngineUpdateHandler {
     }
 
     /**
-     * Creates a module that is indended to bundle a larger number of properties.
+     * Creates a rule set that is indended to bundle a larger number of properties.
      * The properties are initialized lazy. This helps the boot time of your app by
      * loading larger parts as soon as they are needed on a page.
      */
-    defineModule<S extends PropertyGroup>(initFcn: (builder: Builder) => S): Module<S> {
-        return new Module(initFcn, this.builder);
+    defineRuleSet<S extends PropertyGroup>(initFcn: (builder: Builder) => S): RuleSet<S> {
+        return new RuleSet(initFcn, this.builder);
     }
 
     /**
@@ -56,7 +56,7 @@ export class RuleEngine implements RuleEngineUpdateHandler {
 
     /**
      * Returns the property for the given id. However, the preferred way is to 
-     * create a module and access the property via Module.getProperties(). This
+     * create a module and access the property via RuleSet.getProperties(). This
      * ensures that the property exists.
      * @param id of the property
      */
@@ -155,16 +155,32 @@ export class RuleEngine implements RuleEngineUpdateHandler {
         }, 0);
     }
 
-    async updateValue(property: AbstractProperty): Promise<void> {
+    updateValue(property: AbstractProperty): Promise<void> | undefined {
+        const asyncUpdates = this.dependencyGraph.getAsyncDependencies(property.id)
+            ?.map(asyncDep => this.updateValue(asyncDep));
+        if (asyncUpdates?.length && asyncUpdates.some(update => !!update)) {
+            return Promise.all(asyncUpdates).then(() => 
+                this.updateValueInternal(property as AbstractPropertyWithInternals<unknown>)
+            ).catch((err) => {
+                (property as AbstractPropertyWithInternals<unknown>).errorWhileUpdating(err);
+            });
+        } else {
+            return this.updateValueInternal(property as AbstractPropertyWithInternals<unknown>);
+        }
+    }
+    
+    private updateValueInternal(property: AbstractPropertyWithInternals<unknown>): Promise<void> | undefined {
         try {
-            const asyncDeps = this.dependencyGraph.getAsyncDependencies(property.id);
-            if (asyncDeps?.length) {
-                await Promise.all(asyncDeps.map(asyncDep => this.updateValue(asyncDep)));
+            const updatePromise = property.internallyUpdate();
+            if (updatePromise) {
+                return updatePromise.then(() => {
+                    this.hasBeenUpdated(property);
+                }).catch(err => property.errorWhileUpdating(err));
+            } else {
+                this.hasBeenUpdated(property);
             }
-            await (property as AbstractPropertyWithInternals<unknown>).internallyUpdate();
-            this.hasBeenUpdated(property as AbstractPropertyWithInternals<unknown>);
         } catch (err) {
-            (property as AbstractPropertyWithInternals<unknown>).errorWhileUpdating(err);
+            property.errorWhileUpdating(err);
         }
     }
 

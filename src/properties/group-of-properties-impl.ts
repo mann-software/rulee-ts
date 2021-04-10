@@ -26,10 +26,6 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
         throw new Error("Method not implemented.");
     }
 
-    protected getSpecialisedValidationResult() {
-        return [];
-    }
-
     isValid(): boolean {
         return super.isValid() && Object.keys(this.properties).every(k => this.properties[k].isValid());
     }

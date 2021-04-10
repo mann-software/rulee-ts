@@ -4,12 +4,12 @@ import { ValueConverter } from "../value-converter/value-converter";
 import { AttributeId } from "../attributes/attribute-id";
 import { Attribute } from "../attributes/attribute";
 import { PropertyId } from "./property-id";
-import { ScalarValidator } from "../validators/scalar-validator";
+import { SinglePropertyValidator } from "../validators/single-property-validator";
 import { ValidationMessage } from "../validators/validation-message";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { Logger } from "../util/logger/logger";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
-import { EmptyValueFcn } from "../provider/value-provider/empty-value-fcn";
+import { EmptyValueFcn } from "../provider/empty-value-fcn";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { assertThat } from "../util/assertions/assertions";
 
@@ -21,8 +21,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     private placeholder?: string;
     private infoText?: string;
     private label?: string;
-
-    protected scalarValidators: ScalarValidator<T>[] = [];
     
     protected attributeMap?: Map<AttributeId<unknown>, Attribute<any>>;
     protected visible?: Attribute<boolean>;
@@ -78,23 +76,9 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return this.initialValue ?? null;
     }
 
-    protected getSpecialisedValidationResult() {
-        return this.scalarValidators.reduce((res, sv) => {
-            const msg = sv(this);
-            if (msg) {
-                res.push(msg);
-            }
-            return res;
-        }, [] as ValidationMessage[]);
-    }
-
     // ------------------
     // -- bindings (RuleBindingPropertyScalar)
     // ------------------
-
-    addScalarValidator(validator: ScalarValidator<T>) {
-        this.scalarValidators.push(validator);
-    }
 
     defineInitialValue(value: T | null) {
         this.initialValue = value;
@@ -150,9 +134,7 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     }
 
     getValue(): T | null {
-        if (!this.isAsynchronous()) {
-            this.checkAndTriggerUpdate();
-        }
+        this.syncUpdateIfNeeded();
         return this.getCurrentValue();
     }
 

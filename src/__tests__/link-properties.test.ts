@@ -14,7 +14,7 @@ beforeEach(() => {
     [builder, ruleEngine] = builderAndRuleEngineFactory();
     propA = builder.scalar.stringProperty('PROP_A');
     propB = builder.scalar.stringProperty('PROP_B');
-    propC = builder.scalar.derived.sync('PROP_C', C.number.default, propA, propB)({
+    propC = builder.scalar.derived.sync('PROP_C', propA, propB)(C.number.default, {
         derive: (propA, propB) => propA.getNonNullValue().length  + propB.getNonNullValue().length
     });
 });

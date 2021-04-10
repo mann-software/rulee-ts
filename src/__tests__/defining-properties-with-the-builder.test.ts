@@ -1,6 +1,5 @@
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { C } from "../value-converter/common-value-converters";
-import { EmptyValueFcns } from "../provider/value-provider/empty-value-fcn";
 
 test('define number properties', () => {
     const [builder] = builderAndRuleEngineFactory();
