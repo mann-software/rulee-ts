@@ -18,14 +18,6 @@ export interface RuleEngineUpdateHandler {
      */
     updateValue(property: AbstractProperty): Promise<void> | undefined;
     /**
-     * Notify other properties that depend on the value of the updated property.
-     *
-     * Note: Here all dependencies except a value dependency are relevant. E.g. visibility, validation, etc.
-     *
-     * @param property updated property
-     */
-    hasBeenUpdated(property: AbstractPropertyWithInternals<unknown>): void;
-    /**
      * Call this to invalidate the last validation result for the given Validator
      * @param validators validators to invalidate
      */

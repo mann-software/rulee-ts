@@ -199,10 +199,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyUpdate: END ------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    needsAnUpdate(notifyOthers?: boolean): void {
+    needsAnUpdate(notifyOthers?: boolean, needsToRecompute?: boolean, needsToRevalidate?: boolean): void {
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
-        this.needsToRecompute = true;
-        this.needsToRevalidate = true;
+        this.needsToRecompute = needsToRecompute ?? true;
+        this.needsToRevalidate = needsToRevalidate ?? true;
         if (this.validators) {
             this.updateHandler.invalidateValidationResults(this.validators);
         }
