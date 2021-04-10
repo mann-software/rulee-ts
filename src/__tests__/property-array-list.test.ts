@@ -1,7 +1,5 @@
-import { PropertyArrayListCrudAsync } from "../properties/property-array-list";
-import { PropertyScalar } from "../properties/property-scalar";
-import { builderAndRuleEngineFactory } from "./utils/test-utils";
-import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
+import { builderAndRuleEngineFactory, setupAsyncCrudList } from "./utils/test-utils";
+import { valueAfterTime } from "./utils/timing-utils";
 
 test('load a list asynchronously and filter the list synchronously', async () => {
     const [builder] = builderAndRuleEngineFactory();
@@ -129,37 +127,6 @@ test('crud list test with resource provider', () => {
     id.setValue('a');
     expect(list.getElements()).toStrictEqual([1, 2, 3, 4]);
 });
-
-function setupAsyncCrudList(): [PropertyArrayListCrudAsync<number>, PropertyScalar<string>] {
-    const resources: Record<string, number[]> = {
-        'a': [1, 2, 3],
-        'b': [5]
-    };
-    const [builder] = builderAndRuleEngineFactory();
-
-    const id = builder.scalar.stringProperty('ID', { initialValue: 'a' });
-    const list = builder.list.crud.async('LIST', id)<number>({
-        getElements: (id) => valueAfterTime(resources[id.getNonNullValue()].slice() ?? [], 200),
-        addElement: (data, index) => executeAfterTime(() => {
-            if (index !== undefined) {
-                resources[id.getNonNullValue()].splice(index, 0, data);
-            } else {
-                resources[id.getNonNullValue()].push(data);
-            }
-        }, 200),
-        removeElement: (index) => executeAfterTime(() => {
-            if (index % 2 === 1) {
-                throw new Error("removeElement: sync error");
-            } 
-            resources[id.getNonNullValue()].splice(index, 1);
-        }, 200),
-        updateElement: (data, index) => executeAfterTime(() => {
-            resources[id.getNonNullValue()].splice(index, 1, data);
-        }, 200),
-    });
-
-    return [list, id];
-}
 
 test('async crud list test - base', async () => {
     const [list, id] = setupAsyncCrudList();

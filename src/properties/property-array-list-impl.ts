@@ -6,16 +6,23 @@ import { AddOperation } from "./lists/operations/add-operation";
 import { ListOperation } from "./lists/operations/operation";
 import { RemoveOperation } from "./lists/operations/remove-operation";
 import { UpdateOperation } from "./lists/operations/update-operation";
-import { PropertyArrayListCrud, PropertyArrayListCrudAsync } from "./property-array-list";
+import { PropertyArrayListCrud, PropertyArrayListCrudAsync, PropertyArrayListReadonly } from "./property-array-list";
 import { PropertyId } from "./property-id";
 
-export abstract class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> {
+export abstract class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]> implements PropertyArrayListReadonly<T> {
     
     protected workingList: T[] = [];
     
     setToInitialState(): void {
         this.needsAnUpdate(false);
     }
+    
+    get length() {
+        return this.getElements().length;
+    }
+    
+    abstract getElements(): T[];
+    abstract getElement(atIndex: number): T | undefined;
 
     exportData(): T[] | null {
         return this.workingList;
@@ -59,17 +66,17 @@ export class PropertyArrayListSyncImpl<T> extends PropertyArrayListImpl<T> imple
 
     addElement(el: T, index?: number): void {
         this.listProvider.addProperty(el, index);
-        this.updateHandler.hasBeenUpdated(this);
+        this.needsAnUpdate(true, false, true);
     }
 
     updateElement(el: T, index: number): void {
         this.listProvider.updateProperty(el, index);
-        this.updateHandler.hasBeenUpdated(this);
+        this.needsAnUpdate(true, false, true);
     }
 
     removeElement(index: number): void {
         this.listProvider.removeProperty(index);
-        this.updateHandler.hasBeenUpdated(this);
+        this.needsAnUpdate(true, false, true);
     }
     
     protected internallySyncUpdate(): void {
@@ -163,7 +170,7 @@ export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> impl
             } else {
                 operation.apply(this.workingList); // maybe add strategies later (e.g. only apply after sync)
             }
-            this.updateHandler.hasBeenUpdated(this);
+            super.needsAnUpdate(true, false, true);
         } catch (err) {
             delete this.awaitUpdateBeforeApply;
             this.errorWhileUpdating(err);
@@ -195,8 +202,8 @@ export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> impl
             }
             operation?.undo(this.workingList);
             this.operationPipe = [];
+            super.needsAnUpdate(true, false, true);
             this.errorWhileUpdating(err);
-            this.updateHandler.hasBeenUpdated(this);
         }
     }
     

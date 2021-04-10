@@ -9,6 +9,58 @@ beforeEach(() => {
     [builder] = builderAndRuleEngineFactory();
 });
 
+test('array list with sum property', () => {
+    const hint42 = {
+        text: 'Greater 42',
+        type: ValidationTypes.Hint
+    };
+
+    const arrayList = builder.list.crud.sync('LIST')<number>();
+    const sumProp = builder.scalar.derived.sync('SUM', arrayList)(C.number.default, {
+        derive: (list) => list.getElements().reduce((res, cur) => res + cur, 0)
+    });
+    builder.scalar.bind(sumProp)
+        .defineVisibility(arrayList)((sum, list) => sum.getNonNullValue() > arrayList.length)
+        .addValidator(sum => {
+            if (sum.getNonNullValue() > 42) {
+                return hint42;
+            }
+        })
+
+    expect(sumProp.getValue()).toBe(0);
+    expect(sumProp.isVisible()).toBe(false);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([]);
+
+    arrayList.addElement(7);
+
+    expect(sumProp.getValue()).toBe(7);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([]);
+    
+    arrayList.addElement(40);
+
+    expect(sumProp.getValue()).toBe(47);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([hint42]);
+
+    arrayList.removeElement(0);
+
+    expect(sumProp.getValue()).toBe(40);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([]);
+
+    arrayList.updateElement(43, 0);
+
+    expect(sumProp.getValue()).toBe(43);
+    expect(sumProp.isVisible()).toBe(true);
+    void sumProp.validate();
+    expect(sumProp.getValidationMessages()).toStrictEqual([hint42]);
+});
+
 test('list of group properties with sum-property', () => {
     const template = builder.group.template((id, index) => {
         const propA = builder.scalar.numberProperty(id('PROP_A'));
