@@ -41,7 +41,7 @@ test('list of property: add existing property', () => {
     expect(propList.exportData()).toStrictEqual([]);
 });
 
-test('list of property: add properties and select property', () => {
+test('list of property: add, remove, remove properties with single selection', () => {
     const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
         const itemProp = scalarBuilder.stringProperty(id);
         scalarBuilder.bind(itemProp)
@@ -65,6 +65,27 @@ test('list of property: add properties and select property', () => {
     expect(propList.getProperty(1)?.isRequired()).toBe(false);
     expect(propList.isPropertySelectedAtIndex(0)).toBe(true);
     expect(propList.isPropertySelectedAtIndex(1)).toBe(false);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(0), index: 0 }]);
+    propList.swapProperties(0, 1);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(1), index: 1 }]);
+    propList.addPropertyData(['789']);
+    propList.moveProperty(2, 1);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(2), index: 2 }]);
+    propList.moveProperty(0, 2);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(1), index: 1 }]);
+    propList.moveProperty(1, 0);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(0), index: 0 }]);
+    propList.selectPropertyAtIndex(2);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(2), index: 2 }]);
+
+    propList.removePropertyAtIndex(0);
+    expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(1), index: 1 }]);
+    propList.removePropertyAtIndex(1);
+    expect(propList.getSelectedProperties()).toStrictEqual([]);
+
+    propList.unselectProperty(propList.getProperty(0));
+    expect(propList.getSelectedProperties()).toStrictEqual([]);
+    propList.selectPropertyAtIndex(0);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(0), index: 0 }]);
 
     propList.unselectProperty(propList.getProperty(0));
