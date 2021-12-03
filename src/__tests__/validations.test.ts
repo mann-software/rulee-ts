@@ -1,4 +1,4 @@
-import { builderAndRuleEngineFactory, setupAsyncCrudList } from "./utils/test-utils";
+import { builderAndRuleEngineFactory, emptyButRequiredMessageTestUtil, setupAsyncCrudList } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
 import { ValidationMessage } from "../validators/validation-message";
@@ -26,6 +26,30 @@ test('scalar validation test', async () => {
     prop.setValue('Some Text');
     msgs = await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([]);
+    expect(msgs).toStrictEqual([]);
+});
+
+test('required if visible validation test', async () => {
+    const propVis = builder.scalar.booleanProperty('PROP_VIS', {
+        initialValue: true
+    });
+
+    const prop = builder.scalar.stringProperty('PROP');
+    builder.scalar.bind(prop)
+        .setRequiredIfVisible(true)
+        .defineVisibility(propVis)((self, propVis) => propVis.getNonNullValue());
+
+    prop.setValue('');
+    let msgs = await prop.validate();
+    expect(msgs).toStrictEqual([emptyButRequiredMessageTestUtil]);
+
+    prop.setValue('Not empty anymore');
+    msgs = await prop.validate();
+    expect(msgs).toStrictEqual([]);
+
+    prop.setValue('');
+    propVis.setValue(false);
+    msgs = await prop.validate();
     expect(msgs).toStrictEqual([]);
 });
 

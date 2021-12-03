@@ -16,7 +16,8 @@ test('static property select WITHOUT default choice and WITHOUT empty choice', (
 
     expect(propA.getValue()).toBe('a');
     expect(propA.getDisplayValue()).toBe('A');
-
+    expect(propA.isEmpty()).toBe(false);
+    
     propA.setValue('a');
     expect(propA.getValue()).toBe('a');
     expect(propA.getDisplayValue()).toBe('A');
@@ -48,11 +49,13 @@ test('static property select WITHOUT default choice and WITH empty choice', () =
 
     expect(propB.getValue()).toBe(null);
     expect(propB.getDisplayValue()).toBe('...');
+    expect(propB.isEmpty()).toBe(true);
 
     propB.setValue(1);
     expect(propB.getValue()).toBe(1);
     expect(propB.getDisplayValue()).toBe('A');
-
+    expect(propB.isEmpty()).toBe(false);
+    
     propB.setValue(2);
     expect(propB.getValue()).toBe(2);
     expect(propB.getDisplayValue()).toBe('B');
@@ -69,6 +72,7 @@ test('static property select WITHOUT default choice and WITHOUT ANY choice', () 
     expect(propC.getChoices()).toStrictEqual([]);
     expect(propC.getValue()).toBe(null);
     expect(propC.getDisplayValue()).toBe('');
+    expect(propC.isEmpty()).toBe(true);
 });
 
 test('static property select WITH default choice and WITHOUT ANY choice', () => {
@@ -81,6 +85,7 @@ test('static property select WITH default choice and WITHOUT ANY choice', () => 
 
     expect(propD.getValue()).toBe(null);
     expect(propD.getDisplayValue()).toBe('...');
+    expect(propD.isEmpty()).toBe(true);
 });
 
 test('derived property select', () => {
@@ -101,6 +106,8 @@ test('derived property select', () => {
 
     expect(propE.getValue()).toBe(false);
     expect(propF.getValue()).toBe(null);
+    expect(propF.getDisplayValue()).toBe('Undetermined');
+    expect(propF.isEmpty()).toBe(true);
     expect(propF.getChoices()).toStrictEqual([
         { value: null, displayValue: 'Undetermined' },
         { value: false, displayValue: 'No' }
@@ -109,6 +116,8 @@ test('derived property select', () => {
     propF.setValue(true);
     expect(propF.getValue()).toBe(true);
     expect(propF.getDisplayValue()).toBe('');
+    // the value doesnt belong to a choice, though, the value is not the empty value
+    expect(propF.isEmpty()).toBe(false);
     expect(propF.getChoices()).toStrictEqual([
         { value: null, displayValue: 'Undetermined' },
         { value: false, displayValue: 'No' }
@@ -116,6 +125,7 @@ test('derived property select', () => {
 
     propE.setValue(true);
     expect(propF.getDisplayValue()).toBe('Yes');
+    expect(propF.isEmpty()).toBe(false);
     expect(propF.getChoices()).toStrictEqual([
         { value: null, displayValue: 'Undetermined' },
         { value: false, displayValue: 'No' },

@@ -7,12 +7,12 @@ import { PropertyArrayListCrudAsync } from '../../properties/property-array-list
 import { PropertyScalar } from '../../properties/property-scalar';
 import { executeAfterTime, valueAfterTime } from './timing-utils';
 
-export const emptyButRequiredMessage: ValidationMessage = {
+export const emptyButRequiredMessageTestUtil: ValidationMessage = {
     type: ValidationTypes.Error,
     text: 'Must not be empty'
 };
 
-const defaultOptions: BuilderOptions = { emptyButRequiredMessage };
+const defaultOptions: BuilderOptions = { emptyButRequiredMessage: emptyButRequiredMessageTestUtil };
 
 export const builderAndRuleEngineFactory: (options?: Partial<BuilderOptions>) => [Builder, RuleEngine] = (options?: Partial<BuilderOptions>) => {
     const mergedOptions = !options ? defaultOptions : { ...defaultOptions, ...options };
