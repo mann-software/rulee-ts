@@ -39,7 +39,7 @@ export class Builder {
     }
     
     private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>;
-    private readonly defaultEmptyChoice: Choice<any> | undefined;
+    private readonly defaultEmptyChoiceDisplayValue: string | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
 
     readonly scalar: PropertyScalarBuilder;
@@ -62,10 +62,7 @@ export class Builder {
             debounceTime: 40
         });
         if (options.defaultEmptyChoiceDisplayValue) {
-            this.defaultEmptyChoice = {
-                value: null,
-                displayValue: options.defaultEmptyChoiceDisplayValue
-            };
+            this.defaultEmptyChoiceDisplayValue = options.defaultEmptyChoiceDisplayValue;
         }
         this.list =  new ListBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) =>
@@ -82,7 +79,7 @@ export class Builder {
             <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyConfig & PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
                 this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, propertyConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
-            this.defaultEmptyChoice,
+            this.defaultEmptyChoiceDisplayValue,
             this.list,
         );
     }

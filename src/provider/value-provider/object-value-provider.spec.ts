@@ -1,5 +1,4 @@
 import { ObjectValueProvider } from './object-value-provider';
-import { mock } from 'jest-mock-extended';
 
 interface ComplexType {
     a?: {

@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/no-unsafe-argument */
+/* Allow to log any time like console.log */
 export class LoggerInstance {
     
     static readonly TRACE = 1;

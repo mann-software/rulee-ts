@@ -48,11 +48,9 @@ export class PropertyScalarBuilder {
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
         private readonly bindPropertyScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
-        private readonly defaultEmptyChoice: Choice<any> | undefined,
+        private readonly defaultEmptyChoiceDisplayValue: string | undefined,
         private readonly listBuilder: ListBuilder,
-    ) {
-        assertThat(() => !defaultEmptyChoice || defaultEmptyChoice.value === null, () => 'value of defaultEmptyChoice must be null to match every Choice<T>')
-    }
+    ) { }
 
     template<D>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<D>>) => PropertyScalar<D>): PropertyTemplate<PropertyScalar<D>, D> {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
@@ -125,7 +123,7 @@ export class PropertyScalarBuilder {
 
     select = {
         static: <T>(id: PropertyId, choices: Choice<T>[], config?: PropertyScalarValueConfig<T> & { emptyChoice?: Choice<T> }) => {
-            const emptyChoice = config?.emptyChoice ?? this.defaultEmptyChoice;
+            const emptyChoice = this.defaultEmptyChoiceDisplayValue !== undefined ? { value: null, displayValue: this.defaultEmptyChoiceDisplayValue } : config?.emptyChoice;
             const provider = new ChoiceValueProvider<T>(choices, emptyChoice);
             const converter = new SelectValueConverter<T>(choices, emptyChoice);
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
@@ -157,12 +155,12 @@ export class PropertyScalarBuilder {
         },
 
         withPropertySource: <T, S extends PropertyArrayListReadonly<Choice<T>>>(id: PropertyId, choicesSource: S, config?: PropertyScalarValueConfig<T> & { emptyChoice?: Choice<T> }) => {
-            const emptyChoice = config?.emptyChoice ?? this.defaultEmptyChoice;
+            const emptyChoice = this.defaultEmptyChoiceDisplayValue !== undefined ? { value: null, displayValue: this.defaultEmptyChoiceDisplayValue } : config?.emptyChoice;
             const provider = new SelectValueProvider<T, S>(choicesSource, emptyChoice);
             const converter = new SelectValueConverter<T>(() => choicesSource.getElements(), emptyChoice);
             const emptyValueFcn = emptyChoice ? EmptyValueFcns.choiceEmptyValueFcn(emptyChoice) : EmptyValueFcns.defaultEmptyValueFcn;
             const prop = this.propertyScalar(id, provider, emptyValueFcn, converter, [choicesSource], config, [choicesSource]);
-            prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : choicesSource.getElement(0)?.value);
+            prop.defineInitialValue(emptyChoice?.value !== undefined ? emptyChoice?.value : (choicesSource.getElement(0)?.value ?? null));
             prop.setToInitialState();
             return upgradeAsPropertyWithChoices(prop, () => provider.getChoices());
         }
