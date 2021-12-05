@@ -4,8 +4,6 @@ import { ValueConverter } from "../value-converter/value-converter";
 import { AttributeId } from "../attributes/attribute-id";
 import { Attribute } from "../attributes/attribute";
 import { PropertyId } from "./property-id";
-import { SinglePropertyValidator } from "../validators/single-property-validator";
-import { ValidationMessage } from "../validators/validation-message";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { Logger } from "../util/logger/logger";
 import { AbstractPropertyImpl } from "./abstract-property-impl";
@@ -149,6 +147,9 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
                 });
             } else {
                 this.needsAnUpdate();
+                if (this.hasValueChangeListeners()) {
+                    this.syncUpdateIfNeeded();
+                }
             }
         }
     }

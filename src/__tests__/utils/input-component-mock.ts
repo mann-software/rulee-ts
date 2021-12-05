@@ -1,6 +1,6 @@
 import { assertThat } from "../../util/assertions/assertions";
 import { PropertyScalar } from "../../properties/property-scalar";
-import { ValueChangeListener } from "../../properties/value-change-listener";
+import { ValueChangeListener, ValueChangeListenerReference } from "../../properties/value-change-listener";
 import { ValidationMessage } from "../../validators/validation-message";
 import { executeAfterTime } from "./timing-utils";
 
@@ -42,6 +42,7 @@ export class InputComponentMock {
             this.validationMsgs = this.property.getValidationMessages();
         }
     };
+    private bindingRef?: ValueChangeListenerReference;
 
     constructor(private readonly property: PropertyScalar<unknown>) { }
 
@@ -86,13 +87,13 @@ export class InputComponentMock {
             this.validationMsgs = this.property.getValidationMessages();
         }
         // binding
-        this.property.registerValueChangedListener(this.binding);
+        this.bindingRef = this.property.registerValueChangedListener(this.binding);
     }
 
     /**
      * E.g. user leaves the page -> unbind it
      */
     unregisterBinding() {
-        this.property.deregisterValueChangedListener(this.binding)
+        this.property.deregisterValueChangedListener(this.bindingRef)
     }
 }

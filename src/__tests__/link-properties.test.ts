@@ -42,16 +42,21 @@ test('linked properties are synchronised', () => {
     propA.setDisplayValue('xy');
     expect(propA.getValue()).toBe('xy');
 
-    setTimeout(() => { // TODO: avoid this 0-timeout
-        expect(propB.getValue()).toBe('xy');
-        expect(propC.getValue()).toBe(4);
-        
-        propB.setDisplayValue('qwerty');
+    expect(propB.getValue()).toBe('xy');
+    expect(propC.getValue()).toBe(4);
     
-        expect(propA.getValue()).toBe('qwerty');
-        expect(propB.getValue()).toBe('qwerty');
-        expect(propC.getValue()).toBe(12);
-    })
+    
+    propA.setDisplayValue('xy1');
+    expect(propA.getValue()).toBe('xy1');
+    expect(propB.getValue()).toBe('xy1');
+
+    expect(propC.getValue()).toBe(6);
+
+    propB.setDisplayValue('qwerty');
+
+    expect(propA.getValue()).toBe('qwerty');
+    expect(propB.getValue()).toBe('qwerty');
+    expect(propC.getValue()).toBe(12);
 });
 
 test('unlinking a property works and the order of the key is not important', () => {
@@ -60,20 +65,18 @@ test('unlinking a property works and the order of the key is not important', () 
     
     propB.setDisplayValue('qwerty');
     expect(propB.getValue()).toBe('qwerty');
-    setTimeout(() => {
-        expect(propA.getValue()).toBe('qwerty');
-        expect(propC.getValue()).toBe(12);
+    expect(propA.getValue()).toBe('qwerty');
+    expect(propC.getValue()).toBe(12);
+
+    ruleEngine.unlinkPropertyData(propB, propA);
+
+    expect(propA.getValue()).toBe('qwerty');
+    expect(propB.getValue()).toBe('qwerty');
+    expect(propC.getValue()).toBe(12);
     
-        ruleEngine.unlinkPropertyData(propB, propA);
-    
-        expect(propA.getValue()).toBe('qwerty');
-        expect(propB.getValue()).toBe('qwerty');
-        expect(propC.getValue()).toBe(12);
-        
-        propA.setDisplayValue('mno');
-    
-        expect(propA.getValue()).toBe('mno');
-        expect(propB.getValue()).toBe('qwerty');
-        expect(propC.getValue()).toBe(9);
-    })
+    propA.setDisplayValue('mno');
+
+    expect(propA.getValue()).toBe('mno');
+    expect(propB.getValue()).toBe('qwerty');
+    expect(propC.getValue()).toBe(9);
 });

@@ -2,7 +2,7 @@ import { DependencyGraph } from "../dependency-graph/dependency-graph";
 import { AbstractProperty } from "../properties/abstract-property";
 import { RuleEngineUpdateHandler } from "./rule-engine-update-handler-impl";
 import { AbstractPropertyWithInternals } from "../properties/abstract-property-impl";
-import { ValueChangeListener } from "../properties/value-change-listener";
+import { ValueChangeListener, ValueChangeListenerReference } from "../properties/value-change-listener";
 import { Snapshot } from "./snapshot/snapshot";
 import { BuilderOptions } from "./builder/builder-options";
 import { Builder } from "./builder/builder";
@@ -21,9 +21,8 @@ export class RuleEngine implements RuleEngineUpdateHandler {
     private readonly dependencyGraph = new DependencyGraph();
     private readonly validations = new WeakMap<ValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
 
-    private readonly dataLinks = new Map<string, [ValueChangeListener, ValueChangeListener]>();
+    private readonly dataLinks = new Map<string, [ValueChangeListenerReference, ValueChangeListenerReference]>();
     private readonly snapshots = new Map<string, Snapshot>();
-    private propertiesThatRequireAnEagerUpdate: AbstractProperty[] = [];
 
     private get properties() {
         return Object.values(this.propertyMap);
@@ -106,9 +105,9 @@ export class RuleEngine implements RuleEngineUpdateHandler {
             updated: () => propertyB.transferData(propertyA)
         } as ValueChangeListener;
         propertyA.transferData(propertyB);
-        propertyA.registerValueChangedListener(listenerA);
-        propertyB.registerValueChangedListener(listenerB);
-        this.dataLinks.set(dataLinkKey, [listenerA, listenerB]);
+        const refA = propertyA.registerValueChangedListener(listenerA);
+        const refB = propertyB.registerValueChangedListener(listenerB);
+        this.dataLinks.set(dataLinkKey, [refA, refB]);
     }
 
     /**
@@ -120,9 +119,9 @@ export class RuleEngine implements RuleEngineUpdateHandler {
         const dataLinkKey = this.createDataLinkKey(propertyA, propertyB);
         const listeners = this.dataLinks.get(dataLinkKey);
         if (listeners) {
-            const [listenerA, listenerB] = listeners;
-            propertyA.deregisterValueChangedListener(listenerA);
-            propertyB.deregisterValueChangedListener(listenerB);
+            const [refA, refB] = listeners;
+            propertyA.deregisterValueChangedListener(refA);
+            propertyB.deregisterValueChangedListener(refB);
             this.dataLinks.delete(dataLinkKey);
         }
     }
@@ -140,19 +139,9 @@ export class RuleEngine implements RuleEngineUpdateHandler {
             mightHaveChanged.id, 
             property => {
                 property.needsAnUpdate(false);
-                if ((property as AbstractPropertyWithInternals<unknown>).internallyRequiresEagerUpdate()
-                    && this.propertiesThatRequireAnEagerUpdate.every(p => p.id !== property.id)
-                ) {
-                    this.propertiesThatRequireAnEagerUpdate.push(property);
-                }
             },
             dependency => !!dependency.options.value
         );
-        setTimeout(() => {
-            const eagerProps = this.propertiesThatRequireAnEagerUpdate;
-            this.propertiesThatRequireAnEagerUpdate = [];
-            eagerProps.forEach((prop: AbstractProperty) => void this.updateValue(prop));
-        }, 0);
     }
 
     updateValue(property: AbstractProperty): Promise<void> | undefined {

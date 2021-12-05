@@ -1,5 +1,5 @@
 import { AbstractProperty } from "./abstract-property";
-import { ValueChangeListener } from "./value-change-listener";
+import { ValueChangeListener, ValueChangeListenerReference } from "./value-change-listener";
 import { Trigger, TriggerListener } from "./trigger";
 import { BackpressureType } from "./backpressure/backpressure-type";
 import { Logger } from "../util/logger/logger";
@@ -17,7 +17,6 @@ export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D
     hasBeenUpdated(): void;
     errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
-    internallyRequiresEagerUpdate(): boolean;
     addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>): void;
 }
 
@@ -41,7 +40,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private validators?: ValidatorInstance<readonly AbstractProperty[]>[];
     private validationMessages: ValidationMessage[] = [];
 
-    private readonly valueChangeListeners: ValueChangeListener[] = [];
+    private valueChangeListeners?: [ref: number, vcl: ValueChangeListener][];
+    private nextValueChangeListenerId?: number;
 
     protected singlePropertyValidators: SinglePropertyValidator<any>[] = [];
 
@@ -234,10 +234,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         }
         this.tellValueChangeListeners(listener => listener.dependencyHasBeenUpdated?.(dependency));
     }
-
-    internallyRequiresEagerUpdate(): boolean {
-        return this.valueChangeListeners.length > 0;
-    }
     
     // ---------------------------------------------------------------------------------------
     // -- handing internallyValidate  --------------------------------------------------------
@@ -299,22 +295,37 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyValidate: END ----------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    registerValueChangedListener(changed: ValueChangeListener): void {
-        this.valueChangeListeners.push(changed);
+    registerValueChangedListener(changed: ValueChangeListener): ValueChangeListenerReference {
+        if (!this.valueChangeListeners) {
+            this.valueChangeListeners = [];
+        }
+
+        const id = this.nextValueChangeListenerId ?? 0;
+        this.nextValueChangeListenerId = id + 1;
+        const ref = { id } as ValueChangeListenerReference;
+
+        this.valueChangeListeners.push([id, changed]);
         if (changed.needsAnUpdate && (this.needsToRecompute !== false || this.needsToRevalidate !== false)) {
             changed.needsAnUpdate();
         }
+        return ref;
     }
 
-    deregisterValueChangedListener(changed: ValueChangeListener): void {
-        const index = this.valueChangeListeners.findIndex(cb => cb === changed);
-        if (index >= 0) {
-            this.valueChangeListeners.splice(index, 1);
+    deregisterValueChangedListener(changed?: ValueChangeListenerReference): void {
+        if (this.valueChangeListeners && changed !== undefined) {
+            const index = this.valueChangeListeners.findIndex(e => e[0] === changed.id);
+            if (index >= 0) {
+                this.valueChangeListeners.splice(index, 1);
+            }
         }
     }
 
-    protected tellValueChangeListeners(fcn: (listener: ValueChangeListener, index: number) => void) {
-        this.valueChangeListeners.forEach(fcn);
+    protected hasValueChangeListeners() {
+        return this.valueChangeListeners !== undefined && this.valueChangeListeners.length  > 0;
+    }
+
+    protected tellValueChangeListeners(fcn: (listener: ValueChangeListener) => void) {
+        this.valueChangeListeners?.forEach(e => fcn(e[1]));
     }
 
     // --------------------------------------------------------------------------------------

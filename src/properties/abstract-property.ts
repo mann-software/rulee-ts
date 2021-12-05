@@ -1,5 +1,5 @@
 import { PropertyId } from "./property-id";
-import { ValueChangeListener } from "./value-change-listener";
+import { ValueChangeListener, ValueChangeListenerReference } from "./value-change-listener";
 import { Trigger } from "./trigger";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { ValidationMessage } from "../validators/validation-message";
@@ -16,8 +16,8 @@ export interface AbstractProperty {
      */
     needsAnUpdate(notifyOthers?: boolean): void;
 
-    registerValueChangedListener(changed: ValueChangeListener): void;
-    deregisterValueChangedListener(changed: ValueChangeListener): void;
+    registerValueChangedListener(changed: ValueChangeListener): ValueChangeListenerReference;
+    deregisterValueChangedListener(changed?: ValueChangeListenerReference): void;
 
     setUpdateStrategy(strategy: 'Automatic' | 'Manually'): void;
     addUpdateTrigger(trigger: Trigger): void;

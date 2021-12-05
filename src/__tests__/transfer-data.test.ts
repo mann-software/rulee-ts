@@ -46,9 +46,8 @@ test('transfering data triggers async derivations', () => {
 
     expect(propA.getValue()).toBe('abc');
     expect(propB.getValue()).toBe('abc');
-    setTimeout(() => {
-        expect(propD.isProcessing()).toBe(true);
-    }, 0)
+    void propD.awaitValue();
+    expect(propD.isProcessing()).toBe(true);
 });
 
 test('transfer data of incompatible types', () => {

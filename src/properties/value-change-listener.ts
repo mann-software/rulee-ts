@@ -8,3 +8,7 @@ export interface ValueChangeListener {
     dependencyHasBeenUpdated?(dependency: PropertyDependency): void;
     validated?(): void;
 }
+
+export interface ValueChangeListenerReference {
+    id: number;
+}
