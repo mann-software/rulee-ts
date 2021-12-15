@@ -9,10 +9,7 @@ import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
 import { SinglePropertyValidator } from "../../validators/single-property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
-
-export enum TextInterpreter {
-    Plain, Markdown, Html
-}
+import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 
 export class PropertyScalarRuleBinding<T> {
 
@@ -21,7 +18,8 @@ export class PropertyScalarRuleBinding<T> {
     constructor(
         property: PropertyScalar<T>,
         private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>,
-        private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void
+        private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
+        private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
         this.property = property as PropertyScalarImpl<T>;
     }
@@ -151,6 +149,7 @@ export class PropertyScalarRuleBinding<T> {
     }
 
     defineLabel(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBinding<T> {
+        this.checkTextInterpreterAvailable(textInterpreter);
         this.property.defineLabel(this.interpreteText(text, textInterpreter));
         return this;
     }
@@ -161,13 +160,24 @@ export class PropertyScalarRuleBinding<T> {
     }
 
     defineInfoText(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBinding<T> {
+        this.checkTextInterpreterAvailable(textInterpreter);
         this.property.defineInfoText(this.interpreteText(text, textInterpreter));
         return this;
     }
 
     private interpreteText(text: string, textInterpreter?: TextInterpreter) {
-        // TODO interprete the text
+        if (textInterpreter !== undefined) {
+            const interpreter = this.textInterpreters[textInterpreter];
+            return interpreter?.interpreteText(text) ?? text;
+        }
         return text;
+    }
+
+    private checkTextInterpreterAvailable(textInterpreter?: TextInterpreter) {
+        alwaysAssertThat(
+            textInterpreter === undefined || this.textInterpreters[textInterpreter] !== undefined,
+            () => `Text interpreter '${textInterpreter}' not found. Please provide via builder options.`
+        );
     }
     
     // ------------------

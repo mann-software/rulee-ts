@@ -19,7 +19,6 @@ import { V } from "../../validators/common/common-validators";
 import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
-import { Choice } from "../../properties/choice";
 import { ListBuilder } from "./list-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { Validator } from "../../validators/validator";
@@ -31,6 +30,7 @@ import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { AsyncListProvider, ListProvider } from "../../provider/list-provider/list-provider";
 import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
+import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 
 export class Builder {
 
@@ -41,6 +41,7 @@ export class Builder {
     private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>;
     private readonly defaultEmptyChoiceDisplayValue: string | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
+    private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn };
 
     readonly scalar: PropertyScalarBuilder;
     readonly group: GroupOfPropertiesBuilder;
@@ -57,13 +58,19 @@ export class Builder {
             ? V.notEmptyMsgProvider(options.emptyButRequiredMessage)
             : V.notEmpty(options.emptyButRequiredMessage);
 
+        if (options.defaultEmptyChoiceDisplayValue) {
+            this.defaultEmptyChoiceDisplayValue = options.defaultEmptyChoiceDisplayValue;
+        }
         this.defaultBackpressureConfig = Object.freeze(options.defaultBackpressureConfig ?? { 
             type: "switch",
             debounceTime: 40
         });
-        if (options.defaultEmptyChoiceDisplayValue) {
-            this.defaultEmptyChoiceDisplayValue = options.defaultEmptyChoiceDisplayValue;
-        }
+        this.textInterpreters = {
+            [TextInterpreter.Html]: options.textInterpreterHtml,
+            [TextInterpreter.Markdown]: options.textInterpreterMarkdown,
+            [TextInterpreter.Custom]: options.textInterpreterCustom,
+        };
+
         this.list =  new ListBuilder(
             <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) =>
                 this.listOfProperties<T, D>(id, itemTemplate, isMultiSelect),
@@ -116,7 +123,8 @@ export class Builder {
         return new PropertyScalarRuleBinding<T>(
             prop,
             this.notEmptyIfRequiredValidator,
-            (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options)
+            (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+            this.textInterpreters,
         );
     }
 

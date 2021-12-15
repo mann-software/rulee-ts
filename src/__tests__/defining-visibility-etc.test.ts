@@ -1,3 +1,4 @@
+import { TextInterpreter, TextInterpreterFcn } from "../util/text-interpreter/text-interpreter";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 
 test('defining visibility', () => {
@@ -106,4 +107,19 @@ test('defining placeholder, labels and infotext', () => {
 
     expect(propC.getLabel()).toBe('Label and Placeholder of C');
     expect(propC.getPlaceholder()).toBe('Label and Placeholder of C');
+});
+
+test('defining label witg text interpretor', () => {
+    const [builder] = builderAndRuleEngineFactory({
+        textInterpreterHtml: {
+            interpreteText: (input: string) => input.replace('<>', '')
+        }
+    });
+    const propA = builder.scalar.booleanProperty('PROP_A');
+
+    const binding = builder.scalar.bind(propA)
+        .defineLabel('Label A<>', TextInterpreter.Html);
+    
+    expect(() => binding.defineInfoText('Info A<>', TextInterpreter.Markdown)).toThrowError();
+    expect(propA.getLabel()).toBe('Label A');
 });

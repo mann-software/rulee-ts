@@ -1,5 +1,6 @@
 import { ValidationMessage } from "../../validators/validation-message";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
+import { TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 
 export interface BuilderOptions {
     /**
@@ -17,6 +18,18 @@ export interface BuilderOptions {
      * the RuleEngine defaut is applied.
      */
     defaultBackpressureConfig?: BackpressureConfig;
+    /**
+     * 
+     */
+    textInterpreterHtml?:  TextInterpreterFcn;
+    /**
+     * 
+     */
+    textInterpreterMarkdown?:  TextInterpreterFcn;
+    /**
+     * 
+     */
+    textInterpreterCustom?:  TextInterpreterFcn;
 }
 
 export interface PropertyConfig {
