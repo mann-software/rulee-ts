@@ -199,9 +199,11 @@ export class PropertyScalarRuleBinding<T> {
      * provide a list of other properties that will reset the current property if one of them changed
      * @param resetIfOneOfTheseChanged list with properties that - if changed - will reset the current prop
      */
-    setToInitialValueOnOtherPropertyChanged(...otherProperties: AbstractProperty[]) {
+    setToInitialStateOnOtherPropertyChanged(...otherProperties: AbstractProperty[]) {
         alwaysAssertThat(!this.property.isReadOnly(), () => `${this.property.id}: Can only set properties to initial value, that are not read only`);
-        // TODO 
+        otherProperties.forEach(prop => prop.registerValueChangedListener({
+            updated: () => this.property.setToInitialState()
+        }));
         return this;
     }
 }

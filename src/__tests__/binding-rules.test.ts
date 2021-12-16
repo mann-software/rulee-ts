@@ -84,6 +84,30 @@ test('defining a custom attribute', () => {
     expect(propA.get(customAttribute)).toEqual(new Date(2020, 0, 12));
 });
 
+test('predefined rule that is to set a property to initial state on other property changed', () => {
+    const [builder] = builderAndRuleEngineFactory();
+    const propA = builder.scalar.numberProperty('PropA', {
+        initialValue: 42
+    });
+    const propB = builder.scalar.numberProperty('PropB', {
+        initialValue: 0
+    });
+    builder.scalar.bind(propA).setToInitialStateOnOtherPropertyChanged(propB);
+
+    propA.setValue(7);
+    expect(propA.getValue()).toBe(7);
+
+    // set the value but do not actually change it
+    propB.setValue(0);
+    expect(propA.getValue()).toBe(7); // no actual change, still 7
+    expect(propB.getValue()).toBe(0);
+
+    // set the value and do change it
+    propB.setValue(1);
+    expect(propA.getValue()).toBe(42); // propB changed -> setToInitialState as defined in rules part
+    expect(propB.getValue()).toBe(1);
+});
+
 test('defining placeholder, labels and infotext', () => {
     const [builder] = builderAndRuleEngineFactory();
     const propA = builder.scalar.booleanProperty('PROP_A');
