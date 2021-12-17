@@ -16,7 +16,6 @@ import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { EmptyValueFcn, EmptyValueFcns } from "../../provider/empty-value-fcn";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
-import { ChoiceListConverter } from "../../value-converter/choices/choice-list-converter";
 import { assertThat } from "../../util/assertions/assertions";
 import { SelectValueProvider } from "../../provider/value-provider/choices/select-value-provider";
 import { TypeaheadValueProvider } from "../../provider/value-provider/choices/typeahead-value-provider";
@@ -29,7 +28,12 @@ import { PropertyConfig } from "./builder-options";
 import { PropertyArrayListReadonly } from "../../properties/property-array-list";
 import { ListBuilder } from "./list-builder";
 
-export interface PropertyScalarValueConfig<T> extends PropertyConfig {
+export interface PropertyScalarConfig extends PropertyConfig {
+    placeholder?: string;
+    labelAndPlaceholder?: string;
+}
+
+export interface PropertyScalarValueConfig<T> extends PropertyScalarConfig {
     valueConverter?: ValueConverter<T>;
     initialValue?: T | null;
     emptyValueFcn?: EmptyValueFcn<T>;
@@ -54,11 +58,6 @@ export class PropertyScalarBuilder {
 
     template<D>(id: string, factory: (scalarBuilder: PropertyScalarBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<D>>) => PropertyScalar<D>): PropertyTemplate<PropertyScalar<D>, D> {
         return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<PropertyScalar<D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
-    }
-
-    isLike<T>(template: PropertyScalar<T>, valueProvider?: ValueProvider<T>): PropertyScalar<T> {
-        // TODO copy template and set new value provider if preset else copy value provider too
-        throw new Error('Not supported, yet');
     }
 
     simpleProperty<T>(id: PropertyId, valueConverter: ValueConverter<T>, config?: PropertyScalarValueConfig<T> & {
@@ -184,7 +183,7 @@ export class PropertyScalarBuilder {
             return this.typeahead.withPropertySource(id, inputSourceProperty, choicesSourceProperty, config);
         },
 
-        withPropertySource: <T, S extends PropertyArrayListReadonly<Choice<T>>>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: S, config?: PropertyConfig): PropertyScalarWithChoices<[T | null, string], T> => {
+        withPropertySource: <T, S extends PropertyArrayListReadonly<Choice<T>>>(id: PropertyId, inputSource: PropertyScalar<string>, choicesSource: S, config?: PropertyScalarConfig): PropertyScalarWithChoices<[T | null, string], T> => {
             const provider = new TypeaheadValueProvider<T, S>(inputSource, choicesSource);
             const converter = new TypeaheadValueConverter<T>();
             const emptyValueFcn: EmptyValueFcn<[T | null, string]> = (val) => val?.[0] == null;

@@ -33,7 +33,5 @@ export interface BuilderOptions {
 }
 
 export interface PropertyConfig {
-    placeholder?: string;
     label?: string;
-    labelAndPlaceholder?: string;
 }

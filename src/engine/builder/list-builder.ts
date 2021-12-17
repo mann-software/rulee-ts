@@ -23,28 +23,40 @@ export enum SelectionMode {
     MultiSelect, SingleSelect
 }
 
+export interface PropertyListConfig extends PropertyConfig {
+    maxLength?: number;
+}
+
+export interface ComplexPropertyListConfig extends PropertyListConfig {
+    selectionMode?: SelectionMode;
+}
+
 export class ListBuilder {
 
     constructor(
-        private readonly listOfProperties: <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, isMultiSelect: boolean) => ListOfPropertiesImpl<T, D>,
+        private readonly listOfProperties: <T extends AbstractDataProperty<D>, D>(
+            id: string,
+            itemTemplate: PropertyTemplate<T, D>,
+            propertyConfig?: ComplexPropertyListConfig,
+        ) => ListOfPropertiesImpl<T, D>,
         private readonly propertyList: <T>(
             id: PropertyId,
             provider: ListProvider<T>,
             dependencies?: readonly AbstractProperty[],
-            propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig },
+            propertyConfig?: PropertyListConfig,
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyArrayListSyncImpl<T>,
         private readonly asyncPropertyList: <T>(
             id: PropertyId,
             provider: AsyncListProvider<T>,
             dependencies?: readonly AbstractProperty[],
-            propertyConfig?: PropertyConfig & { backpressure?: BackpressureConfig },
+            propertyConfig?: PropertyListConfig & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyArrayListAsyncImpl<T>,
     ) {}
 
-    create<T extends AbstractDataProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, selectionMode?: SelectionMode): ListOfProperties<T, D> {
-        return this.listOfProperties(id, itemTemplate, selectionMode === SelectionMode.MultiSelect);
+    create<T extends AbstractDataProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, config?: ComplexPropertyListConfig): ListOfProperties<T, D> {
+        return this.listOfProperties(id, itemTemplate, config);
     }
 
     template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
@@ -54,7 +66,7 @@ export class ListBuilder {
     derived = {
         sync: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
             return <T>(
-                config: PropertyConfig & {
+                config: PropertyListConfig & {
                     derive: Rule<[...dependencies: Dependencies], T[]>;
                 },
             ) => {
@@ -64,7 +76,7 @@ export class ListBuilder {
         },
         async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
             return <T>(
-                config: PropertyConfig & {
+                config: PropertyListConfig & {
                     derive: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                 },
             ) => {
@@ -77,7 +89,7 @@ export class ListBuilder {
     crud = {
         sync: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
             return <T>(
-                config?: PropertyConfig & {
+                config?: PropertyListConfig & {
                     resourceProvider?: Rule<[...dependencies: Dependencies], T[]>;
                 },
             ) => {
@@ -93,7 +105,7 @@ export class ListBuilder {
         },
         async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
             return <T>(
-                config: PropertyConfig & {
+                config: PropertyListConfig & {
                     getElements: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                     addElement: (propertyData: T, index?: number) => Promise<void>;
                     updateElement: (propertyData: T, index: number) => Promise<void>;
