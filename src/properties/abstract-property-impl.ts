@@ -359,5 +359,4 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     abstract setToInitialState(): void;
     abstract exportData(): D | null;
     abstract importData(data: D | null): void;
-    abstract compareData(a: D | null, b: D | null): boolean;
 }

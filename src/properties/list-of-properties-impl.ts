@@ -305,10 +305,6 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         this.needsAnUpdate();
     }
 
-    compareData(a: (D | null)[], b: (D | null)[]): boolean {
-        return true; // TODO
-    }
-
     // ------------------
     // -- data relevant: end
     // ------------------

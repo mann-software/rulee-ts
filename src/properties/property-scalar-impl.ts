@@ -210,10 +210,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     importData(data: T | null): void {
         this.setValue(data);
     }
-
-    compareData(a: T | null, b: T | null): boolean {
-        return a === b;
-    }
     
     // ------------------
     // -- data relevant: end

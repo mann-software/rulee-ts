@@ -31,16 +31,6 @@ export abstract class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]>
     importData(data: T[] | null): void {
         this.workingList = data ?? [];
     }
-
-    compareData(a: T[] | null, b: T[] | null, compareFcn?: (a: T, b: T) => boolean): boolean {
-        if (!compareFcn) {
-            compareFcn = (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b);
-        }
-        if (a == null || b == null) {
-            return a === b;
-        }
-        return a.length === b.length && a.every((val, i) => compareFcn!(val, b[i]));
-    }
 }
 
 export class PropertyArrayListSyncImpl<T> extends PropertyArrayListImpl<T> implements PropertyArrayListCrud<T> {
