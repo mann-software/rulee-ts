@@ -139,6 +139,11 @@ export class Builder {
         const isMultiSelect = config?.selectionMode === SelectionMode.MultiSelect;
         const prop = new ListOfPropertiesImpl<T, D>(id, itemTemplate, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
+        if (config) {
+            if (config.label !== undefined) {
+                prop.defineLabel(config.label);
+            }
+        }
         return prop;
     }
 
@@ -148,7 +153,11 @@ export class Builder {
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
         }
-        // TODO config values  
+        if (config) {
+            if (config.label !== undefined) {
+                prop.defineLabel(config.label);
+            }
+        }
         return prop;
     }
 
@@ -158,7 +167,11 @@ export class Builder {
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
         }
-        // TODO config values   
+        if (config) {
+            if (config.label !== undefined) {
+                prop.defineLabel(config.label);
+            }
+        }
         return prop;
     }
 
@@ -236,12 +249,5 @@ export class Builder {
     </script> 
 </body>
 </html>`
-    }
-
-    generateFactory(): string {
-        // const engine = this.initialise();
-        // const serialized = RuleEngine.serialize(engine);
-        // TODO generate rule-engine-factory.ts with serialzed rule engine internally
-        return '';
     }
 }

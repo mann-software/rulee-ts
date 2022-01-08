@@ -47,6 +47,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
+    private label?: string;
 
     constructor(
         protected updateHandler: RuleEngineUpdateHandler,
@@ -345,6 +346,16 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         if (this.triggerListener) {
             trigger.deregisterTriggerListener(this.triggerListener);
         }
+    }
+
+    // --------------------------------------------------------------------------------------
+
+    defineLabel(label: string) {
+        this.label = label;
+    }
+
+    getLabel(): string {
+        return this.label ?? '';
     }
 
     // --------------------------------------------------------------------------------------
