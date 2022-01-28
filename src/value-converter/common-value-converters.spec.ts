@@ -15,6 +15,16 @@ test('default boolean converter', () => {
     expect(booleanConverter.fromDisplayValue(null)).toBe(false);
 });
 
+test('upper case converter', () => {
+    const upperCaseConverter = C.string.upperCase;
+
+    expect(upperCaseConverter.asDisplayValue('ABC')).toBe('ABC');
+    expect(upperCaseConverter.asDisplayValue('Abc')).toBe('ABC');
+
+    expect(upperCaseConverter.fromDisplayValue('ABC')).toBe('ABC');
+    expect(upperCaseConverter.fromDisplayValue('Abc')).toBe('ABC');
+});
+
 test('integer converter', () => {
     const integerConverter = C.number.integer;
 
@@ -32,6 +42,25 @@ test('integer converter', () => {
     expect(integerConverter.fromDisplayValue('1')).toBe(1);
     expect(integerConverter.fromDisplayValue('1.5')).toBe(1);
     expect(integerConverter.fromDisplayValue('-1000')).toBe(-1000);
+});
+
+test('number with precision converter', () => {
+    const numberPrecisionConverter = C.number.withPrecision(2);
+
+    expect(numberPrecisionConverter.asDisplayValue(null)).toBe('');
+    expect(numberPrecisionConverter.asDisplayValue(0.001)).toBe('0.00');
+    expect(numberPrecisionConverter.asDisplayValue(1.0)).toBe('1.00');
+    expect(numberPrecisionConverter.asDisplayValue(1.009)).toBe('1.01');
+    expect(numberPrecisionConverter.asDisplayValue(-1000)).toBe('-1000.00');
+    
+    expect(numberPrecisionConverter.fromDisplayValue(null)).toBe(null);
+    expect(numberPrecisionConverter.fromDisplayValue('')).toBe(null);
+    expect(numberPrecisionConverter.fromDisplayValue('abc')).toBe(null);
+    expect(numberPrecisionConverter.fromDisplayValue('0')).toBe(0);
+    expect(numberPrecisionConverter.fromDisplayValue('1.001')).toBe(1);
+    expect(numberPrecisionConverter.fromDisplayValue('1.009')).toBe(1.01);
+    expect(numberPrecisionConverter.fromDisplayValue('1.5')).toBe(1.5);
+    expect(numberPrecisionConverter.fromDisplayValue('-1000')).toBe(-1000);
 });
 
 test('iso date converter', () => {
@@ -96,5 +125,3 @@ test('german date converter', () => {
     expect(converter.fromDisplayValue('1120')).toEqual(null);
     expect(converter.fromDisplayValue('010120200')).toEqual(null);
 });
-
-// TODO test other converters

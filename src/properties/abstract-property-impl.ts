@@ -47,6 +47,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
+    private label?: string;
 
     constructor(
         protected updateHandler: RuleEngineUpdateHandler,
@@ -348,6 +349,16 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     // --------------------------------------------------------------------------------------
+
+    defineLabel(label: string) {
+        this.label = label;
+    }
+
+    getLabel(): string {
+        return this.label ?? '';
+    }
+
+    // --------------------------------------------------------------------------------------
     
     transferData(toProperty: AbstractDataProperty<D>): void {
         toProperty.importData(this.exportData());
@@ -359,5 +370,4 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     abstract setToInitialState(): void;
     abstract exportData(): D | null;
     abstract importData(data: D | null): void;
-    abstract compareData(a: D | null, b: D | null): boolean;
 }

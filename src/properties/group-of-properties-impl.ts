@@ -65,10 +65,6 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
         }
         this.needsAnUpdate();
     }
-
-    compareData(a: PropertyGroupData<T> | null, b: PropertyGroupData<T> | null): boolean {
-        return true; // TODO
-    }
     
     // ------------------
     // -- data relevant: end

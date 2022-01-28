@@ -18,7 +18,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
     protected initialValue?: T | null;
     private placeholder?: string;
     private infoText?: string;
-    private label?: string;
     
     protected attributeMap?: Map<AttributeId<unknown>, Attribute<any>>;
     protected visible?: Attribute<boolean>;
@@ -80,10 +79,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     defineInitialValue(value: T | null) {
         this.initialValue = value;
-    }
-
-    defineLabel(label: string) {
-        this.label = label;
     }
 
     definePlaceholder(placeholder: string) {
@@ -175,10 +170,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return this.emptyValueFcn(this.getValue());
     }
 
-    getLabel(): string {
-        return this.label ?? '';
-    }
-
     getInfoText(): string {
         return this.infoText ?? '';
     }
@@ -209,10 +200,6 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
 
     importData(data: T | null): void {
         this.setValue(data);
-    }
-
-    compareData(a: T | null, b: T | null): boolean {
-        return a === b;
     }
     
     // ------------------

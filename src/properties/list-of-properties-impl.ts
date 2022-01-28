@@ -246,20 +246,16 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         }
     }
 
-    isValid(): boolean {
-        return super.isValid() && true; // TODO
-    }
-
     isProcessing(): boolean {
-        return false; // TODO
+        return false;
     }
 
     isReadOnly(): boolean {
-        return false; // TODO
+        return false;
     }
 
     isAsynchronous(): boolean {
-        return false; // TODO
+        return false;
     }
 
     // interface: SiblingAccess
@@ -303,10 +299,6 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
             prop.importData(entry);
         });
         this.needsAnUpdate();
-    }
-
-    compareData(a: (D | null)[], b: (D | null)[]): boolean {
-        return true; // TODO
     }
 
     // ------------------

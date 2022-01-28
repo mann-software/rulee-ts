@@ -1,4 +1,3 @@
-import { ChoiceListConverter } from "./choices/choice-list-converter";
 import { ValueConverter } from "./value-converter";
 
 // -- string converter ---------------
@@ -20,7 +19,7 @@ export class UpperCaseStringValueConverter implements ValueConverter<string> {
         return value?.toUpperCase() ?? null;
     }
     asDisplayValue(value: string | null): string {
-        return value ?? '';
+        return value?.toUpperCase() ?? '';
     }
     getNullFallbackValue() {
         return '';
@@ -54,7 +53,7 @@ export class PrecisionNumberValueConverter implements ValueConverter<number> {
             return null;
         }
         const converted = Number.parseFloat(value);
-        return Number.isNaN(converted) ? null : converted;
+        return Number.isNaN(converted) ? null : Number.parseFloat(converted.toFixed(this.precision));
     }
     asDisplayValue(value: number | null): string {
         return value == null ? '' : value.toFixed(this.precision);

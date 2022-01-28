@@ -62,25 +62,32 @@ test('list of property: add, remove, remove properties with single selection', (
     expect(propList.getProperty(1)?.isRequired()).toBe(true);
 
     propList.swapProperties(0, 1);
+    expect(propList.exportData()).toStrictEqual(['456', '123']);
     expect(propList.getProperty(1)?.isRequired()).toBe(false);
     expect(propList.isPropertySelectedAtIndex(0)).toBe(true);
     expect(propList.isPropertySelectedAtIndex(1)).toBe(false);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(0), index: 0 }]);
     propList.swapProperties(0, 1);
+    expect(propList.exportData()).toStrictEqual(['123', '456']);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(1), index: 1 }]);
     propList.addPropertyData(['789']);
     propList.moveProperty(2, 1);
+    expect(propList.exportData()).toStrictEqual(['123', '789', '456']);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(2), index: 2 }]);
     propList.moveProperty(0, 2);
+    expect(propList.exportData()).toStrictEqual(['789', '456', '123']);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(1), index: 1 }]);
     propList.moveProperty(1, 0);
+    expect(propList.exportData()).toStrictEqual(['456', '789', '123']);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(0), index: 0 }]);
     propList.selectPropertyAtIndex(2);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(2), index: 2 }]);
 
     propList.removePropertyAtIndex(0);
+    expect(propList.exportData()).toStrictEqual(['789', '123']);
     expect(propList.getSelectedProperties()).toStrictEqual([{ property: propList.getProperty(1), index: 1 }]);
     propList.removePropertyAtIndex(1);
+    expect(propList.exportData()).toStrictEqual(['789']);
     expect(propList.getSelectedProperties()).toStrictEqual([]);
 
     propList.unselectProperty(propList.getProperty(0));
@@ -99,7 +106,9 @@ test('list of property: select properties multiple properties and move propertie
             .defineRequiredIfVisible()(() => !!index?.isLast());
         return itemProp;
     });
-    const propList = builder.list.create('PROP_LIST', listItemTemplate, SelectionMode.MultiSelect);
+    const propList = builder.list.create('PROP_LIST', listItemTemplate, {
+        selectionMode: SelectionMode.MultiSelect
+    });
     propList.addProperties(3);
 
     expect(propList.getSelectedIndices()).toHaveLength(0);

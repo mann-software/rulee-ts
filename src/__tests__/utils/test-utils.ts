@@ -1,4 +1,4 @@
-import { ValidationTypes } from '../../validators/validation-type';
+import { ValidationType } from '../../validators/validation-type';
 import { ValidationMessage } from '../../validators/validation-message';
 import { RuleEngine } from '../../engine/rule-engine';
 import { Builder } from '../../engine/builder/builder';
@@ -8,7 +8,7 @@ import { PropertyScalar } from '../../properties/property-scalar';
 import { executeAfterTime, valueAfterTime } from './timing-utils';
 
 export const emptyButRequiredMessageTestUtil: ValidationMessage = {
-    type: ValidationTypes.Error,
+    type: ValidationType.Error,
     text: 'Must not be empty'
 };
 
