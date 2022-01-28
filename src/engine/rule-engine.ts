@@ -8,7 +8,7 @@ import { BuilderOptions } from "./builder/builder-options";
 import { Builder } from "./builder/builder";
 import { ValidationProcess } from "./validation/validation-process-impl";
 import { ValidationResult } from "../validators/validation-result";
-import { ValidationTypes } from "../validators/validation-type";
+import { ValidationType } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { PropertyGroup } from "../properties/group-of-properties";
@@ -218,7 +218,7 @@ export class RuleEngine implements RuleEngineUpdateHandler {
                     vprocess.currentValidation = undefined;
                     return [{
                         text: JSON.stringify(err),
-                        type: ValidationTypes.ErrorThrownDuringValidation
+                        type: ValidationType.ErrorThrownDuringValidation
                     }];
                 });
                 return vprocess.currentValidation;

@@ -2,13 +2,13 @@ import { builderAndRuleEngineFactory, emptyButRequiredMessageTestUtil, setupAsyn
 import { Builder } from "../engine/builder/builder";
 import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
 import { ValidationMessage } from "../validators/validation-message";
-import { ValidationTypes } from "../validators/validation-type";
+import { ValidationType } from "../validators/validation-type";
 import { GateKeeper } from "./utils/gate-keeper";
 
 let builder: Builder;
 const someError: ValidationMessage = {
     text: 'Error',
-    type: ValidationTypes.Error
+    type: ValidationType.Error
 };
 
 beforeEach(() => {
@@ -145,10 +145,10 @@ test('validator async array list test', async () => {
     const hintFactory = (length: number) => [
         {
             text: `Length is ${list.length}`,
-            type: ValidationTypes.Hint
+            type: ValidationType.Hint
         }, {
             text: 'Just a Hint',
-            type: ValidationTypes.Hint
+            type: ValidationType.Hint
         }
     ];
 

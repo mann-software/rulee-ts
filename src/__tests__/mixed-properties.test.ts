@@ -1,7 +1,7 @@
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
-import { ValidationTypes } from "../validators/validation-type";
+import { ValidationType } from "../validators/validation-type";
 
 let builder: Builder;
 
@@ -12,7 +12,7 @@ beforeEach(() => {
 test('array list with sum property', () => {
     const hint42 = {
         text: 'Greater 42',
-        type: ValidationTypes.Hint
+        type: ValidationType.Hint
     };
 
     const arrayList = builder.list.crud.sync('LIST')<number>();
@@ -95,7 +95,7 @@ test('list of lists', async () => {
             scalarBuilder.bind(prop).addValidator(
                 (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
                     text: 'At most one element is allowed to be true',
-                    type: ValidationTypes.Error
+                    type: ValidationType.Error
                 }
             );
             return prop;

@@ -1,29 +1,12 @@
 
-export interface ValidationType {
-    name: string;
-    isValid: boolean;
-}
+export class ValidationType {
 
-const ValidationError: ValidationType = {
-    name: 'Error',
-    isValid: false
-};
+    static readonly Error = new ValidationType('Error', false);
+    static readonly Hint = new ValidationType('Hint', true);
+    static readonly ErrorThrownDuringValidation = new ValidationType('ErrorThrownDuringValidation', false);
 
-const ValidationHint: ValidationType = {
-    name: 'Hint',
-    isValid: true
-}
-
-const ErrorThrownDuringValidation: ValidationType = {
-    name: 'ErrorThrown',
-    isValid: true
-};
-
-/**
- * Set of predefined ValidationTypes
- */
-export const ValidationTypes = {
-    Error: ValidationError,
-    Hint: ValidationHint,
-    ErrorThrownDuringValidation
+    constructor(
+        public name: string,
+        public isValid: boolean
+    ) {}
 }
