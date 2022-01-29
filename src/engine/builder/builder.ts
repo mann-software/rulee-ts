@@ -5,7 +5,7 @@ import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { AbstractProperty } from "../../properties/abstract-property";
 import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
 import { ValueConverter } from "../../value-converter/value-converter";
-import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
+import { PropertyScalarRuleBuilder } from "./property-scalar-rule-builder";
 import { ValueProvider } from "../../provider/value-provider/value-provider";
 import { DependencyGraph } from "../../dependency-graph/dependency-graph";
 import { AbstractPropertyWithInternals } from "../../properties/abstract-property-impl";
@@ -119,8 +119,8 @@ export class Builder {
         return prop;
     }
 
-    private bindPropertyScalar<T>(prop: PropertyScalar<T>): PropertyScalarRuleBinding<T> {
-        return new PropertyScalarRuleBinding<T>(
+    private bindPropertyScalar<T>(prop: PropertyScalar<T>): PropertyScalarRuleBuilder<T> {
+        return new PropertyScalarRuleBuilder<T>(
             prop,
             this.notEmptyIfRequiredValidator,
             (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),

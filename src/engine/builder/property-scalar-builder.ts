@@ -12,7 +12,7 @@ import { ObjectValueProvider } from "../../provider/value-provider/object-value-
 import { C } from "../../value-converter/common-value-converters";
 import { DerivedValueProvider } from "../../provider/value-provider/derived-value-provider";
 import { DerivedAsyncValueProvider } from "../../provider/value-provider/derived-async-value-provider";
-import { PropertyScalarRuleBinding } from "./property-scalar-rule-binding";
+import { PropertyScalarRuleBuilder } from "./property-scalar-rule-builder";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { EmptyValueFcn, EmptyValueFcns } from "../../provider/empty-value-fcn";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
@@ -51,7 +51,7 @@ export class PropertyScalarBuilder {
             propertyConfig?: PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyScalarImpl<T>,
-        private readonly bindPropertyScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBinding<T>,
+        private readonly bindPropertyScalar: <T>(prop: PropertyScalar<T>) => PropertyScalarRuleBuilder<T>,
         private readonly defaultEmptyChoiceDisplayValue: string | undefined,
         private readonly listBuilder: ListBuilder,
     ) { }
@@ -231,7 +231,7 @@ export class PropertyScalarBuilder {
         }
     }
 
-    bind<T>(prop: PropertyScalar<T>): PropertyScalarRuleBinding<T> {
+    bind<T>(prop: PropertyScalar<T>): PropertyScalarRuleBuilder<T> {
         return this.bindPropertyScalar(prop);
     }
 
