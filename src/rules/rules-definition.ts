@@ -19,7 +19,7 @@ export function rulesComposed<T>(...defintions: RulesDefinition<T>[]): RulesDefi
     return new RulesDefinitionComposition(defintions);
 }
 
-export function rulesAbstract<T>(): RulesDefinition<T> {
+export function rulesAbstract<T>(): AbstractRulesDefinition<T> {
     return new AbstractRulesDefinition();
 }
 
