@@ -4,7 +4,7 @@ import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { SinglePropertyValidator } from "../../validators/single-property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 
-export class ListOfPropertiesRuleBinding<T extends AbstractDataProperty<D>, D> {
+export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> {
 
     private readonly property: ListOfPropertiesImpl<T, D>;
     
@@ -16,12 +16,12 @@ export class ListOfPropertiesRuleBinding<T extends AbstractDataProperty<D>, D> {
 
     // ------------------
 
-    addValidator(validator: SinglePropertyValidator<ListOfProperties<T, D>>): ListOfPropertiesRuleBinding<T, D> {
+    addValidator(validator: SinglePropertyValidator<ListOfProperties<T, D>>): ListOfPropertiesRuleBuilder<T, D> {
         this.property.addSinglePropertyValidator(validator);
         return this;
     }
 
-    addAsyncValidator(validator: (property: ListOfProperties<T, D>) => Promise<ValidationMessage[] | undefined>): ListOfPropertiesRuleBinding<T, D> {
+    addAsyncValidator(validator: (property: ListOfProperties<T, D>) => Promise<ValidationMessage[] | undefined>): ListOfPropertiesRuleBuilder<T, D> {
         const propList = [this.property];
         this.property.addValidator({
             getValidatedProperties: () => propList,

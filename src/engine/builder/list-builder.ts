@@ -16,8 +16,8 @@ import { DerivedListProvider } from "../../provider/list-provider/derived-list-p
 import { DerivedAsyncListProvider } from "../../provider/list-provider/derived-async-list-provider";
 import { CrudAsyncListProvider } from "../../provider/list-provider/crud-async-list-provider";
 import { CrudListProvider } from "../../provider/list-provider/crud-list-provider";
-import { ListOfPropertiesRuleBinding } from "./list-of-properties-rule-bindings";
-import { PropertyArrayListRuleBinding } from "./property-array-list-rule-binding";
+import { ListOfPropertiesRuleBuilder } from "./list-of-properties-rule-builder";
+import { PropertyArrayListRuleBuilder } from "./property-array-list-rule-builder";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -126,12 +126,12 @@ export class ListBuilder {
 
     // ------------------
 
-    bindListOfProperties<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>): ListOfPropertiesRuleBinding<T, D> {
-        return new ListOfPropertiesRuleBinding<T, D>(list)
+    bindListOfProperties<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>): ListOfPropertiesRuleBuilder<T, D> {
+        return new ListOfPropertiesRuleBuilder<T, D>(list)
     }
 
-    bindPropertyArrayList<D>(list: PropertyArrayList<D>): PropertyArrayListRuleBinding<D> {
-        return new PropertyArrayListRuleBinding(list);
+    bindPropertyArrayList<D>(list: PropertyArrayList<D>): PropertyArrayListRuleBuilder<D> {
+        return new PropertyArrayListRuleBuilder(list);
     }
 
 }
