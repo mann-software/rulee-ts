@@ -83,7 +83,7 @@ export class Builder {
             <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
         );
         this.scalar = new PropertyScalarBuilder(
-            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
+            <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
                 this.propertyScalar(id, provider, emptyValueFcn, converter, dependencies, propertyConfig, ownedProperties),
             <T>(prop: PropertyScalar<T>) => this.bindPropertyScalar(prop),
             this.defaultEmptyChoiceDisplayValue,
@@ -91,7 +91,7 @@ export class Builder {
         );
     }
 
-    private propertyScalar<T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: PropertyScalarValueConfig<T> & { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
+    private propertyScalar<T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, config?.backpressure ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
         this.addProperty(prop);
         if (dependencies) {
@@ -100,22 +100,6 @@ export class Builder {
         if (ownedProperties) {
             ownedProperties.forEach(owned => this.dependencyGraph.addOwnerDependency(prop, owned, false));
         }
-        if (config) {
-            if (config.initialValue !== undefined) {
-                prop.defineInitialValue(config.initialValue);
-            }
-            if (config.labelAndPlaceholder !== undefined) {
-                prop.defineLabel(config.labelAndPlaceholder);
-                prop.definePlaceholder(config.labelAndPlaceholder);
-            }
-            if (config.label !== undefined) {
-                prop.defineLabel(config.label);
-            }
-            if (config.placeholder !== undefined) {
-                prop.definePlaceholder(config.placeholder);
-            }
-        }
-        prop.setToInitialState();
         return prop;
     }
 
