@@ -145,7 +145,7 @@ test('defining placeholder, labels and infotext', () => {
     expect(propC.getPlaceholder()).toBe('Label and Placeholder of C');
 });
 
-test('defining label witg text interpretor', () => {
+test('defining label with text interpretor', () => {
     const [builder] = builderAndRuleEngineFactory({
         textInterpreterHtml: {
             interpreteText: (input: string) => input.replace('<>', '')
