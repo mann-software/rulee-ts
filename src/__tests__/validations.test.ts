@@ -4,6 +4,7 @@ import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
 import { ValidationMessage } from "../validators/validation-message";
 import { ValidationType } from "../validators/validation-type";
 import { GateKeeper } from "./utils/gate-keeper";
+import { rules } from "../rules/rules-definition";
 
 let builder: Builder;
 const someError: ValidationMessage = {
@@ -16,8 +17,9 @@ beforeEach(() => {
 });
 
 test('scalar validation test', async () => {
-    const prop = builder.scalar.stringProperty('PROP');
-    builder.scalar.bind(prop).addValidator(p => p.getNonNullValue().length > 0 ? undefined : someError);
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.addValidator(p => p.getNonNullValue().length > 0 ? undefined : someError);
+    }));
 
     let msgs = await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([someError]);
@@ -34,10 +36,10 @@ test('required if visible validation test', async () => {
         initialValue: true
     });
 
-    const prop = builder.scalar.stringProperty('PROP');
-    builder.scalar.bind(prop)
-        .setRequiredIfVisible(true)
-        .defineVisibility(propVis)((self, propVis) => propVis.getNonNullValue());
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.setRequiredIfVisible(true)
+            .defineVisibility(propVis)((self, propVis) => propVis.getNonNullValue());
+    }));
 
     prop.setValue('');
     let msgs = await prop.validate();
@@ -56,8 +58,9 @@ test('required if visible validation test', async () => {
 test('async scalar validation test', async () => {
     const validationResult: ValidationMessage[] = [];
 
-    const prop = builder.scalar.stringProperty('PROP');
-    builder.scalar.bind(prop).addAsyncValidator(() => valueAfterTime(validationResult, 50));
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
+    }));
 
     await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([]);
