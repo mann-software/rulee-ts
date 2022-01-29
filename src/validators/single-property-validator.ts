@@ -1,4 +1,5 @@
 import { AbstractDataProperty } from "../properties/abstract-data-property";
+import { PropertyScalar } from "../properties/property-scalar";
 import { ValidationMessage } from "./validation-message";
 
 /**
@@ -12,3 +13,8 @@ import { ValidationMessage } from "./validation-message";
  * than one message at once
  */
 export type SinglePropertyValidator<T extends AbstractDataProperty<unknown>> = (property: T) => ValidationMessage | void;
+
+/**
+ * Shortcut for SinglePropertyValidator<PropertyScalar<T>>
+ */
+export type PropertyScalarValidator<T> = SinglePropertyValidator<PropertyScalar<T>>

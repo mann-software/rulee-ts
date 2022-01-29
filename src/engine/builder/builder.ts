@@ -9,12 +9,12 @@ import { PropertyScalarRuleBuilder } from "./property-scalar-rule-builder";
 import { ValueProvider } from "../../provider/value-provider/value-provider";
 import { DependencyGraph } from "../../dependency-graph/dependency-graph";
 import { AbstractPropertyWithInternals } from "../../properties/abstract-property-impl";
-import { PropertyScalarBuilder, PropertyScalarValueConfig } from "./property-scalar-builder";
+import { PropertyScalarBuilder } from "./property-scalar-builder";
 import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { BuilderOptions } from "./builder-options";
-import { SinglePropertyValidator } from "../../validators/single-property-validator";
+import { PropertyScalarValidator } from "../../validators/single-property-validator";
 import { V } from "../../validators/common/common-validators";
 import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
@@ -38,7 +38,7 @@ export class Builder {
         return Object.values(this.propertyMap);
     }
     
-    private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>;
+    private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown>;
     private readonly defaultEmptyChoiceDisplayValue: string | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
     private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn };

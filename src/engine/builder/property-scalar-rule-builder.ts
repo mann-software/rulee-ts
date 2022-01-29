@@ -7,7 +7,7 @@ import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
-import { SinglePropertyValidator } from "../../validators/single-property-validator";
+import { PropertyScalarValidator } from "../../validators/single-property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 
@@ -17,7 +17,7 @@ export class PropertyScalarRuleBuilder<T> {
     
     constructor(
         property: PropertyScalar<T>,
-        private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>,
+        private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown>,
         private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
         private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
@@ -26,7 +26,7 @@ export class PropertyScalarRuleBuilder<T> {
 
     // ------------------
 
-    addValidator(validator: SinglePropertyValidator<PropertyScalar<T>>): PropertyScalarRuleBuilder<T> {
+    addValidator(validator: PropertyScalarValidator<T>): PropertyScalarRuleBuilder<T> {
         this.property.addSinglePropertyValidator(validator);
         return this;
     }
