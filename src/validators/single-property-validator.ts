@@ -1,4 +1,6 @@
 import { AbstractDataProperty } from "../properties/abstract-data-property";
+import { ListOfProperties } from "../properties/list-of-properties";
+import { PropertyArrayList } from "../properties/property-array-list";
 import { PropertyScalar } from "../properties/property-scalar";
 import { ValidationMessage } from "./validation-message";
 
@@ -17,4 +19,14 @@ export type SinglePropertyValidator<T extends AbstractDataProperty<unknown>> = (
 /**
  * Shortcut for SinglePropertyValidator<PropertyScalar<T>>
  */
-export type PropertyScalarValidator<T> = SinglePropertyValidator<PropertyScalar<T>>
+export type PropertyScalarValidator<T> = SinglePropertyValidator<PropertyScalar<T>>;
+
+/**
+ * Shortcut for SinglePropertyValidator<PropertyArrayList<T>>
+ */
+export type PropertyArrayListValidator<T> = SinglePropertyValidator<PropertyArrayList<T>>;
+
+/**
+ * Shortcut for SinglePropertyValidator<ListOfProperties<T, D>>
+ */
+export type ListOfPropertiesValidator<T extends AbstractDataProperty<D>, D> = SinglePropertyValidator<ListOfProperties<T, D>>;
