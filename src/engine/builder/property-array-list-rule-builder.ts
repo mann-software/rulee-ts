@@ -1,26 +1,26 @@
 import { PropertyArrayList } from "../../properties/property-array-list";
 import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
-import { SinglePropertyValidator } from "../../validators/single-property-validator";
+import { PropertyArrayListValidator } from "../../validators/single-property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 
-export class PropertyArrayListRuleBinding<T> {
+export class PropertyArrayListRuleBuilder<T> {
 
     private readonly property: PropertyArrayListImpl<T>;
     
     constructor(
         property: PropertyArrayList<T>,
     ) {
-        this.property = property as unknown as PropertyArrayListImpl<T>;
+        this.property = property as PropertyArrayListImpl<T>;
     }
 
     // ------------------
 
-    addValidator(validator: SinglePropertyValidator<PropertyArrayList<T>>): PropertyArrayListRuleBinding<T> {
+    addValidator(validator: PropertyArrayListValidator<T>): PropertyArrayListRuleBuilder<T> {
         this.property.addSinglePropertyValidator(validator);
         return this;
     }
 
-    addAsyncValidator(validator: (property: PropertyArrayList<T>) => Promise<ValidationMessage[] | undefined>): PropertyArrayListRuleBinding<T> {
+    addAsyncValidator(validator: (property: PropertyArrayList<T>) => Promise<ValidationMessage[] | undefined>): PropertyArrayListRuleBuilder<T> {
         const propList = [this.property];
         this.property.addValidator({
             getValidatedProperties: () => propList,

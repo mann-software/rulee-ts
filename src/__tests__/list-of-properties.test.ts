@@ -1,6 +1,7 @@
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { SelectionMode } from "../engine/builder/list-builder";
+import { rules } from "../rules/scalar-rules-definition";
 
 let builder: Builder;
 
@@ -10,9 +11,9 @@ beforeEach(() => {
 
 test('list of property: add existing property', () => {
     const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
-        const itemProp = scalarBuilder.stringProperty(id);
-        scalarBuilder.bind(itemProp)
-            .defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected);
+        const itemProp = scalarBuilder.stringProperty(id, {}, rules(builder => {
+            builder.defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected);
+        }));
         return itemProp;
     });
 
@@ -43,9 +44,9 @@ test('list of property: add existing property', () => {
 
 test('list of property: add, remove, remove properties with single selection', () => {
     const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
-        const itemProp = scalarBuilder.stringProperty(id);
-        scalarBuilder.bind(itemProp)
-            .defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected);
+        const itemProp = scalarBuilder.stringProperty(id, {}, rules(builder => {
+            builder.defineRequiredIfVisible()(() => !index || index.isFirst() || index.isSelected);
+        }));
         return itemProp;
     });
     const propList = builder.list.create('PROP_LIST', listItemTemplate);
@@ -101,9 +102,9 @@ test('list of property: add, remove, remove properties with single selection', (
 
 test('list of property: select properties multiple properties and move properties around', () => {
     const listItemTemplate = builder.scalar.template('ITEM', (scalarBuilder, id, index) => {
-        const itemProp = scalarBuilder.stringProperty(id);
-        scalarBuilder.bind(itemProp)
-            .defineRequiredIfVisible()(() => !!index?.isLast());
+        const itemProp = scalarBuilder.stringProperty(id, {}, rules(builder => {
+            builder.defineRequiredIfVisible()(() => !!index?.isLast());
+        }));
         return itemProp;
     });
     const propList = builder.list.create('PROP_LIST', listItemTemplate, {

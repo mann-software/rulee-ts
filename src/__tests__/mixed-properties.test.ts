@@ -2,6 +2,7 @@ import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { ValidationType } from "../validators/validation-type";
+import { rules } from "../rules/scalar-rules-definition";
 
 let builder: Builder;
 
@@ -18,14 +19,14 @@ test('array list with sum property', () => {
     const arrayList = builder.list.crud.sync('LIST')<number>();
     const sumProp = builder.scalar.derived.sync('SUM', arrayList)(C.number.default, {
         derive: (list) => list.getElements().reduce((res, cur) => res + cur, 0)
-    });
-    builder.scalar.bind(sumProp)
-        .defineVisibility(arrayList)((sum, list) => sum.getNonNullValue() > arrayList.length)
-        .addValidator(sum => {
-            if (sum.getNonNullValue() > 42) {
-                return hint42;
-            }
-        })
+    }, rules(builder => {
+        builder.defineVisibility(arrayList)((sum, list) => sum.getNonNullValue() > arrayList.length)
+            .addValidator(sum => {
+                if (sum.getNonNullValue() > 42) {
+                    return hint42;
+                }
+            })
+    }));
 
     expect(sumProp.getValue()).toBe(0);
     expect(sumProp.isVisible()).toBe(false);
@@ -63,8 +64,9 @@ test('array list with sum property', () => {
 
 test('list of group properties with sum-property', () => {
     const template = builder.group.template((id, index) => {
-        const propA = builder.scalar.numberProperty(id('PROP_A'));
-        builder.scalar.bind(propA).defineVisibility()(() => (index?.idx ?? 0) % 2 === 0);
+        const propA = builder.scalar.numberProperty(id('PROP_A'), {}, rules(builder => {
+            builder.defineVisibility()(() => (index?.idx ?? 0) % 2 === 0);
+        }));
         const propB = builder.scalar.stringProperty(id('PROP_B'));
         return { propA, propB }
     });
@@ -91,13 +93,15 @@ test('list of group properties with sum-property', () => {
 test('list of lists', async () => {
     const innerTemplate = builder.list.template('INNER_LIST', (listBuilder, id) => {
         return listBuilder.create(id, builder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
-            const prop = scalarBuilder.booleanProperty(id);
-            scalarBuilder.bind(prop).addValidator(
-                (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
-                    text: 'At most one element is allowed to be true',
-                    type: ValidationType.Error
-                }
-            );
+            const prop = scalarBuilder.booleanProperty(id, {}, rules(builder => {
+                builder.addValidator(
+                    (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
+                        text: 'At most one element is allowed to be true',
+                        type: ValidationType.Error
+                    }
+                );
+            }));
+            
             return prop;
         }));
     });

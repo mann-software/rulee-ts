@@ -1,4 +1,6 @@
-import { TextInterpreter, TextInterpreterFcn } from "../util/text-interpreter/text-interpreter";
+import { PropertyScalar } from "../properties/property-scalar";
+import { rules, rulesWithDeps } from "../rules/scalar-rules-definition";
+import { TextInterpreter } from "../util/text-interpreter/text-interpreter";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 
 test('defining visibility', () => {
@@ -13,12 +15,16 @@ test('defining visibility', () => {
     });
     const propE = builder.scalar.booleanProperty('PROP_E', { initialValue: false });
 
-    builder.scalar.bind(propB).setVisibility(false);
-    builder.scalar.bind(propC).defineInitialValue(3).defineVisibility()(self => self.getNonNullValue() > 0);
-    builder.scalar.bind(propD).defineVisibility(propA)((self, propA) => !!propA.getValue());
-    builder.scalar.bind(propE).defineVisibility(propA, propD)((self, propA, propD) => {
-        return !!self.getValue() && !!propA.getValue() && !!propD.getValue()
-    });
+    builder.scalar.bind(propB, rules(builder => builder.setVisibility(false)));
+    builder.scalar.bind(propC, rules(builder => builder.defineInitialValue(3).defineVisibility()(self => self.getNonNullValue() > 0)));
+    builder.scalar.bind(propD, rulesWithDeps((builder, propA: PropertyScalar<string>) => {
+        builder.defineVisibility(propA)((self, propA) => !!propA.getValue());
+    })([propA]));
+    builder.scalar.bind(propE, rulesWithDeps((builder, propA: PropertyScalar<string>, propD: PropertyScalar<boolean>) => {
+        builder.defineVisibility(propA, propD)((self, propA, propD) => {
+            return !!self.getValue() && !!propA.getValue() && !!propD.getValue()
+        });
+    })([propA, propD]));
 
     expect(propA.getValue()).toBe('ABC');
     expect(propA.isVisible()).toBe(true);
@@ -42,10 +48,10 @@ test('defining "requiredIfVisible"', () => {
         { value: 0, displayValue: 'Not visible, not required' },
         { value: 1, displayValue: 'Visible, but not required' },
         { value: 2, displayValue: 'Visible and required' }
-    ]);
-    builder.scalar.bind(propA)
-        .defineVisibility()(self => self.getValue() !== 0)
-        .defineRequiredIfVisible()(self => self.getValue() !== 1);
+    ], {}, rules(builder => {
+        builder.defineVisibility()(self => self.getValue() !== 0)
+            .defineRequiredIfVisible()(self => self.getValue() !== 1);
+    }));
 
     expect(propA.getValue()).toBe(0);
     expect(propA.getDisplayValue()).toBe('Not visible, not required');
@@ -77,9 +83,10 @@ test('defining a custom attribute', () => {
 
     const propA = builder.scalar.numberProperty('PropA', {
         initialValue: 12
-    });
-    // attach your custom attribute to a property like the other predefined attributes, e.g. visible
-    builder.scalar.bind(propA).define(customAttribute)(self => new Date(2020, 0, self.getValue() ?? 1));
+    }, rules(builder => {
+        // attach your custom attribute to a property like the other predefined attributes, e.g. visible
+        builder.define(customAttribute)(self => new Date(2020, 0, self.getValue() ?? 1));
+    }));
 
     expect(propA.get(customAttribute)).toEqual(new Date(2020, 0, 12));
 });
@@ -92,7 +99,9 @@ test('predefined rule that is to set a property to initial state on other proper
     const propB = builder.scalar.numberProperty('PropB', {
         initialValue: 0
     });
-    builder.scalar.bind(propA).setToInitialStateOnOtherPropertyChanged(propB);
+    builder.scalar.bind(propA, rules(builder => {
+        builder.setToInitialStateOnOtherPropertyChanged(propB);
+    }));
 
     propA.setValue(7);
     expect(propA.getValue()).toBe(7);
@@ -116,10 +125,13 @@ test('defining placeholder, labels and infotext', () => {
         labelAndPlaceholder: 'Label and Placeholder of C'
     });
 
-    builder.scalar.bind(propA)
-        .defineLabel('Label A')
-        .defineInfoText('Info A');
-    builder.scalar.bind(propB).defineLabelAndPlaceholder('Label and Placeholder');
+    builder.scalar.bind(propA, rules(builder => {
+        builder.defineLabel('Label A')
+            .defineInfoText('Info A');
+    }));
+    builder.scalar.bind(propB, rules(builder => {
+        builder.defineLabelAndPlaceholder('Label and Placeholder');
+    }));
 
     expect(propA.getLabel()).toBe('Label A');
     expect(propA.getPlaceholder()).toBe('');
@@ -133,17 +145,16 @@ test('defining placeholder, labels and infotext', () => {
     expect(propC.getPlaceholder()).toBe('Label and Placeholder of C');
 });
 
-test('defining label witg text interpretor', () => {
+test('defining label with text interpretor', () => {
     const [builder] = builderAndRuleEngineFactory({
         textInterpreterHtml: {
             interpreteText: (input: string) => input.replace('<>', '')
         }
     });
-    const propA = builder.scalar.booleanProperty('PROP_A');
-
-    const binding = builder.scalar.bind(propA)
-        .defineLabel('Label A<>', TextInterpreter.Html);
+    const propA = builder.scalar.booleanProperty('PROP_A', {}, rules(builder => {
+        builder.defineLabel('Label A<>', TextInterpreter.Html);
+        expect(() => builder.defineInfoText('Info A<>', TextInterpreter.Markdown)).toThrowError();
+    }));
     
-    expect(() => binding.defineInfoText('Info A<>', TextInterpreter.Markdown)).toThrowError();
     expect(propA.getLabel()).toBe('Label A');
 });

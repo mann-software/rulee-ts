@@ -1,23 +1,27 @@
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { C } from "../value-converter/common-value-converters";
+import { EmptyValueFcns } from "../provider/empty-value-fcn";
 
 test('define number properties', () => {
     const [builder] = builderAndRuleEngineFactory();
 
     // A: you can use simpleProperty or specialised numberProperty - the following are equivalent
-    const numberProp = builder.scalar.simpleProperty('NUMBER_PROP', C.number.default);
+    const numberProp = builder.scalar.simpleProperty('NUMBER_PROP', C.number.default, {
+        emptyValueFcn: EmptyValueFcns.numberEmptyValueFcn
+    });
     const numberPropShort = builder.scalar.numberProperty('NUMBER_PROP_SHORT', {
         zeroIsConsideredAsEmpty: false, // can even be ommited here since false is the default
         valueConverter: C.number.default // can also be ommited here since C.number.default is the default
     });
 
     // B: the following is equivalent as well
-    const numberPropZeroIsEmpty = builder.scalar.simpleProperty('NUMBER_PROP_ZERO_IS_EMPTY', C.number.integer);
+    const numberPropZeroIsEmpty = builder.scalar.simpleProperty('NUMBER_PROP_ZERO_IS_EMPTY', C.number.integer, {
+        initialValue: 0
+    });
     const numberPropZeroIsEmptyShort = builder.scalar.numberProperty('NUMBER_PROP_ZERO_IS_EMPTY_SHORT', {
         valueConverter: C.number.integer,
         zeroIsConsideredAsEmpty: true
     });
-    builder.scalar.bind(numberPropZeroIsEmpty).defineInitialValue(0);
 
     // A
     expect(numberProp.getValue()).toBe(numberPropShort.getValue());

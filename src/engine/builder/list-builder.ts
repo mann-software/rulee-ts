@@ -9,15 +9,17 @@ import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { Rule } from "../../rules/rule";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { PropertyConfig } from "./builder-options";
-import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
+import { PropertyArrayListAsyncImpl, PropertyArrayListImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
 import { AsyncListProvider, ListProvider } from "../../provider/list-provider/list-provider";
 import { PropertyArrayList, PropertyArrayListCrud, PropertyArrayListCrudAsync, PropertyArrayListReadonly, PropertyArrayListReadonlyAsync } from "../../properties/property-array-list";
 import { DerivedListProvider } from "../../provider/list-provider/derived-list-provider";
 import { DerivedAsyncListProvider } from "../../provider/list-provider/derived-async-list-provider";
 import { CrudAsyncListProvider } from "../../provider/list-provider/crud-async-list-provider";
 import { CrudListProvider } from "../../provider/list-provider/crud-list-provider";
-import { ListOfPropertiesRuleBinding } from "./list-of-properties-rule-bindings";
-import { PropertyArrayListRuleBinding } from "./property-array-list-rule-binding";
+import { ListOfPropertiesRuleBuilder } from "./list-of-properties-rule-builder";
+import { PropertyArrayListRuleBuilder } from "./property-array-list-rule-builder";
+import { ArrayListRulesDefinition } from "../../rules/array-list-rules-definition";
+import { ListOfPropertiesRulesDefinition } from "../../rules/list-of-properties-rules-definition";
 
 export enum SelectionMode {
     MultiSelect, SingleSelect
@@ -55,12 +57,26 @@ export class ListBuilder {
         ) => PropertyArrayListAsyncImpl<T>,
     ) {}
 
-    create<T extends AbstractDataProperty<D>, D>(id: PropertyId, itemTemplate: PropertyTemplate<T, D>, config?: ComplexPropertyListConfig): ListOfProperties<T, D> {
-        return this.listOfProperties(id, itemTemplate, config);
+    create<T extends AbstractDataProperty<D>, D>(
+        id: PropertyId,
+        itemTemplate: PropertyTemplate<T, D>,
+        config?: ComplexPropertyListConfig,
+        ...definitions: ListOfPropertiesRulesDefinition<T, D>[]
+    ): ListOfProperties<T, D> {
+        const list = this.listOfProperties(id, itemTemplate, config);
+        return this.bindRulesAndApplyConfigListOfProperties(list, config, ...definitions);
     }
 
-    template<T extends AbstractDataProperty<D>, D>(id: string, factory: (listBuilder: ListBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>): ListOfPropertiesTemplate<T, D> {
-        return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => factory(this, `${prefix}_${id}`, index, siblingAccess);
+    template<T extends AbstractDataProperty<D>, D>(
+        id: string,
+        factory: (listBuilder: ListBuilder, id: PropertyId, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => ListOfProperties<T, D>,
+        config?: ComplexPropertyListConfig,
+        ...definitions: ListOfPropertiesRulesDefinition<T, D>[]
+    ): ListOfPropertiesTemplate<T, D> {
+        return (prefix: string, index?: ListIndex, siblingAccess?: SiblingAccess<ListOfProperties<T, D>>) => {
+            const list = factory(this, `${prefix}_${id}`, index, siblingAccess);
+            return this.bindRulesAndApplyConfigListOfProperties(list as (ListOfPropertiesImpl<T, D>), config, ...definitions);
+        }
     }
 
     derived = {
@@ -69,9 +85,11 @@ export class ListBuilder {
                 config: PropertyListConfig & {
                     derive: Rule<[...dependencies: Dependencies], T[]>;
                 },
+                ...definitions: ArrayListRulesDefinition<T>[]
             ) => {
                 const provider = new DerivedListProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps));
-                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListReadonly<T>;
+                const list = this.propertyList(id, provider, dependencies, config);
+                return this.bindRulesAndApplyConfigArrayList(list, config, ...definitions) as PropertyArrayListReadonly<T>;
             }
         },
         async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
@@ -79,9 +97,11 @@ export class ListBuilder {
                 config: PropertyListConfig & {
                     derive: Rule<[...dependencies: Dependencies], Promise<T[]>>;
                 },
+                ...definitions: ArrayListRulesDefinition<T>[]
             ) => {
                 const provider = new DerivedAsyncListProvider<T, Dependencies>(dependencies, (deps) => config.derive(...deps));
-                return this.asyncPropertyList(id, provider, dependencies, config) as PropertyArrayListReadonlyAsync<T>;
+                const list = this.asyncPropertyList(id, provider, dependencies, config);
+                return this.bindRulesAndApplyConfigArrayList(list, config, ...definitions) as PropertyArrayListReadonlyAsync<T>;
             }
         }
     }
@@ -92,6 +112,7 @@ export class ListBuilder {
                 config?: PropertyListConfig & {
                     resourceProvider?: Rule<[...dependencies: Dependencies], T[]>;
                 },
+                ...definitions: ArrayListRulesDefinition<T>[]
             ) => {
                 if (!config) {
                     config = {};
@@ -100,7 +121,8 @@ export class ListBuilder {
                     config.resourceProvider = () => [];
                 }
                 const provider = new CrudListProvider<T, Dependencies>(dependencies, (deps) => config!.resourceProvider!(...deps));
-                return this.propertyList(id, provider, dependencies, config) as PropertyArrayListCrud<T>;
+                const list = this.propertyList(id, provider, dependencies, config);
+                return this.bindRulesAndApplyConfigArrayList(list, config, ...definitions) as PropertyArrayListCrud<T>;
             }
         },
         async: <Dependencies extends readonly AbstractProperty[]>(id: PropertyId, ...dependencies: Dependencies) => {
@@ -111,6 +133,7 @@ export class ListBuilder {
                     updateElement: (propertyData: T, index: number) => Promise<void>;
                     removeElement: (index: number) => Promise<void>;
                 },
+                ...definitions: ArrayListRulesDefinition<T>[]
             ) => {
                 const provider = new CrudAsyncListProvider<T, Dependencies>(
                     dependencies,
@@ -119,19 +142,44 @@ export class ListBuilder {
                     config.updateElement,
                     config.removeElement
                 );
-                return this.asyncPropertyList(id, provider, dependencies, config) as PropertyArrayListCrudAsync<T>;
+                const list = this.asyncPropertyList(id, provider, dependencies, config);
+                return this.bindRulesAndApplyConfigArrayList(list, config, ...definitions) as PropertyArrayListCrudAsync<T>;
             }
         }
     }
 
     // ------------------
 
-    bindListOfProperties<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>): ListOfPropertiesRuleBinding<T, D> {
-        return new ListOfPropertiesRuleBinding<T, D>(list)
+    bindListOfProperties<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, ...definitions: ListOfPropertiesRulesDefinition<T, D>[]): void {
+        const builder = new ListOfPropertiesRuleBuilder<T, D>(list);
+        definitions.forEach(def => def.apply(builder));
     }
 
-    bindPropertyArrayList<D>(list: PropertyArrayList<D>): PropertyArrayListRuleBinding<D> {
-        return new PropertyArrayListRuleBinding(list);
+    private bindRulesAndApplyConfigListOfProperties<T extends AbstractDataProperty<D>, D>(prop: ListOfPropertiesImpl<T, D>, config?: ComplexPropertyListConfig, ...rulesDefintions: ListOfPropertiesRulesDefinition<T, D>[]): ListOfProperties<T, D> {
+        this.bindListOfProperties(prop, ...rulesDefintions);
+        if (config) {
+            if (config.label !== undefined) {
+                prop.defineLabel(config.label);
+            }
+        }
+        prop.setToInitialState();
+        return prop;
+    }
+
+    bindPropertyArrayList<D>(list: PropertyArrayList<D>, ...definitions: ArrayListRulesDefinition<D>[]): void {
+        const builder = new PropertyArrayListRuleBuilder(list);
+        definitions.forEach(def => def.apply(builder));
+    }
+
+    private bindRulesAndApplyConfigArrayList<T, List extends PropertyArrayListImpl<T>>(prop: List, config?: PropertyListConfig, ...rulesDefintions: ArrayListRulesDefinition<T>[]): List {
+        this.bindPropertyArrayList(prop, ...rulesDefintions);
+        if (config) {
+            if (config.label !== undefined) {
+                prop.defineLabel(config.label);
+            }
+        }
+        prop.setToInitialState();
+        return prop;
     }
 
 }

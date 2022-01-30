@@ -7,17 +7,17 @@ import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
-import { SinglePropertyValidator } from "../../validators/single-property-validator";
+import { PropertyScalarValidator } from "../../validators/single-property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 
-export class PropertyScalarRuleBinding<T> {
+export class PropertyScalarRuleBuilder<T> {
 
     private readonly property: PropertyScalarImpl<T>;
     
     constructor(
         property: PropertyScalar<T>,
-        private readonly notEmptyIfRequiredValidator: SinglePropertyValidator<PropertyScalar<unknown>>,
+        private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown>,
         private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
         private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
@@ -26,12 +26,12 @@ export class PropertyScalarRuleBinding<T> {
 
     // ------------------
 
-    addValidator(validator: SinglePropertyValidator<PropertyScalar<T>>): PropertyScalarRuleBinding<T> {
+    addValidator(validator: PropertyScalarValidator<T>): PropertyScalarRuleBuilder<T> {
         this.property.addSinglePropertyValidator(validator);
         return this;
     }
 
-    addAsyncValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBinding<T> {
+    addAsyncValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBuilder<T> {
         const propList = [this.property];
         this.property.addValidator({
             getValidatedProperties: () => propList,
@@ -47,7 +47,7 @@ export class PropertyScalarRuleBinding<T> {
      * 
      * @param value initial value
      */
-    defineInitialValue(value: T): PropertyScalarRuleBinding<T> {
+    defineInitialValue(value: T): PropertyScalarRuleBuilder<T> {
         alwaysAssertThat(!this.property.isReadOnly(), () => `${this.property.id}: Can not define initial value on read only property`);
         this.property.defineInitialValue(value);
         this.property.setToInitialState();
@@ -56,12 +56,12 @@ export class PropertyScalarRuleBinding<T> {
     
     // ------------------
 
-    set<A>(attribudeId: AttributeId<A>, value: A): PropertyScalarRuleBinding<T> {
+    set<A>(attribudeId: AttributeId<A>, value: A): PropertyScalarRuleBuilder<T> {
         this.defineAttributeFunction(attribudeId, [], () => value);
         return this;
     }
 
-    define<A, Dependencies extends readonly AbstractProperty[]>(attribudeId: AttributeId<A>, ...dependencies: Dependencies): (value: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], A>) => PropertyScalarRuleBinding<T> {
+    define<A, Dependencies extends readonly AbstractProperty[]>(attribudeId: AttributeId<A>, ...dependencies: Dependencies): (value: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], A>) => PropertyScalarRuleBuilder<T> {
         return (value: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], A>) => {
             this.defineAttributeFunction(attribudeId, dependencies, () => value(this.property, ...dependencies));
             return this;
@@ -88,7 +88,7 @@ export class PropertyScalarRuleBinding<T> {
     
     // ------------------
 
-    setVisibility(isVisible: boolean): PropertyScalarRuleBinding<T> {
+    setVisibility(isVisible: boolean): PropertyScalarRuleBuilder<T> {
         if (isVisible === false) { // true is default -> no need to set
             this.defineVisibilityFunction([], () => isVisible);
         } else {
@@ -97,7 +97,7 @@ export class PropertyScalarRuleBinding<T> {
         return this;
     }
 
-    defineVisibility<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (isVisible: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => PropertyScalarRuleBinding<T> {
+    defineVisibility<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (isVisible: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => PropertyScalarRuleBuilder<T> {
         return (isVisible: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => {
             this.defineVisibilityFunction(dependencies, () => isVisible(this.property, ...dependencies));
             return this;
@@ -115,7 +115,7 @@ export class PropertyScalarRuleBinding<T> {
 
     // ------------------
 
-    setRequiredIfVisible(required: boolean): PropertyScalarRuleBinding<T> {
+    setRequiredIfVisible(required: boolean): PropertyScalarRuleBuilder<T> {
         if (required) { // false is default -> no need to set
             this.defineRequiredIfVisibleFunction([], () => required);
         } else {
@@ -124,7 +124,7 @@ export class PropertyScalarRuleBinding<T> {
         return this;
     }
 
-    defineRequiredIfVisible<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (required: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => PropertyScalarRuleBinding<T> {
+    defineRequiredIfVisible<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (required: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => PropertyScalarRuleBuilder<T> {
         return (required: Rule<[self: PropertyScalar<T>, ...dependencies: Dependencies], boolean>) => {
             this.defineRequiredIfVisibleFunction(dependencies, () => required(this.property, ...dependencies));
             return this;
@@ -143,23 +143,23 @@ export class PropertyScalarRuleBinding<T> {
     
     // ------------------
 
-    defineLabelAndPlaceholder(text: string): PropertyScalarRuleBinding<T> {
+    defineLabelAndPlaceholder(text: string): PropertyScalarRuleBuilder<T> {
         this.defineLabel(text);
         return this.definePlaceholder(text);
     }
 
-    defineLabel(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBinding<T> {
+    defineLabel(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBuilder<T> {
         this.checkTextInterpreterAvailable(textInterpreter);
         this.property.defineLabel(this.interpreteText(text, textInterpreter));
         return this;
     }
 
-    definePlaceholder(placeholder: string): PropertyScalarRuleBinding<T> {
+    definePlaceholder(placeholder: string): PropertyScalarRuleBuilder<T> {
         this.property.definePlaceholder(placeholder);
         return this;
     }
 
-    defineInfoText(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBinding<T> {
+    defineInfoText(text: string, textInterpreter?: TextInterpreter): PropertyScalarRuleBuilder<T> {
         this.checkTextInterpreterAvailable(textInterpreter);
         this.property.defineInfoText(this.interpreteText(text, textInterpreter));
         return this;
