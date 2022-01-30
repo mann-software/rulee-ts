@@ -19,7 +19,7 @@ import { V } from "../../validators/common/common-validators";
 import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
-import { ComplexPropertyListConfig, ListBuilder, PropertyListConfig, SelectionMode } from "./list-builder";
+import { ListBuilder, SelectionMode } from "./list-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { Validator } from "../../validators/validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
@@ -72,11 +72,11 @@ export class Builder {
         };
 
         this.list =  new ListBuilder(
-            <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, config?: ComplexPropertyListConfig) =>
+            <T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, config?: { selectionMode?: SelectionMode }) =>
                 this.listOfProperties<T, D>(id, itemTemplate, config),
-            <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyListConfig & { backpressure?: BackpressureConfig }) =>
-                this.propertyList(id, provider, dependencies, propertyConfig),
-            <T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: PropertyListConfig & { backpressure?: BackpressureConfig }) =>
+            <T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[]) =>
+                this.propertyList(id, provider, dependencies),
+            <T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: { backpressure?: BackpressureConfig }) =>
                 this.asyncPropertyList(id, provider, dependencies, propertyConfig),
         );
         this.group = new GroupOfPropertiesBuilder(
@@ -119,42 +119,27 @@ export class Builder {
         return prop;
     }
 
-    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, config?: ComplexPropertyListConfig): ListOfPropertiesImpl<T, D> {
+    private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, config?: { selectionMode?: SelectionMode }): ListOfPropertiesImpl<T, D> {
         const isMultiSelect = config?.selectionMode === SelectionMode.MultiSelect;
         const prop = new ListOfPropertiesImpl<T, D>(id, itemTemplate, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
-        if (config) {
-            if (config.label !== undefined) {
-                prop.defineLabel(config.label);
-            }
-        }
         return prop;
     }
 
-    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyListConfig): PropertyArrayListSyncImpl<T> {
+    private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[]): PropertyArrayListSyncImpl<T> {
         const prop = new PropertyArrayListSyncImpl(id, provider, this.ruleEngine, undefined);
         this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
         }
-        if (config) {
-            if (config.label !== undefined) {
-                prop.defineLabel(config.label);
-            }
-        }
         return prop;
     }
 
-    private asyncPropertyList<T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], config?: PropertyListConfig & { backpressure?: BackpressureConfig }): PropertyArrayListAsyncImpl<T> {
+    private asyncPropertyList<T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], config?: { backpressure?: BackpressureConfig }): PropertyArrayListAsyncImpl<T> {
         const prop = new PropertyArrayListAsyncImpl(id, provider, this.ruleEngine, config?.backpressure);
         this.addProperty(prop);
         if (dependencies) {
             this.addDependencies(this.dependencyGraph, dependencies, prop, { value: true });
-        }
-        if (config) {
-            if (config.label !== undefined) {
-                prop.defineLabel(config.label);
-            }
         }
         return prop;
     }

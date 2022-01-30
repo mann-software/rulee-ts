@@ -5,6 +5,8 @@ import { ValidationMessage } from "../validators/validation-message";
 import { ValidationType } from "../validators/validation-type";
 import { GateKeeper } from "./utils/gate-keeper";
 import { rules } from "../rules/scalar-rules-definition";
+import { arrayListRules } from "../rules/array-list-rules-definition";
+import { listOfPropertiesRules } from "../rules/list-of-properties-rules-definition";
 
 let builder: Builder;
 const someError: ValidationMessage = {
@@ -102,11 +104,13 @@ test('validator combination test', async () => {
 
 test('validator list test', async () => {
     const list = builder.list.create('LIST', (id) => builder.scalar.booleanProperty(id));
-    builder.list.bindListOfProperties(list).addValidator((listProp) => {
-        if (listProp.list.every(prop => !prop.getValue())) {
-            return someError;
-        }
-    });
+    builder.list.bindListOfProperties(list, listOfPropertiesRules(builder => {
+        builder.addValidator((listProp) => {
+            if (listProp.list.every(prop => !prop.getValue())) {
+                return someError;
+            }
+        });
+    }));
 
     let msgs = await list.validate();
     expect(msgs).toStrictEqual([someError]);
@@ -121,12 +125,13 @@ test('validator list test', async () => {
 });
 
 test('validator sync array list test', async () => {
-    const list = builder.list.crud.sync('LIST')<number>();
-    builder.list.bindPropertyArrayList(list).addValidator(l => {
-        if (l.getElements().length > 1) {
-            return someError;
-        }
-    });
+    const list = builder.list.crud.sync('LIST')<number>({}, arrayListRules(builder => {
+        builder.addValidator(l => {
+            if (l.getElements().length > 1) {
+                return someError;
+            }
+        });
+    }));
 
     let msgs = await list.validate();
     expect(msgs).toStrictEqual([]);
@@ -156,14 +161,15 @@ test('validator async array list test', async () => {
     ];
 
     const [list, id] = setupAsyncCrudList();
-    builder.list.bindPropertyArrayList(list)
-        .addValidator(list => {
+    builder.list.bindPropertyArrayList(list, arrayListRules(builder => {
+        builder.addValidator(list => {
             if (list.getElements().length > 1) {
                 return someError;
             }
         }).addAsyncValidator(list => executeAfterTime(() => {
             return hintFactory(list.length);
         }, 100));
+    }));
 
     expect(list.getValidationMessages()).toStrictEqual([]);
 

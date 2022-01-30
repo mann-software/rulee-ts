@@ -55,6 +55,8 @@ export * from "./provider/value-provider/value-provider";
 export * from "./provider/value-provider/choices/choice-value-provider";
 export * from "./provider/value-provider/choices/select-value-provider";
 export * from "./provider/value-provider/choices/typeahead-value-provider";
+export * from "./rules/array-list-rules-definition";
+export * from "./rules/list-of-properties-rules-definition";
 export * from "./rules/rule";
 export * from "./rules/rules-definition";
 export * from "./rules/scalar-rules-definition";
