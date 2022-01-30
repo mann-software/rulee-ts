@@ -1,5 +1,5 @@
 import { AbstractProperty } from "../properties/abstract-property";
-import { rules, rulesAbstract, rulesComposed, RulesDefinition, rulesWithDeps } from "../rules/rules-definition";
+import { rules, rulesAbstract, rulesComposed, rulesWithDeps, ScalarRulesDefinition } from "../rules/scalar-rules-definition";
 import { PropertyScalarValidator } from "../validators/single-property-validator";
 import { ValidationType } from "../validators/validation-type";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
@@ -14,8 +14,8 @@ test('define rules once and use for different types of properties', () => {
 
     const someProp = builder.scalar.dateProperty('SOME_PROP');
 
-    const propA = builder.scalar.stringProperty('PROP_A', {}, reusableRules([someProp]) as RulesDefinition<string>);
-    const propB = builder.scalar.numberProperty('PROP_B', {}, reusableRules([someProp]) as RulesDefinition<number>);
+    const propA = builder.scalar.stringProperty('PROP_A', {}, reusableRules([someProp]) as ScalarRulesDefinition<string>);
+    const propB = builder.scalar.numberProperty('PROP_B', {}, reusableRules([someProp]) as ScalarRulesDefinition<number>);
 
     expect(propA.isRequired()).toBe(true);
     expect(propB.isRequired()).toBe(true);
@@ -45,7 +45,7 @@ test('define composed rules', () => {
         builder.onUpdated(prop => lastLog = prop.getNonNullValue());
     });
 
-    const composition = rulesComposed<string>(mandatoryWithHintRule as RulesDefinition<string>, loggingRule);
+    const composition = rulesComposed<string>(mandatoryWithHintRule as ScalarRulesDefinition<string>, loggingRule);
 
 
     const someProp = builder.scalar.stringProperty('SOME_PROP', {}, composition);

@@ -1,64 +1,44 @@
-import { PropertyScalarRuleBuilder } from "../engine/builder/property-scalar-rule-builder";
 import { AbstractProperty } from "../properties/abstract-property";
 
-export interface RulesDefinition<T> {
-    apply(builder: PropertyScalarRuleBuilder<T>): void;
+export interface RulesDefinition<RuleBuilder> {
+    apply(builder: RuleBuilder): void;
 }
 
-export function rules<T>(apply: (builder: PropertyScalarRuleBuilder<T>) => void): RulesDefinition<T> {
-    return {
-        apply
-    };
-}
-
-export function rulesWithDeps<T, Dependencies extends readonly AbstractProperty[]>(apply: (builder: PropertyScalarRuleBuilder<T>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => RulesDefinition<T> {
-    return dependencies => new RulesDefinitionWithDependencies(dependencies, apply);
-}
-
-export function rulesComposed<T>(...defintions: RulesDefinition<T>[]): RulesDefinition<T> {
-    return new RulesDefinitionComposition(defintions);
-}
-
-export function rulesAbstract<T>(): AbstractRulesDefinition<T> {
-    return new AbstractRulesDefinition();
-}
-
-
-class RulesDefinitionWithDependencies<T, Dependencies extends readonly AbstractProperty[]> implements RulesDefinition<T> {
+export class RulesDefinitionWithDependencies<RuleBuilder, Dependencies extends readonly AbstractProperty[]> implements RulesDefinition<RuleBuilder> {
 
     constructor(
         protected dependencies: Dependencies,
-        protected readonly applyFcn: (builder: PropertyScalarRuleBuilder<T>, ...dependencies: Dependencies) => void,
+        protected readonly applyFcn: (builder: RuleBuilder, ...dependencies: Dependencies) => void,
     ) { }
 
-    apply(builder: PropertyScalarRuleBuilder<T>): void {
+    apply(builder: RuleBuilder): void {
         this.applyFcn(builder, ...this.dependencies);
     }
 }
 
-class RulesDefinitionComposition<T> implements RulesDefinition<T> {
+export class RulesDefinitionComposition<RuleBuilder> implements RulesDefinition<RuleBuilder> {
 
     constructor(
-        private readonly definitions: RulesDefinition<T>[]
+        private readonly definitions: RulesDefinition<RuleBuilder>[]
     ) { }
 
-    apply(builder: PropertyScalarRuleBuilder<T>): void {
+    apply(builder: RuleBuilder): void {
         this.definitions.forEach(def => def.apply(builder));
     }
 }
 
-export class AbstractRulesDefinition<T> implements RulesDefinition<T> {
+export class AbstractRulesDefinition<RuleBuilder> implements RulesDefinition<RuleBuilder> {
 
-    private implementation?: RulesDefinition<T>;
+    private implementation?: RulesDefinition<RuleBuilder>;
 
-    apply(builder: PropertyScalarRuleBuilder<T>): void {
+    apply(builder: RuleBuilder): void {
         if (!this.implementation) {
             throw new Error("No implementation provided");
         }
         this.implementation.apply(builder);
     }
 
-    implementWith(implementation: RulesDefinition<T>): void {
+    implementWith(implementation: RulesDefinition<RuleBuilder>): void {
         this.implementation = implementation;
     }
 }

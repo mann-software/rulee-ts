@@ -4,7 +4,7 @@ import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
 import { ValidationMessage } from "../validators/validation-message";
 import { ValidationType } from "../validators/validation-type";
 import { GateKeeper } from "./utils/gate-keeper";
-import { rules } from "../rules/rules-definition";
+import { rules } from "../rules/scalar-rules-definition";
 
 let builder: Builder;
 const someError: ValidationMessage = {

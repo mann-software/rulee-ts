@@ -2,7 +2,7 @@ import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { C } from "../value-converter/common-value-converters";
 import { ValidationType } from "../validators/validation-type";
-import { rules } from "../rules/rules-definition";
+import { rules } from "../rules/scalar-rules-definition";
 
 let builder: Builder;
 

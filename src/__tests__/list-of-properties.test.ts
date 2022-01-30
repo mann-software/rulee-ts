@@ -1,7 +1,7 @@
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { SelectionMode } from "../engine/builder/list-builder";
-import { rules } from "../rules/rules-definition";
+import { rules } from "../rules/scalar-rules-definition";
 
 let builder: Builder;
 

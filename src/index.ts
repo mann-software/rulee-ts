@@ -57,6 +57,7 @@ export * from "./provider/value-provider/choices/select-value-provider";
 export * from "./provider/value-provider/choices/typeahead-value-provider";
 export * from "./rules/rule";
 export * from "./rules/rules-definition";
+export * from "./rules/scalar-rules-definition";
 export * from "./util/assertions/assertion-error";
 export * from "./util/assertions/assertions";
 export * from "./util/logger/logger";

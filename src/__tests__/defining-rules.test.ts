@@ -1,5 +1,5 @@
 import { PropertyScalar } from "../properties/property-scalar";
-import { rules, rulesWithDeps } from "../rules/rules-definition";
+import { rules, rulesWithDeps } from "../rules/scalar-rules-definition";
 import { TextInterpreter } from "../util/text-interpreter/text-interpreter";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 
