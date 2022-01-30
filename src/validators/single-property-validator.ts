@@ -1,3 +1,4 @@
+import { GroupOfProperties, PropertyGroup } from "../index";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { ListOfProperties } from "../properties/list-of-properties";
 import { PropertyArrayList } from "../properties/property-array-list";
@@ -20,6 +21,11 @@ export type SinglePropertyValidator<T extends AbstractDataProperty<unknown>> = (
  * Shortcut for SinglePropertyValidator<PropertyScalar<T>>
  */
 export type PropertyScalarValidator<T> = SinglePropertyValidator<PropertyScalar<T>>;
+
+/**
+ * Shortcut for SinglePropertyValidator<GroupOfProperties<T>>
+ */
+export type GroupOfPropertiesValidator<T extends PropertyGroup> = SinglePropertyValidator<GroupOfProperties<T>>;
 
 /**
  * Shortcut for SinglePropertyValidator<PropertyArrayList<T>>

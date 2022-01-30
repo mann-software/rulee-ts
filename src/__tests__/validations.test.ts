@@ -7,6 +7,7 @@ import { GateKeeper } from "./utils/gate-keeper";
 import { rules } from "../rules/scalar-rules-definition";
 import { arrayListRules } from "../rules/array-list-rules-definition";
 import { listOfPropertiesRules } from "../rules/list-of-properties-rules-definition";
+import { groupRules } from "..";
 
 let builder: Builder;
 const someError: ValidationMessage = {
@@ -187,13 +188,14 @@ test('validator group test', async () => {
     const group = builder.group.of('GROUP', {
         propA,
         propB
-    })
-
-    builder.group.bindValidator(group, (group) => executeAfterTime(() => {
-        if (`${group.propA.getDisplayValue()}+${group.propB.getDisplayValue()}` === 'A+B') {
-            return [someError];
-        }
-    }, 50));
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    }, groupRules(builder => {
+        builder.addGeneralValidator((group) => executeAfterTime(() => {
+            if (`${group.propA.getDisplayValue()}+${group.propB.getDisplayValue()}` === 'A+B') {
+                return [someError];
+            }
+        }, 50));
+    }));
 
     let msgs = await group.validate();
     expect(msgs).toStrictEqual([]);

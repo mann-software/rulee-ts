@@ -233,13 +233,13 @@ export class PropertyScalarBuilder {
         }
     }
 
-    bind<T>(prop: PropertyScalar<T>, ...rulesDefintion: ScalarRulesDefinition<T>[]): void {
+    bind<T>(prop: PropertyScalar<T>, ...rulesDefintions: ScalarRulesDefinition<T>[]): void {
         const ruleBuilder = this.bindPropertyScalar(prop);
-        rulesDefintion.forEach(def => def.apply(ruleBuilder));
+        rulesDefintions.forEach(def => def.apply(ruleBuilder));
     }
 
-    private bindRulesAndApplyConfig<T>(prop: PropertyScalarImpl<T>, config?: PropertyScalarValueConfig<T>, ...rulesDefintion: ScalarRulesDefinition<T>[]): PropertyScalar<T> {
-        this.bind(prop, ...rulesDefintion);
+    private bindRulesAndApplyConfig<T>(prop: PropertyScalarImpl<T>, config?: PropertyScalarValueConfig<T>, ...rulesDefintions: ScalarRulesDefinition<T>[]): PropertyScalar<T> {
+        this.bind(prop, ...rulesDefintions);
         if (config) {
             if (config.initialValue !== undefined) {
                 prop.defineInitialValue(config.initialValue);

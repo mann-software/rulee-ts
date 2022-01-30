@@ -10,7 +10,7 @@ export class PropertyArrayListRuleBuilder<T> {
     constructor(
         property: PropertyArrayList<T>,
     ) {
-        this.property = property as unknown as PropertyArrayListImpl<T>;
+        this.property = property as PropertyArrayListImpl<T>;
     }
 
     // ------------------

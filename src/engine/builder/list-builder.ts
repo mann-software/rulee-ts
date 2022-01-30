@@ -155,8 +155,8 @@ export class ListBuilder {
         definitions.forEach(def => def.apply(builder));
     }
 
-    private bindRulesAndApplyConfigListOfProperties<T extends AbstractDataProperty<D>, D>(prop: ListOfPropertiesImpl<T, D>, config?: ComplexPropertyListConfig, ...rulesDefintion: ListOfPropertiesRulesDefinition<T, D>[]): ListOfProperties<T, D> {
-        this.bindListOfProperties(prop, ...rulesDefintion);
+    private bindRulesAndApplyConfigListOfProperties<T extends AbstractDataProperty<D>, D>(prop: ListOfPropertiesImpl<T, D>, config?: ComplexPropertyListConfig, ...rulesDefintions: ListOfPropertiesRulesDefinition<T, D>[]): ListOfProperties<T, D> {
+        this.bindListOfProperties(prop, ...rulesDefintions);
         if (config) {
             if (config.label !== undefined) {
                 prop.defineLabel(config.label);
@@ -171,8 +171,8 @@ export class ListBuilder {
         definitions.forEach(def => def.apply(builder));
     }
 
-    private bindRulesAndApplyConfigArrayList<T, List extends PropertyArrayListImpl<T>>(prop: List, config?: PropertyListConfig, ...rulesDefintion: ArrayListRulesDefinition<T>[]): List {
-        this.bindPropertyArrayList(prop, ...rulesDefintion);
+    private bindRulesAndApplyConfigArrayList<T, List extends PropertyArrayListImpl<T>>(prop: List, config?: PropertyListConfig, ...rulesDefintions: ArrayListRulesDefinition<T>[]): List {
+        this.bindPropertyArrayList(prop, ...rulesDefintions);
         if (config) {
             if (config.label !== undefined) {
                 prop.defineLabel(config.label);
