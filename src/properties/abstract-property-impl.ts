@@ -288,8 +288,16 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         return this.validationMessages.every(msg => msg.type.isValid);
     }
 
+    setValidationMessages(messages: ValidationMessage[]): void {
+        this.validationMessages = messages;
+    }
+
     getValidationMessages(): ValidationMessage[] {
         return this.validationMessages;
+    }
+
+    clearValidationResult(): void {
+        this.validationMessages = [];
     }
     
     // ---------------------------------------------------------------------------------------
