@@ -6,7 +6,7 @@ export class ValidationType {
     static readonly ErrorThrownDuringValidation = new ValidationType('ErrorThrownDuringValidation', false);
 
     constructor(
-        public name: string,
-        public isValid: boolean
+        public readonly name: string,
+        public readonly isValid: boolean
     ) {}
 }
