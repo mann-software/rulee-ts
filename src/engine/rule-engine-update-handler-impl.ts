@@ -1,13 +1,10 @@
 import { AbstractProperty } from "../properties/abstract-property";
-import { AbstractPropertyWithInternals } from "../properties/abstract-property-impl";
 import { ValidationResult } from "../validators/validation-result";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 
 export interface RuleEngineUpdateHandler {
     /**
-     * Call this, if the property might have changed.
-     * The rule engine will mark all properties that are necessary to be updated
-     * @param mightHaveChanged property that might have changed
+     * See: {@link RuleEngine.needsAnUpdate}
      */
     needsAnUpdate(mightHaveChanged: AbstractProperty): void;
     /**
