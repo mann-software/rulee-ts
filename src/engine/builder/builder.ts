@@ -55,8 +55,8 @@ export class Builder {
         private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }
     ) {
         this.notEmptyIfRequiredValidator = options.emptyButRequiredMessage instanceof Function 
-            ? V.notEmptyMsgProvider(options.emptyButRequiredMessage)
-            : V.notEmpty(options.emptyButRequiredMessage);
+            ? V.scalar.notEmptyMsgProvider(options.emptyButRequiredMessage)
+            : V.scalar.notEmpty(options.emptyButRequiredMessage);
 
         if (options.defaultEmptyChoiceDisplayValue) {
             this.defaultEmptyChoiceDisplayValue = options.defaultEmptyChoiceDisplayValue;
