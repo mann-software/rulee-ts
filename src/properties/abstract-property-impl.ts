@@ -200,13 +200,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyUpdate: END ------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    needsAnUpdate(notifyOthers?: boolean, needsToRecompute?: boolean, needsToRevalidate?: boolean): void {
+    needsAnUpdate(notifyOthers?: boolean, needsToRecompute?: boolean): void {
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
         this.needsToRecompute = needsToRecompute ?? true;
-        this.needsToRevalidate = needsToRevalidate ?? true;
-        if (this.validators) {
-            this.updateHandler.invalidateValidationResults(this.validators);
-        }
+        this.cancelValidationAndInvalidateResults();
 
         // chain is controlled by RuleEngine Class, it will set notifyOthers to false
         if (notifyOthers !== false) {
@@ -228,10 +225,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     dependencyHasBeenUpdated(dependency: PropertyDependency) {
         if (dependency.options.validation) {
-            this.needsToRevalidate = true;
-            if (this.validators) {
-                this.updateHandler.invalidateValidationResults(this.validators);
-            }
+            this.cancelValidationAndInvalidateResults();
         }
         this.tellValueChangeListeners(listener => listener.dependencyHasBeenUpdated?.(dependency));
     }
@@ -270,7 +264,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             }
             this.validationMessages = this.getSinglePropertyValidationResults();
             if (this.validators) {
-                const results = await Promise.all(this.updateHandler.validate(this.validators));
+                const results = await Promise.all(this.updateHandler.validateValidatorInstances(this.validators));
                 results.forEach(result => {
                     if (result instanceof Array) {
                         this.validationMessages.push(...result);
@@ -297,7 +291,15 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     clearValidationResult(): void {
+        this.cancelValidationAndInvalidateResults();
         this.validationMessages = [];
+    }
+
+    private cancelValidationAndInvalidateResults() {
+        this.needsToRevalidate = true;
+        if (this.validators) {
+            this.updateHandler.cancelValidationAndInvalidateResults(this.validators);
+        }
     }
     
     // ---------------------------------------------------------------------------------------

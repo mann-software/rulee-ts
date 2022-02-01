@@ -14,11 +14,13 @@ import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { PropertyGroup } from "../properties/group-of-properties";
 import { RuleSet } from "./rule-set/rule-set";
 import { RuleEngine } from "./rule-engine";
+import { ValidationMessagesMap } from "../validators/validation-messages-map";
+import { PropertyId } from "../properties/property-id";
 
 export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     private readonly builder: Builder;
-    private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> } = {};
+    private readonly propertyMap: { [id: PropertyId]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
     private readonly validations = new WeakMap<ValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
 
@@ -33,10 +35,6 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         this.builder = new Builder(options, this, this.dependencyGraph, this.propertyMap);
     }
 
-    defineRuleSet<S extends PropertyGroup>(initFcn: (builder: Builder) => S): RuleSet<S> {
-        return new RuleSet(initFcn, this.builder);
-    }
-
     getBuilder(): Builder {
         return this.builder;
     }
@@ -44,6 +42,42 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     getPropertyById(id: string): AbstractProperty | undefined {
         return this.propertyMap[id];
     }
+    
+    // -----------------------------------------------------------------------
+    
+    async validate(): Promise<ValidationMessagesMap> {
+        await Promise.all(Object.values(this.propertyMap).map(prop => prop.validate()));
+        return this.getValidationMessages();
+    }
+
+    setValidationMessages(validationMessagesMap: ValidationMessagesMap): PropertyId[] {
+        const unknownIds: PropertyId[] = [];
+        this.clearValidationResult();
+        Object.keys(validationMessagesMap).forEach(key => {
+            if (this.propertyMap[key] !== undefined) {
+                this.propertyMap[key].setValidationMessages(validationMessagesMap[key])
+            } else {
+                unknownIds.push(key);
+            }            
+        });
+        return  unknownIds;
+    }
+
+    getValidationMessages(): ValidationMessagesMap {
+        return Object.keys(this.propertyMap).reduce((res, cur) => {
+            const messages = this.propertyMap[cur].getValidationMessages();
+            if (messages.length > 0) {
+                res[cur] = messages;
+            }
+            return res;
+        }, {} as ValidationMessagesMap)
+    }
+
+    clearValidationResult(): void {
+        Object.values(this.propertyMap).forEach(prop => prop.clearValidationResult());
+    }
+    
+    // -----------------------------------------------------------------------
 
     takeSnapShot(key = 'default'): Snapshot {
         const snap = {
@@ -157,28 +191,32 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     // -----------------------------------------------------------------------
 
-    invalidateValidationResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void {
+    cancelValidationAndInvalidateResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void {
         validators.forEach(v => {
             const vprocess = this.getValidationProcess(v);
             vprocess.isLastResultUpToDate = false;
+            vprocess.isCancelled = true;
         });
     }
 
-    validate(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[] {
+    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[] {
         return validators.map(validator => {
             const vprocess = this.getValidationProcess(validator);
             if (vprocess.isLastResultUpToDate) {
                 return Promise.resolve(vprocess.lastValidationResult);
-            } else if(vprocess.currentValidation) {
+            } else if(vprocess.currentValidation && !vprocess.isCancelled) {
                 return vprocess.currentValidation;
             }
+            vprocess.isCancelled = false;
             const validation = validator.validate(...validator.getValidatedProperties());
             if (validation instanceof Promise) {
                 vprocess.currentValidation = validation.then(res => {
                     vprocess.currentValidation = undefined;
                     vprocess.lastValidationResult = res;
-                    vprocess.isLastResultUpToDate = true;
-                    return res;
+                    if (!vprocess.isCancelled) {
+                        vprocess.isLastResultUpToDate = true;
+                        return res;
+                    }
                 }, err => {
                     vprocess.currentValidation = undefined;
                     return [{
@@ -201,11 +239,17 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
             return vprocess;
         } else {
             const newProcess: ValidationProcess = {
-                isLastResultUpToDate: false
+                isLastResultUpToDate: false,
+                isCancelled: false,
             }
             this.validations.set(validator, newProcess);
             return newProcess;
         }
     }
 
+    // -----------------------------------------------------------------------
+
+    defineRuleSet<S extends PropertyGroup>(initFcn: (builder: Builder) => S): RuleSet<S> {
+        return new RuleSet(initFcn, this.builder);
+    }
 }

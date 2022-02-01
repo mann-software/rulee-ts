@@ -46,7 +46,8 @@ export interface AbstractProperty {
     getValidationMessages(): ValidationMessage[];
 
     /**
-     * Clears the validation messages ({@link getValidationMessages}) and this property is regarded as valid ({@link isValid})
+     * Clears the validation messages ({@link getValidationMessages}) and this property is regarded as valid ({@link isValid}).
+     * Ongoing validations are cancelled as well.
      */
     clearValidationResult(): void;
 

@@ -15,13 +15,13 @@ export interface RuleEngineUpdateHandler {
      */
     updateValue(property: AbstractProperty): Promise<void> | undefined;
     /**
-     * Call this to invalidate the last validation result for the given Validator
+     * Call this to cancel ongoing validations as well as to invalidate the last validation result for the given Validator
      * @param validators validators to invalidate
      */
-    invalidateValidationResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void;
+    cancelValidationAndInvalidateResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void;
     /**
-     * Validates the given validators but uses the last validation result if it is still up to date (and not invalidated via invalidateValidationResults)
+     * Validates the given validators but uses the last validation result if it is still up to date (and not invalidated via cancelValidationAndInvalidateResults)
      * @param validators validators to validate
      */
-    validate(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[];
+    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[];
 }

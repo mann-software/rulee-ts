@@ -7,7 +7,7 @@ import { GateKeeper } from "./utils/gate-keeper";
 import { rules } from "../rules/scalar-rules-definition";
 import { arrayListRules } from "../rules/array-list-rules-definition";
 import { listOfPropertiesRules } from "../rules/list-of-properties-rules-definition";
-import { groupRules } from "..";
+import { groupRules } from "../rules/group-of-properties-rules-definition";
 
 let builder: Builder;
 const someError: ValidationMessage = {
@@ -72,6 +72,24 @@ test('async scalar validation test', async () => {
     prop.needsAnUpdate();
     await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([someError]);
+});
+
+test('cancel validation test', async () => {
+    const validationResult: ValidationMessage[] = [];
+
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
+    }));
+
+    await prop.validate();
+    expect(prop.getValidationMessages()).toStrictEqual([]);
+
+    validationResult.push(someError);
+    prop.needsAnUpdate();
+    const validation = prop.validate();
+    prop.needsAnUpdate(); // will also cancel the validation
+    await validation;
+    expect(prop.getValidationMessages()).toStrictEqual([]);
 });
 
 test('validator combination test', async () => {

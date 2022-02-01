@@ -6,6 +6,8 @@ import { RuleSet } from "./rule-set/rule-set";
 import { BuilderOptions } from "./builder/builder-options";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { RuleEngineImpl } from "./rule-engine-impl";
+import { PropertyId } from "../properties/property-id";
+import { ValidationMessagesMap } from "../validators/validation-messages-map";
 
 export function createRuleEngine(options: BuilderOptions) {
     return new RuleEngineImpl(options);
@@ -25,7 +27,34 @@ export interface RuleEngine {
      * ensures that the property exists.
      * @param id of the property
      */
-    getPropertyById(id: string): AbstractProperty | undefined;
+    getPropertyById(id: PropertyId): AbstractProperty | undefined;
+    
+    // -----------------------------------------------------------------------
+
+    /**
+     * Validates all the properties and returns all validation messages that are issued
+     */
+    validate(): Promise<ValidationMessagesMap>;
+
+    /**
+     * Clears all validation messages and sets the given messages
+     * @param validationMessagesMap messages
+     * @returns unknown property ids
+     */
+    setValidationMessages(validationMessagesMap: ValidationMessagesMap): PropertyId[];
+
+    /**
+     * Returns all the validation messages that are present
+     */
+    getValidationMessages(): ValidationMessagesMap;
+
+    /**
+     * Clears all the validation messages and all properties are considered as valid.
+     * Ongoing validations are cancelled as well.
+     */
+     clearValidationResult(): void;
+    
+    // -----------------------------------------------------------------------
 
     takeSnapShot(key?: string): Snapshot;
 
