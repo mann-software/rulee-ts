@@ -14,6 +14,10 @@ const someError: ValidationMessage = {
     text: 'Error',
     type: ValidationType.Error
 };
+const anotherError: ValidationMessage = {
+    text: 'other Error',
+    type: ValidationType.Error
+};
 
 beforeEach(() => {
     [builder] = builderAndRuleEngineFactory();
@@ -75,21 +79,34 @@ test('async scalar validation test', async () => {
 });
 
 test('cancel validation test', async () => {
-    const validationResult: ValidationMessage[] = [];
+    const validationResult: ValidationMessage[] = [someError];
 
     const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
         builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
     }));
 
-    await prop.validate();
-    expect(prop.getValidationMessages()).toStrictEqual([]);
-
-    validationResult.push(someError);
     prop.needsAnUpdate();
     const validation = prop.validate();
-    prop.needsAnUpdate(); // will also cancel the validation
+    prop.clearValidationResult();
+    expect(prop.getValidationMessages()).toStrictEqual([]);
     await validation;
     expect(prop.getValidationMessages()).toStrictEqual([]);
+    expect(prop.isValid()).toBe(true);
+});
+
+test('set validation messages test (while validating)', async () => {
+    const validationResult: ValidationMessage[] = [someError];
+
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
+    }));
+
+    prop.needsAnUpdate();
+    const validation = prop.validate();
+    prop.setValidationMessages([anotherError]);
+    expect(prop.getValidationMessages()).toStrictEqual([anotherError]);
+    await validation;
+    expect(prop.getValidationMessages()).toStrictEqual([anotherError]);
 });
 
 test('validator combination test', async () => {

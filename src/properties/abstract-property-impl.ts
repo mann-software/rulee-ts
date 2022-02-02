@@ -283,6 +283,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     setValidationMessages(messages: ValidationMessage[]): void {
+        this.cancelValidationAndInvalidateResults();
         this.validationMessages = messages;
     }
 
