@@ -262,18 +262,18 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             if (updated) {
                 await updated;
             }
-            this.validationMessages = this.getSinglePropertyValidationResults();
+            const validationMessages = this.getSinglePropertyValidationResults();
             if (this.validators) {
                 const results = await Promise.all(this.updateHandler.validateValidatorInstances(this.validators));
                 results.forEach(result => {
                     if (result instanceof Array) {
-                        this.validationMessages.push(...result);
+                        validationMessages.push(...result);
                     } else if (!!result && result[this.id]) {
-                        this.validationMessages.push(...result[this.id]);
+                        validationMessages.push(...result[this.id]);
                     }
                 });
             }
-            this.tellValueChangeListeners(listener => listener.validated?.());
+            this.updateValidationMessages(validationMessages);
         }
         return this.getValidationMessages();
     }
@@ -284,7 +284,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     setValidationMessages(messages: ValidationMessage[]): void {
         this.cancelValidationAndInvalidateResults();
-        this.validationMessages = messages;
+        this.updateValidationMessages(messages);
     }
 
     getValidationMessages(): ValidationMessage[] {
@@ -293,7 +293,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     clearValidationResult(): void {
         this.cancelValidationAndInvalidateResults();
-        this.validationMessages = [];
+        this.updateValidationMessages([]);
     }
 
     private cancelValidationAndInvalidateResults() {
@@ -301,6 +301,11 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         if (this.validators) {
             this.updateHandler.cancelValidationAndInvalidateResults(this.validators);
         }
+    }
+
+    private updateValidationMessages(validationMessages: ValidationMessage[]) {
+        this.validationMessages = validationMessages;
+        this.tellValueChangeListeners(listener => listener.validated?.());
     }
     
     // ---------------------------------------------------------------------------------------
