@@ -265,10 +265,13 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             const validationMessages = this.getSinglePropertyValidationResults();
             if (this.validators) {
                 const results = await Promise.all(this.updateHandler.validateValidatorInstances(this.validators));
+                if (results.some(res => res === 'cancelled')) {
+                    return this.getValidationMessages();
+                }
                 results.forEach(result => {
                     if (result instanceof Array) {
                         validationMessages.push(...result);
-                    } else if (!!result && result[this.id]) {
+                    } else if (result instanceof Object && result[this.id]) {
                         validationMessages.push(...result[this.id]);
                     }
                 });

@@ -199,7 +199,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         });
     }
 
-    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[] {
+    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult | 'cancelled'>[] {
         return validators.map(validator => {
             const vprocess = this.getValidationProcess(validator);
             if (vprocess.isLastResultUpToDate) {
@@ -213,7 +213,9 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
                 vprocess.currentValidation = validation.then(res => {
                     vprocess.currentValidation = undefined;
                     vprocess.lastValidationResult = res;
-                    if (!vprocess.isCancelled) {
+                    if (vprocess.isCancelled) {
+                        return 'cancelled';
+                    } else {
                         vprocess.isLastResultUpToDate = true;
                         return res;
                     }

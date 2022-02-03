@@ -6,6 +6,6 @@ import { ValidationResult } from "../../validators/validation-result";
 export interface ValidationProcess {
     isLastResultUpToDate: boolean;
     isCancelled: boolean;
-    currentValidation?: Promise<ValidationResult>;
+    currentValidation?: Promise<ValidationResult | 'cancelled'>;
     lastValidationResult?: ValidationResult;
 }

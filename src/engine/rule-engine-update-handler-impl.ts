@@ -23,5 +23,5 @@ export interface RuleEngineUpdateHandler {
      * Validates the given validators but uses the last validation result if it is still up to date (and not invalidated via cancelValidationAndInvalidateResults)
      * @param validators validators to validate
      */
-    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult>[];
+    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult | 'cancelled'>[];
 }
