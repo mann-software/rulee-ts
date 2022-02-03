@@ -56,17 +56,17 @@ export class PropertyArrayListSyncImpl<T> extends PropertyArrayListImpl<T> imple
 
     addElement(el: T, index?: number): void {
         this.listProvider.addProperty(el, index);
-        this.needsAnUpdate(true, false, true);
+        this.needsAnUpdate(true, false);
     }
 
     updateElement(el: T, index: number): void {
         this.listProvider.updateProperty(el, index);
-        this.needsAnUpdate(true, false, true);
+        this.needsAnUpdate(true, false);
     }
 
     removeElement(index: number): void {
         this.listProvider.removeProperty(index);
-        this.needsAnUpdate(true, false, true);
+        this.needsAnUpdate(true, false);
     }
     
     protected internallySyncUpdate(): void {
@@ -160,7 +160,7 @@ export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> impl
             } else {
                 operation.apply(this.workingList); // maybe add strategies later (e.g. only apply after sync)
             }
-            super.needsAnUpdate(true, false, true);
+            super.needsAnUpdate(true, false);
         } catch (err) {
             delete this.awaitUpdateBeforeApply;
             this.errorWhileUpdating(err);
@@ -192,7 +192,7 @@ export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> impl
             }
             operation?.undo(this.workingList);
             this.operationPipe = [];
-            super.needsAnUpdate(true, false, true);
+            super.needsAnUpdate(true, false);
             this.errorWhileUpdating(err);
         }
     }

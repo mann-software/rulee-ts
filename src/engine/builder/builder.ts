@@ -1,4 +1,3 @@
-import { RuleEngine } from "../rule-engine";
 import { PropertyId } from "../../properties/property-id";
 import { PropertyScalar } from "../../properties/property-scalar";
 import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
@@ -31,6 +30,7 @@ import { SiblingAccess } from "../../provider/list-provider/sibling-access";
 import { AsyncListProvider, ListProvider } from "../../provider/list-provider/list-provider";
 import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
+import { RuleEngineImpl } from "../rule-engine-impl";
 
 export class Builder {
 
@@ -50,13 +50,13 @@ export class Builder {
 
     constructor(
         options: BuilderOptions,
-        private readonly ruleEngine: RuleEngine,
+        private readonly ruleEngine: RuleEngineImpl,
         private readonly dependencyGraph: DependencyGraph,
         private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }
     ) {
         this.notEmptyIfRequiredValidator = options.emptyButRequiredMessage instanceof Function 
-            ? V.notEmptyMsgProvider(options.emptyButRequiredMessage)
-            : V.notEmpty(options.emptyButRequiredMessage);
+            ? V.scalar.notEmptyMsgProvider(options.emptyButRequiredMessage)
+            : V.scalar.notEmpty(options.emptyButRequiredMessage);
 
         if (options.defaultEmptyChoiceDisplayValue) {
             this.defaultEmptyChoiceDisplayValue = options.defaultEmptyChoiceDisplayValue;

@@ -200,13 +200,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyUpdate: END ------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    needsAnUpdate(notifyOthers?: boolean, needsToRecompute?: boolean, needsToRevalidate?: boolean): void {
+    needsAnUpdate(notifyOthers?: boolean, needsToRecompute?: boolean): void {
         Logger.trace(() => `Property.needsAnUpdate ${this.id}`);
         this.needsToRecompute = needsToRecompute ?? true;
-        this.needsToRevalidate = needsToRevalidate ?? true;
-        if (this.validators) {
-            this.updateHandler.invalidateValidationResults(this.validators);
-        }
+        this.cancelValidationAndInvalidateResults();
 
         // chain is controlled by RuleEngine Class, it will set notifyOthers to false
         if (notifyOthers !== false) {
@@ -228,10 +225,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     dependencyHasBeenUpdated(dependency: PropertyDependency) {
         if (dependency.options.validation) {
-            this.needsToRevalidate = true;
-            if (this.validators) {
-                this.updateHandler.invalidateValidationResults(this.validators);
-            }
+            this.cancelValidationAndInvalidateResults();
         }
         this.tellValueChangeListeners(listener => listener.dependencyHasBeenUpdated?.(dependency));
     }
@@ -268,18 +262,21 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             if (updated) {
                 await updated;
             }
-            this.validationMessages = this.getSinglePropertyValidationResults();
+            const validationMessages = this.getSinglePropertyValidationResults();
             if (this.validators) {
-                const results = await Promise.all(this.updateHandler.validate(this.validators));
+                const results = await Promise.all(this.updateHandler.validateValidatorInstances(this.validators));
+                if (results.some(res => res === 'cancelled')) {
+                    return this.getValidationMessages();
+                }
                 results.forEach(result => {
                     if (result instanceof Array) {
-                        this.validationMessages.push(...result);
-                    } else if (!!result && result[this.id]) {
-                        this.validationMessages.push(...result[this.id]);
+                        validationMessages.push(...result);
+                    } else if (result instanceof Object && result[this.id]) {
+                        validationMessages.push(...result[this.id]);
                     }
                 });
             }
-            this.tellValueChangeListeners(listener => listener.validated?.());
+            this.updateValidationMessages(validationMessages);
         }
         return this.getValidationMessages();
     }
@@ -288,8 +285,30 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         return this.validationMessages.every(msg => msg.type.isValid);
     }
 
+    setValidationMessages(messages: ValidationMessage[]): void {
+        this.cancelValidationAndInvalidateResults();
+        this.updateValidationMessages(messages);
+    }
+
     getValidationMessages(): ValidationMessage[] {
         return this.validationMessages;
+    }
+
+    clearValidationResult(): void {
+        this.cancelValidationAndInvalidateResults();
+        this.updateValidationMessages([]);
+    }
+
+    private cancelValidationAndInvalidateResults() {
+        this.needsToRevalidate = true;
+        if (this.validators) {
+            this.updateHandler.cancelValidationAndInvalidateResults(this.validators);
+        }
+    }
+
+    private updateValidationMessages(validationMessages: ValidationMessage[]) {
+        this.validationMessages = validationMessages;
+        this.tellValueChangeListeners(listener => listener.validated?.());
     }
     
     // ---------------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import { ValidationType } from '../../validators/validation-type';
 import { ValidationMessage } from '../../validators/validation-message';
-import { RuleEngine } from '../../engine/rule-engine';
+import { RuleEngine, createRuleEngine } from '../../engine/rule-engine';
 import { Builder } from '../../engine/builder/builder';
 import { BuilderOptions } from '../../engine/builder/builder-options';
 import { PropertyArrayListCrudAsync } from '../../properties/property-array-list';
@@ -16,7 +16,7 @@ const defaultOptions: BuilderOptions = { emptyButRequiredMessage: emptyButRequir
 
 export const builderAndRuleEngineFactory: (options?: Partial<BuilderOptions>) => [Builder, RuleEngine] = (options?: Partial<BuilderOptions>) => {
     const mergedOptions = !options ? defaultOptions : { ...defaultOptions, ...options };
-    const ruleEngine = new RuleEngine(mergedOptions);
+    const ruleEngine = createRuleEngine(mergedOptions);
     return [ruleEngine.getBuilder(), ruleEngine];
 };
 

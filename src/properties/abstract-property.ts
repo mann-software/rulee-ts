@@ -35,9 +35,21 @@ export interface AbstractProperty {
     isValid(): boolean;
 
     /**
-     * Gets current Validation Messages
+     * Sets validation messages and overrides the latest messages that were determined by {@link validate}.
+     * In most cases you should not use this method but {@link validate} to update the validation messages.
+     */
+    setValidationMessages(messages: ValidationMessage[]): void;
+
+    /**
+     * Gets the validation messages of most recent validation (triggered by {@link validate}) or the messages that were set via {@link setValidationMessages}
      */
     getValidationMessages(): ValidationMessage[];
+
+    /**
+     * Clears the validation messages ({@link getValidationMessages}) and this property is regarded as valid ({@link isValid}).
+     * Ongoing validations are cancelled as well.
+     */
+    clearValidationResult(): void;
 
     /**
      * Indicates that the property requires asynchronous processing
