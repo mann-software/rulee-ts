@@ -20,7 +20,7 @@ export const notEmptyIfRequiredValidator = <T>(valiationMessageProvider: (proper
  * @returns PropertyScalarValidator
  */
 export const patternValidator = <T>(pattern: RegExp, msg: ValidationMessage) => ((property: PropertyScalar<T>) => {
-    if (pattern.test(property.getDisplayValue())) {
+    if (!pattern.test(property.getDisplayValue())) {
         return msg;
     }
 }) as PropertyScalarValidator<T>;
