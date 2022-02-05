@@ -4,14 +4,14 @@ import { AbstractRulesDefinition, RulesDefinition, RulesDefinitionComposition, R
 
 export type ArrayListRulesDefinition<T> = RulesDefinition<PropertyArrayListRuleBuilder<T>>;
 
-export function arrayListRules<T>(apply: (builder: PropertyArrayListRuleBuilder<T>) => void): ArrayListRulesDefinition<T> {
+export function arrayListRules<T>(buildRules: (builder: PropertyArrayListRuleBuilder<T>) => void): ArrayListRulesDefinition<T> {
     return {
-        apply
+        buildRules
     };
 }
 
-export function arrayListRulesWithDeps<T, Dependencies extends readonly AbstractProperty[]>(apply: (builder: PropertyArrayListRuleBuilder<T>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => ArrayListRulesDefinition<T> {
-    return dependencies => new RulesDefinitionWithDependencies(dependencies, apply);
+export function arrayListRulesWithDeps<T, Dependencies extends readonly AbstractProperty[]>(buildRules: (builder: PropertyArrayListRuleBuilder<T>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => ArrayListRulesDefinition<T> {
+    return dependencies => new RulesDefinitionWithDependencies(dependencies, buildRules);
 }
 
 export function arrayListRulesComposed<T>(...defintions: ArrayListRulesDefinition<T>[]): ArrayListRulesDefinition<T> {

@@ -35,6 +35,6 @@ export class GroupOfPropertiesBuilder {
 
     bind<T extends PropertyGroup>(prop: GroupOfProperties<T>, ...rulesDefintions: GroupOfPropertiesRulesDefinition<T>[]): void {
         const builder = new GroupOfPropertiesRuleBuilder(prop);
-        rulesDefintions.forEach(def => def.apply(builder));
+        rulesDefintions.forEach(def => def.buildRules(builder));
     }
 }

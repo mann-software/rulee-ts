@@ -5,14 +5,14 @@ import { AbstractRulesDefinition, RulesDefinition, RulesDefinitionComposition, R
 
 export type GroupOfPropertiesRulesDefinition<T extends PropertyGroup> = RulesDefinition<GroupOfPropertiesRuleBuilder<T>>;
 
-export function groupRules<T extends PropertyGroup>(apply: (builder: GroupOfPropertiesRuleBuilder<T>) => void): GroupOfPropertiesRulesDefinition<T> {
+export function groupRules<T extends PropertyGroup>(buildRules: (builder: GroupOfPropertiesRuleBuilder<T>) => void): GroupOfPropertiesRulesDefinition<T> {
     return {
-        apply
+        buildRules
     };
 }
 
-export function groupRulesWithDeps<T extends PropertyGroup, Dependencies extends readonly AbstractProperty[]>(apply: (builder: GroupOfPropertiesRuleBuilder<T>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => GroupOfPropertiesRulesDefinition<T> {
-    return dependencies => new RulesDefinitionWithDependencies(dependencies, apply);
+export function groupRulesWithDeps<T extends PropertyGroup, Dependencies extends readonly AbstractProperty[]>(buildRules: (builder: GroupOfPropertiesRuleBuilder<T>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => GroupOfPropertiesRulesDefinition<T> {
+    return dependencies => new RulesDefinitionWithDependencies(dependencies, buildRules);
 }
 
 export function groupRulesComposed<T extends PropertyGroup>(...defintions: GroupOfPropertiesRulesDefinition<T>[]): GroupOfPropertiesRulesDefinition<T> {
