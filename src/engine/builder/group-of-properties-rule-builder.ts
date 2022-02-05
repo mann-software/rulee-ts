@@ -2,7 +2,7 @@ import { AbstractProperty } from "../../properties/abstract-property";
 import { GroupOfProperties, PropertyGroup } from "../../properties/group-of-properties";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { GroupOfPropertiesValidator } from "../../validators/single-property-validator";
-import { ValidationResult } from "../../validators/validation-result";
+import { ValidatorValidationResult } from "../../validators/validator-validation-result";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 
 export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
@@ -22,7 +22,7 @@ export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
         return this;
     }
 
-    addGeneralValidator(validator: (group: T) => ValidationResult | Promise<ValidationResult>): GroupOfPropertiesRuleBuilder<T> {
+    addGeneralValidator(validator: (group: T) => ValidatorValidationResult | Promise<ValidatorValidationResult>): GroupOfPropertiesRuleBuilder<T> {
         const instance: ValidatorInstance<readonly AbstractProperty[]> = {
             getValidatedProperties: () => this.property.propertiesAsList,
             validate: () => validator(this.property.properties)

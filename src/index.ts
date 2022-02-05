@@ -71,6 +71,7 @@ export * from "./validators/validation-message";
 export * from "./validators/validation-messages-map";
 export * from "./validators/validation-result";
 export * from "./validators/validation-type";
+export * from "./validators/validator-validation-result";
 export * from "./validators/validator";
 export * from "./validators/common/common-list-validators";
 export * from "./validators/common/common-scalar-validators";

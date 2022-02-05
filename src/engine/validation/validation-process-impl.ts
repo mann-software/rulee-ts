@@ -1,4 +1,4 @@
-import { ValidationResult } from "../../validators/validation-result";
+import { ValidatorValidationResult } from "../../validators/validator-validation-result";
 
 /**
  * Used by RuleEngine to keep track of validation for a validator
@@ -6,6 +6,6 @@ import { ValidationResult } from "../../validators/validation-result";
 export interface ValidationProcess {
     isLastResultUpToDate: boolean;
     isCancelled: boolean;
-    currentValidation?: Promise<ValidationResult | 'cancelled'>;
-    lastValidationResult?: ValidationResult;
+    currentValidation?: Promise<ValidatorValidationResult | 'cancelled'>;
+    lastValidationResult?: ValidatorValidationResult;
 }

@@ -7,7 +7,7 @@ import { Snapshot } from "./snapshot/snapshot";
 import { BuilderOptions } from "./builder/builder-options";
 import { Builder } from "./builder/builder";
 import { ValidationProcess } from "./validation/validation-process-impl";
-import { ValidationResult } from "../validators/validation-result";
+import { ValidatorValidationResult } from "../validators/validator-validation-result";
 import { ValidationType } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
@@ -15,6 +15,7 @@ import { PropertyGroup } from "../properties/group-of-properties";
 import { RuleSet } from "./rule-set/rule-set";
 import { RuleEngine } from "./rule-engine";
 import { ValidationMessagesMap } from "../validators/validation-messages-map";
+import { ValidationResult } from "../validators/validation-result";
 import { PropertyId } from "../properties/property-id";
 
 export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
@@ -45,14 +46,18 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     
     // -----------------------------------------------------------------------
     
-    async validate(): Promise<ValidationMessagesMap> {
+    async validate(): Promise<ValidationResult> {
         await Promise.all(Object.values(this.propertyMap).map(prop => prop.validate()));
         return this.getValidationMessages();
     }
 
-    setValidationMessages(validationMessagesMap: ValidationMessagesMap): PropertyId[] {
-        const unknownIds: PropertyId[] = [];
+    setValidationMessages(validationMessages: ValidationMessagesMap | ValidationResult): PropertyId[] {
         this.clearValidationResult();
+        
+        const validationMessagesMap: ValidationMessagesMap = validationMessages instanceof ValidationResult 
+            ? validationMessages.getValidationMessagesMap() : validationMessages;
+        
+        const unknownIds: PropertyId[] = [];
         Object.keys(validationMessagesMap).forEach(key => {
             if (this.propertyMap[key] !== undefined) {
                 this.propertyMap[key].setValidationMessages(validationMessagesMap[key])
@@ -63,14 +68,15 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         return  unknownIds;
     }
 
-    getValidationMessages(): ValidationMessagesMap {
-        return Object.keys(this.propertyMap).reduce((res, cur) => {
+    getValidationMessages(): ValidationResult {
+        const map = Object.keys(this.propertyMap).reduce((res, cur) => {
             const messages = this.propertyMap[cur].getValidationMessages();
             if (messages.length > 0) {
                 res[cur] = messages;
             }
             return res;
-        }, {} as ValidationMessagesMap)
+        }, {} as ValidationMessagesMap);
+        return new ValidationResult(map);
     }
 
     clearValidationResult(): void {
@@ -199,7 +205,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         });
     }
 
-    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidationResult | 'cancelled'>[] {
+    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidatorValidationResult | 'cancelled'>[] {
         return validators.map(validator => {
             const vprocess = this.getValidationProcess(validator);
             if (vprocess.isLastResultUpToDate) {
