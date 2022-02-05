@@ -68,7 +68,7 @@ export * from "./util/logger/logger";
 export * from "./util/text-interpreter/text-interpreter";
 export * from "./validators/cross-validation-result";
 export * from "./validators/cross-validator";
-export * from "./validators/single-property-validator";
+export * from "./validators/property-validator";
 export * from "./validators/validation-message";
 export * from "./validators/validation-messages-map";
 export * from "./validators/validation-result";

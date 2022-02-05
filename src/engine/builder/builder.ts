@@ -13,7 +13,7 @@ import { TriggerBuilder } from "./trigger-builder";
 import { GroupOfPropertiesBuilder } from "./group-of-properties-builder";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
 import { BuilderOptions } from "./builder-options";
-import { PropertyScalarValidator } from "../../validators/single-property-validator";
+import { PropertyScalarValidator } from "../../validators/property-validator";
 import { V } from "../../validators/common/common-validators";
 import { EmptyValueFcn } from "../../provider/empty-value-fcn";
 import { AttributeId } from "../../attributes/attribute-id";

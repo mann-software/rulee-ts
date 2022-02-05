@@ -1,5 +1,5 @@
 import { PropertyScalar } from "../../properties/property-scalar";
-import { PropertyScalarValidator } from "../single-property-validator";
+import { PropertyScalarValidator } from "../property-validator";
 import { ValidationMessage } from "../validation-message";
 
 /**

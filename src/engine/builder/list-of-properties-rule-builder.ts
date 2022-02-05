@@ -1,7 +1,7 @@
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { ListOfProperties } from "../../properties/list-of-properties";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
-import { ListOfPropertiesValidator } from "../../validators/single-property-validator";
+import { ListOfPropertiesValidator } from "../../validators/property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 
 export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> {
@@ -17,7 +17,7 @@ export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> {
     // ------------------
 
     addValidator(validator: ListOfPropertiesValidator<T, D>): ListOfPropertiesRuleBuilder<T, D> {
-        this.property.addSinglePropertyValidator(validator);
+        this.property.addPropertyValidator(validator);
         return this;
     }
 

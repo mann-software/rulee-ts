@@ -7,7 +7,7 @@ import { PropertyScalarImpl } from "../../properties/property-scalar-impl";
 import { Attribute } from "../../attributes/attribute";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
-import { PropertyScalarValidator } from "../../validators/single-property-validator";
+import { PropertyScalarValidator } from "../../validators/property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 
@@ -27,7 +27,7 @@ export class PropertyScalarRuleBuilder<T> {
     // ------------------
 
     addValidator(validator: PropertyScalarValidator<T>): PropertyScalarRuleBuilder<T> {
-        this.property.addSinglePropertyValidator(validator);
+        this.property.addPropertyValidator(validator);
         return this;
     }
 
@@ -138,7 +138,7 @@ export class PropertyScalarRuleBuilder<T> {
             dependencies: dependencies,
             getValue: fcn
         } as Attribute<boolean>);
-        this.property.addSinglePropertyValidator(this.notEmptyIfRequiredValidator);
+        this.property.addPropertyValidator(this.notEmptyIfRequiredValidator);
     }
     
     // ------------------

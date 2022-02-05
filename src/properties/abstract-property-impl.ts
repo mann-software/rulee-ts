@@ -10,7 +10,7 @@ import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
 import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
-import { SinglePropertyValidator } from "../validators/single-property-validator";
+import { PropertyValidator } from "../validators/property-validator";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void> | void;
@@ -43,7 +43,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private valueChangeListeners?: [ref: number, vcl: ValueChangeListener][];
     private nextValueChangeListenerId?: number;
 
-    protected singlePropertyValidators: SinglePropertyValidator<any>[] = [];
+    protected propertyValidators: PropertyValidator<any>[] = [];
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
@@ -234,12 +234,12 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyValidate  --------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    addSinglePropertyValidator(validator: SinglePropertyValidator<any>) {
-        this.singlePropertyValidators.push(validator);
+    addPropertyValidator(validator: PropertyValidator<any>) {
+        this.propertyValidators.push(validator);
     }
 
     protected getSinglePropertyValidationResults() {
-        return this.singlePropertyValidators.reduce((res, sv) => {
+        return this.propertyValidators.reduce((res, sv) => {
             const msg = sv(this);
             if (msg) {
                 res.push(msg);

@@ -1,7 +1,7 @@
 import { AbstractProperty } from "../../properties/abstract-property";
 import { GroupOfProperties, PropertyGroup } from "../../properties/group-of-properties";
 import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl";
-import { GroupOfPropertiesValidator } from "../../validators/single-property-validator";
+import { GroupOfPropertiesValidator } from "../../validators/property-validator";
 import { CrossValidationResult } from "../../validators/cross-validation-result";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 
@@ -18,7 +18,7 @@ export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
     // ------------------
 
     addValidator(validator: GroupOfPropertiesValidator<T>): GroupOfPropertiesRuleBuilder<T> {
-        this.property.addSinglePropertyValidator(validator);
+        this.property.addPropertyValidator(validator);
         return this;
     }
 

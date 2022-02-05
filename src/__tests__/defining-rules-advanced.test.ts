@@ -1,6 +1,6 @@
 import { AbstractProperty } from "../properties/abstract-property";
 import { rules, rulesAbstract, rulesComposed, rulesWithDeps, ScalarRulesDefinition } from "../rules/scalar-rules-definition";
-import { PropertyScalarValidator } from "../validators/single-property-validator";
+import { PropertyScalarValidator } from "../validators/property-validator";
 import { ValidationType } from "../validators/validation-type";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 

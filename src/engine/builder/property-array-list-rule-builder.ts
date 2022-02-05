@@ -1,6 +1,6 @@
 import { PropertyArrayList } from "../../properties/property-array-list";
 import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
-import { PropertyArrayListValidator } from "../../validators/single-property-validator";
+import { PropertyArrayListValidator } from "../../validators/property-validator";
 import { ValidationMessage } from "../../validators/validation-message";
 
 export class PropertyArrayListRuleBuilder<T> {
@@ -16,7 +16,7 @@ export class PropertyArrayListRuleBuilder<T> {
     // ------------------
 
     addValidator(validator: PropertyArrayListValidator<T>): PropertyArrayListRuleBuilder<T> {
-        this.property.addSinglePropertyValidator(validator);
+        this.property.addPropertyValidator(validator);
         return this;
     }
 
