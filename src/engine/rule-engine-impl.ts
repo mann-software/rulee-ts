@@ -7,7 +7,7 @@ import { Snapshot } from "./snapshot/snapshot";
 import { BuilderOptions } from "./builder/builder-options";
 import { Builder } from "./builder/builder";
 import { ValidationProcess } from "./validation/validation-process-impl";
-import { ValidatorValidationResult } from "../validators/validator-validation-result";
+import { CrossValidationResult } from "../validators/cross-validation-result";
 import { ValidationType } from "../validators/validation-type";
 import { ValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
@@ -205,7 +205,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         });
     }
 
-    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<ValidatorValidationResult | 'cancelled'>[] {
+    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<CrossValidationResult | 'cancelled'>[] {
         return validators.map(validator => {
             const vprocess = this.getValidationProcess(validator);
             if (vprocess.isLastResultUpToDate) {

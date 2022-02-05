@@ -114,7 +114,7 @@ test('validator combination test', async () => {
     const propA = builder.scalar.stringProperty('PROP_A');
     const propB = builder.scalar.stringProperty('PROP_B');
 
-    builder.bindValidator(propA, propB)((propA, propB) => {
+    builder.addCrossValidator(propA, propB)((propA, propB) => {
         guard.passGate();
         if (propA.getNonNullValue().length + propB.getNonNullValue().length < 3) {
             return [someError];
@@ -225,7 +225,7 @@ test('validator group test', async () => {
         propB
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     }, groupRules(builder => {
-        builder.addGeneralValidator((group) => executeAfterTime(() => {
+        builder.addCrossValidator((group) => executeAfterTime(() => {
             if (`${group.propA.getDisplayValue()}+${group.propB.getDisplayValue()}` === 'A+B') {
                 return [someError];
             }

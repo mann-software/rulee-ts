@@ -1,10 +1,10 @@
 import { AbstractProperty } from "../../properties/abstract-property";
-import { Validator } from "../../validators/validator";
+import { CrossValidator } from "../../validators/cross-validator";
 
 /**
  * Validator connected to concrete properties
  */
 export interface ValidatorInstance<Properties extends readonly AbstractProperty[]> {
     getValidatedProperties(): Properties;
-    validate: Validator<Properties>;
+    validate: CrossValidator<Properties>;
 }

@@ -1,4 +1,4 @@
-import { ValidatorValidationResult } from "../../validators/validator-validation-result";
+import { CrossValidationResult } from "../../validators/cross-validation-result";
 
 /**
  * Used by RuleEngine to keep track of validation for a validator
@@ -6,6 +6,6 @@ import { ValidatorValidationResult } from "../../validators/validator-validation
 export interface ValidationProcess {
     isLastResultUpToDate: boolean;
     isCancelled: boolean;
-    currentValidation?: Promise<ValidatorValidationResult | 'cancelled'>;
-    lastValidationResult?: ValidatorValidationResult;
+    currentValidation?: Promise<CrossValidationResult | 'cancelled'>;
+    lastValidationResult?: CrossValidationResult;
 }

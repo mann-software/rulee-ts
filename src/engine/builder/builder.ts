@@ -20,7 +20,7 @@ import { AttributeId } from "../../attributes/attribute-id";
 import { BackpressureConfig } from "../../properties/backpressure/backpressure-config";
 import { ListBuilder, SelectionMode } from "./list-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
-import { Validator } from "../../validators/validator";
+import { CrossValidator } from "../../validators/cross-validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { PropertyGroup } from "../../properties/group-of-properties";
@@ -161,8 +161,8 @@ export class Builder {
         return { name };
     }
 
-    bindValidator<Properties extends readonly AbstractProperty[]>(...properties: Properties): (validator: Validator<Properties>) => void {
-        return (validator: Validator<Properties>) => {
+    addCrossValidator<Properties extends readonly AbstractProperty[]>(...properties: Properties): (validator: CrossValidator<Properties>) => void {
+        return (validator: CrossValidator<Properties>) => {
             const instance: ValidatorInstance<Properties> = {
                 getValidatedProperties: () => properties,
                 validate: validator
