@@ -1,10 +1,10 @@
 import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
+import { AsyncListOfPropertiesValidator } from "../../index";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { AbstractProperty } from "../../properties/abstract-property";
 import { ListOfProperties } from "../../properties/list-of-properties";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { ListOfPropertiesValidator } from "../../validators/property-validator";
-import { ValidationMessage } from "../../validators/validation-message";
 
 export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> {
 
@@ -27,13 +27,13 @@ export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> {
         };
     }
 
-    addAsyncValidator(validator: (property: ListOfProperties<T, D>) => Promise<ValidationMessage[] | undefined>): ListOfPropertiesRuleBuilder<T, D> {
-        const propList = [this.property];
-        this.property.addValidator({
-            getValidatedProperties: () => propList,
-            validate: (prop) => validator(prop as ListOfProperties<T, D>)
-        });
-        return this;
+    addAsyncValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncListOfPropertiesValidator<T, D, Dependencies>) => ListOfPropertiesRuleBuilder<T, D> {
+        this.addDependencies(dependencies, this.property, { validation: true });
+        return validator => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            this.property.addAsyncPropertyValidator(validator, dependencies);
+            return this;
+        };
     }
     
     // ------------------

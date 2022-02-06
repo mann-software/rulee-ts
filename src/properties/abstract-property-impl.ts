@@ -11,6 +11,7 @@ import { AssertionError } from "../util/assertions/assertion-error";
 import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
 import { PropertyValidator } from "../validators/property-validator";
+import { AsyncPropertyValidator } from "../validators/async-property-validator";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void> | void;
@@ -238,6 +239,13 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         this.propertyValidators.push(validator);
     }
 
+    addAsyncPropertyValidator<Dependencies extends readonly AbstractProperty[]>(validator: AsyncPropertyValidator<any, any>, dependencies: Dependencies) {
+        this.addValidator({
+            validationArguments: [this, ...dependencies],
+            validate: (prop, ...deps) => validator(prop, ...deps).then(msg => msg !== undefined ? [msg] : msg)
+        });
+    }
+
     protected getSinglePropertyValidationResults() {
         return this.propertyValidators.reduce((res, sv) => {
             const msg = sv(this);
@@ -285,13 +293,13 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         return this.validationMessages.every(msg => msg.type.isValid);
     }
 
+    getValidationMessages(): ValidationMessage[] {
+        return this.validationMessages;
+    }
+
     setValidationMessages(messages: ValidationMessage[]): void {
         this.cancelValidationAndInvalidateResults();
         this.updateValidationMessages(messages);
-    }
-
-    getValidationMessages(): ValidationMessage[] {
-        return this.validationMessages;
     }
 
     clearValidationResult(): void {

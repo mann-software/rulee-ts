@@ -66,6 +66,7 @@ export * from "./util/assertions/assertion-error";
 export * from "./util/assertions/assertions";
 export * from "./util/logger/logger";
 export * from "./util/text-interpreter/text-interpreter";
+export * from "./validators/async-property-validator";
 export * from "./validators/cross-validation-result";
 export * from "./validators/cross-validator";
 export * from "./validators/property-validator";

@@ -5,6 +5,7 @@ import { GroupOfPropertiesValidator } from "../../validators/property-validator"
 import { CrossValidationResult } from "../../validators/cross-validation-result";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
+import { AsyncGroupOfPropertiesValidator } from "../../validators/async-property-validator";
 
 export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
 
@@ -27,9 +28,17 @@ export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
         };
     }
 
+    addAsyncValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncGroupOfPropertiesValidator<T, Dependencies>) => GroupOfPropertiesRuleBuilder<T> {
+        this.addDependencies(dependencies, this.property, { validation: true });
+        return validator => {
+            this.property.addAsyncPropertyValidator(validator, dependencies);
+            return this;
+        };
+    }
+
     addCrossValidator(validator: (group: T) => CrossValidationResult | Promise<CrossValidationResult>): GroupOfPropertiesRuleBuilder<T> {
         const instance: ValidatorInstance<readonly AbstractProperty[]> = {
-            getValidatedProperties: () => this.property.propertiesAsList,
+            validationArguments: this.property.propertiesAsList,
             validate: () => validator(this.property.properties)
         };
         this.property.addValidator(instance);

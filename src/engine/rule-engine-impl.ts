@@ -214,7 +214,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
                 return vprocess.currentValidation;
             }
             vprocess.isCancelled = false;
-            const validation = validator.validate(...validator.getValidatedProperties());
+            const validation = validator.validate(...validator.validationArguments);
             if (validation instanceof Promise) {
                 vprocess.currentValidation = validation.then(res => {
                     vprocess.currentValidation = undefined;

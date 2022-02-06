@@ -63,26 +63,26 @@ test('required if visible validation test', async () => {
 });
 
 test('async scalar validation test', async () => {
-    const validationResult: ValidationMessage[] = [];
+    let validationResult: ValidationMessage | undefined = undefined;
 
     const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
-        builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
+        builder.addAsyncValidator()(() => valueAfterTime(validationResult, 50));
     }));
 
     await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([]);
 
-    validationResult.push(someError);
+    validationResult = someError;
     prop.needsAnUpdate();
     await prop.validate();
     expect(prop.getValidationMessages()).toStrictEqual([someError]);
 });
 
 test('cancel validation test', async () => {
-    const validationResult: ValidationMessage[] = [someError];
+    const validationResult: ValidationMessage = someError;
 
     const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
-        builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
+        builder.addAsyncValidator()(() => valueAfterTime(validationResult, 50));
     }));
 
     prop.needsAnUpdate();
@@ -95,10 +95,10 @@ test('cancel validation test', async () => {
 });
 
 test('set validation messages test (while validating)', async () => {
-    const validationResult: ValidationMessage[] = [someError];
+    const validationResult: ValidationMessage = someError;
 
     const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
-        builder.addAsyncValidator(() => valueAfterTime(validationResult, 50));
+        builder.addAsyncValidator()(() => valueAfterTime(validationResult, 50));
     }));
 
     prop.needsAnUpdate();
@@ -186,15 +186,10 @@ test('validator sync array list test', async () => {
 
 test('validator async array list test', async () => {
 
-    const hintFactory = (length: number) => [
-        {
-            text: `Length is ${list.length}`,
-            type: ValidationType.Hint
-        }, {
-            text: 'Just a Hint',
-            type: ValidationType.Hint
-        }
-    ];
+    const hintFactory = (length: number) => ({
+        text: `Length is ${length}`,
+        type: ValidationType.Hint
+    });
 
     const [list, id] = setupAsyncCrudList();
     builder.list.bindPropertyArrayList(list, arrayListRules(builder => {
@@ -202,7 +197,7 @@ test('validator async array list test', async () => {
             if (list.getElements().length > 1) {
                 return someError;
             }
-        }).addAsyncValidator(list => executeAfterTime(() => {
+        }).addAsyncValidator()(list => executeAfterTime(() => {
             return hintFactory(list.length);
         }, 100));
     }));
@@ -210,11 +205,13 @@ test('validator async array list test', async () => {
     expect(list.getValidationMessages()).toStrictEqual([]);
 
     let msgs = await list.validate();
-    expect(msgs).toStrictEqual([someError, ...hintFactory(6)]);
+    let expected = [someError, hintFactory(list.length)]
+    expect(msgs).toStrictEqual(expected);
 
     id.setValue('x');
     msgs = await list.validate();
-    expect(msgs).toStrictEqual(hintFactory(0));
+    expected = [hintFactory(0)]
+    expect(msgs).toStrictEqual(expected);
 });
 
 test('validator group test', async () => {

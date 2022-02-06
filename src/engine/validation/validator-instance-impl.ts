@@ -5,6 +5,6 @@ import { CrossValidator } from "../../validators/cross-validator";
  * Validator connected to concrete properties
  */
 export interface ValidatorInstance<Properties extends readonly AbstractProperty[]> {
-    getValidatedProperties(): Properties;
+    validationArguments: Properties;
     validate: CrossValidator<Properties>;
 }

@@ -11,7 +11,7 @@ export const notEmptyIfRequiredValidator = <T>(valiationMessageProvider: (proper
     if (property.isEmpty() && property.isRequired()) {
         return valiationMessageProvider(property);
     }
-}) as PropertyScalarValidator<T>;
+}) as PropertyScalarValidator<T, []>;
 
 /**
  * creates a validator that checks if the display value matches the given pattern
@@ -23,4 +23,4 @@ export const patternValidator = <T>(pattern: RegExp, msg: ValidationMessage) => 
     if (!pattern.test(property.getDisplayValue())) {
         return msg;
     }
-}) as PropertyScalarValidator<T>;
+}) as PropertyScalarValidator<T, []>;

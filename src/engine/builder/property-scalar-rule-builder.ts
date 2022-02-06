@@ -8,8 +8,8 @@ import { Attribute } from "../../attributes/attribute";
 import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
 import { PropertyScalarValidator } from "../../validators/property-validator";
-import { ValidationMessage } from "../../validators/validation-message";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
+import { AsyncPropertyScalarValidator } from "../../validators/async-property-validator";
 
 export class PropertyScalarRuleBuilder<T> {
 
@@ -34,15 +34,14 @@ export class PropertyScalarRuleBuilder<T> {
         };
     }
 
-    addAsyncValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBuilder<T> {
-        const propList = [this.property];
-        this.property.addValidator({
-            getValidatedProperties: () => propList,
-            validate: (prop) => validator(prop as PropertyScalar<T>)
-        });
-        return this;
+    addAsyncValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncPropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
+        this.addDependencies(dependencies, this.property, { validation: true });
+        return validator => {
+            this.property.addAsyncPropertyValidator(validator, dependencies);
+            return this;
+        };
     }
-    
+
     // ------------------
 
     /**

@@ -199,16 +199,16 @@ export class Builder {
         return { name };
     }
 
-    addCrossValidator<Properties extends readonly AbstractProperty[]>(...properties: Properties): (validator: CrossValidator<Properties>) => void {
+    addCrossValidator<Properties extends readonly AbstractProperty[]>(...validatedProperties: Properties): (validator: CrossValidator<Properties>) => void {
         return (validator: CrossValidator<Properties>) => {
             const instance: ValidatorInstance<Properties> = {
-                getValidatedProperties: () => properties,
+                validationArguments: validatedProperties,
                 validate: validator
             };
-            properties.forEach((prop, i) => {
+            validatedProperties.forEach((prop, i) => {
                 (prop as AbstractPropertyWithInternals<unknown>).addValidator(instance);
-                for (let j = i +1; j < properties.length; j++) {
-                    const dependent = properties[j];
+                for (let j = i +1; j < validatedProperties.length; j++) {
+                    const dependent = validatedProperties[j];
                     this.dependencyGraph.addDependency(prop, dependent, { validation: true });
                     this.dependencyGraph.addDependency(dependent, prop, { validation: true });
                 }
