@@ -31,6 +31,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private automaticallyUpdate = true;
     private manuallyTriggered?: boolean;
     private triggerListener?: TriggerListener;
+    private touched?: boolean;
 
     private needsToRecompute?: boolean; // needsToRecompute iff true or undefined
     private recomputingCount?: number;
@@ -389,6 +390,16 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         if (this.triggerListener) {
             trigger.deregisterTriggerListener(this.triggerListener);
         }
+    }
+
+    // --------------------------------------------------------------------------------------
+
+    setTouched(touched: boolean): void {
+        this.touched = touched;
+    }
+
+    isTouched(): boolean {
+        return this.touched ?? false;
     }
 
     // --------------------------------------------------------------------------------------
