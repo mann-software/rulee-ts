@@ -17,7 +17,7 @@ export class PropertyScalarRuleBuilder<T> {
     
     constructor(
         property: PropertyScalar<T>,
-        private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown>,
+        private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown, []>,
         private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
         private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
@@ -26,9 +26,12 @@ export class PropertyScalarRuleBuilder<T> {
 
     // ------------------
 
-    addValidator(validator: PropertyScalarValidator<T>): PropertyScalarRuleBuilder<T> {
-        this.property.addPropertyValidator(validator);
-        return this;
+    addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
+        this.addDependencies(dependencies, this.property, { validation: true });
+        return validator => {
+            this.property.addPropertyValidator(validator);
+            return this;
+        };
     }
 
     addAsyncValidator(validator: (property: PropertyScalar<T>) => Promise<ValidationMessage[] | undefined>): PropertyScalarRuleBuilder<T> {

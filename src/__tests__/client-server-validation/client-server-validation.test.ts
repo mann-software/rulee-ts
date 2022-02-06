@@ -27,7 +27,7 @@ test('validation on client and server should return the same result - test with 
     city.setDisplayValue('City');
     /// validate on client side:
     const clientValidationResult = await clientEngine.validate();
-    expect(clientValidationResult.getAllMessages().length).toBe(2);
+    expect(clientValidationResult.getAllMessages().length).toBe(1);
 
     const clientData = clientRootProperty.exportData();
     // simulate sending the data to the server

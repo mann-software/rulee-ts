@@ -23,7 +23,7 @@ import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { CrossValidator } from "../../validators/cross-validator";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
-import { PropertyGroup } from "../../properties/group-of-properties";
+import { GroupOfProperties, PropertyGroup } from "../../properties/group-of-properties";
 import { PropertyTemplate } from "../../properties/factory/property-template";
 import { ListIndex } from "../../properties/lists/index/list-index";
 import { SiblingAccess } from "../../provider/list-provider/sibling-access";
@@ -31,6 +31,10 @@ import { AsyncListProvider, ListProvider } from "../../provider/list-provider/li
 import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../properties/property-array-list-impl";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 import { RuleEngineImpl } from "../rule-engine-impl";
+import { GroupOfPropertiesRuleBuilder } from "./group-of-properties-rule-builder";
+import { ListOfProperties, PropertyArrayList } from "../../index";
+import { ListOfPropertiesRuleBuilder } from "./list-of-properties-rule-builder";
+import { PropertyArrayListRuleBuilder } from "./property-array-list-rule-builder";
 
 export class Builder {
 
@@ -38,7 +42,7 @@ export class Builder {
         return Object.values(this.propertyMap);
     }
     
-    private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown>;
+    private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown, []>;
     private readonly defaultEmptyChoiceDisplayValue: string | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
     private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn };
@@ -78,9 +82,12 @@ export class Builder {
                 this.propertyList(id, provider, dependencies),
             <T>(id: PropertyId, provider: AsyncListProvider<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: { backpressure?: BackpressureConfig }) =>
                 this.asyncPropertyList(id, provider, dependencies, propertyConfig),
+            <T extends AbstractDataProperty<D>, D>(prop: ListOfProperties<T, D>) => this.bindListOfProperties(prop),
+            <T>(prop: PropertyArrayList<T>) => this.bindPropertyArrayList(prop),
         );
         this.group = new GroupOfPropertiesBuilder(
-            <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties)
+            <T extends PropertyGroup>(id: string, properties: T) => this.groupOfProperties(id, properties),
+            <T extends PropertyGroup>(prop: GroupOfProperties<T>) => this.bindGroupOfProperties(prop),
         );
         this.scalar = new PropertyScalarBuilder(
             <T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], propertyConfig?: { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]) =>
@@ -90,6 +97,8 @@ export class Builder {
             this.list,
         );
     }
+
+    // -------------------------------------------------
 
     private propertyScalar<T>(id: PropertyId, provider: ValueProvider<T>, emptyValueFcn: EmptyValueFcn<T>, converter: ValueConverter<T>, dependencies?: readonly AbstractProperty[], config?: { backpressure?: BackpressureConfig }, ownedProperties?: readonly AbstractProperty[]): PropertyScalarImpl<T> {
         const prop = new PropertyScalarImpl(id, provider, emptyValueFcn, converter, this.ruleEngine, config?.backpressure ?? (provider.isAsynchronous() ? this.defaultBackpressureConfig : undefined));
@@ -112,6 +121,8 @@ export class Builder {
         );
     }
 
+    // -------------------------------------------------
+
     private groupOfProperties<T extends PropertyGroup>(id: string, properties: T) {
         const prop = new GroupOfPropertiesImpl(id, properties, this.ruleEngine);
         this.addProperty(prop);
@@ -119,12 +130,30 @@ export class Builder {
         return prop;
     }
 
+    private bindGroupOfProperties<T extends PropertyGroup>(prop: GroupOfProperties<T>): GroupOfPropertiesRuleBuilder<T> {
+        return new GroupOfPropertiesRuleBuilder<T>(
+            prop,
+            (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+        );
+    }
+
+    // -------------------------------------------------
+
     private listOfProperties<T extends AbstractDataProperty<D>, D>(id: string, itemTemplate: PropertyTemplate<T, D>, config?: { selectionMode?: SelectionMode }): ListOfPropertiesImpl<T, D> {
         const isMultiSelect = config?.selectionMode === SelectionMode.MultiSelect;
         const prop = new ListOfPropertiesImpl<T, D>(id, itemTemplate, isMultiSelect, this.ruleEngine, this.dependencyGraph);
         this.addProperty(prop);
         return prop;
     }
+
+    private bindListOfProperties<T extends AbstractDataProperty<D>, D>(prop: ListOfProperties<T, D>): ListOfPropertiesRuleBuilder<T, D> {
+        return new ListOfPropertiesRuleBuilder<T, D>(
+            prop,
+            (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+        );
+    }
+
+    // -------------------------------------------------
 
     private propertyList<T>(id: PropertyId, provider: ListProvider<T>, dependencies?: readonly AbstractProperty[]): PropertyArrayListSyncImpl<T> {
         const prop = new PropertyArrayListSyncImpl(id, provider, this.ruleEngine, undefined);
@@ -143,6 +172,15 @@ export class Builder {
         }
         return prop;
     }
+
+    private bindPropertyArrayList<T>(prop: PropertyArrayList<T>): PropertyArrayListRuleBuilder<T> {
+        return new PropertyArrayListRuleBuilder<T>(
+            prop,
+            (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+        );
+    }
+
+    // -------------------------------------------------
 
     private addDependencies(dependencyGraph: DependencyGraph, from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) {
         if (from.length) {

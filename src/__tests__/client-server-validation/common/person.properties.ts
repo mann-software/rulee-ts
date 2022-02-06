@@ -1,5 +1,4 @@
 import { Builder, ScalarRulesDefinition, ValidationMessage, ValidationType } from "../../../index";
-import { emptyButRequiredMessageTestUtil } from "../../utils/test-utils";
 import { notEmptyIfSomeOtherNotEmpty, notEmptyRule } from "./person.rules";
 
 export function buildPerson(builder: Builder) {
@@ -32,9 +31,9 @@ function buildAddress(builder: Builder) {
     const allOrNoneEmpty: ValidationMessage = { text: 'Empty!', type: ValidationType.Error };
 
     const postalCode = builder.scalar.stringProperty('postalCode');
-    const city = builder.scalar.stringProperty('city', {}, notEmptyIfSomeOtherNotEmpty(allOrNoneEmpty, postalCode));
+    const city = builder.scalar.stringProperty('city', {}, notEmptyIfSomeOtherNotEmpty(allOrNoneEmpty)([postalCode]) as ScalarRulesDefinition<string>);
 
-    builder.scalar.bind(postalCode, notEmptyIfSomeOtherNotEmpty(allOrNoneEmpty, city));
+    builder.scalar.bind(postalCode, notEmptyIfSomeOtherNotEmpty(allOrNoneEmpty)([city]));
 
     return builder.group.of('address', {
         postalCode,

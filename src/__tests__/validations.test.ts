@@ -25,7 +25,7 @@ beforeEach(() => {
 
 test('scalar validation test', async () => {
     const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
-        builder.addValidator(p => p.getNonNullValue().length > 0 ? undefined : someError);
+        builder.addValidator()(p => p.getNonNullValue().length > 0 ? undefined : someError);
     }));
 
     let msgs = await prop.validate();
@@ -141,7 +141,7 @@ test('validator combination test', async () => {
 test('validator list test', async () => {
     const list = builder.list.create('LIST', (id) => builder.scalar.booleanProperty(id));
     builder.list.bindListOfProperties(list, listOfPropertiesRules(builder => {
-        builder.addValidator((listProp) => {
+        builder.addValidator()((listProp) => {
             if (listProp.list.every(prop => !prop.getValue())) {
                 return someError;
             }
@@ -162,7 +162,7 @@ test('validator list test', async () => {
 
 test('validator sync array list test', async () => {
     const list = builder.list.crud.sync('LIST')<number>({}, arrayListRules(builder => {
-        builder.addValidator(l => {
+        builder.addValidator()(l => {
             if (l.getElements().length > 1) {
                 return someError;
             }
@@ -198,7 +198,7 @@ test('validator async array list test', async () => {
 
     const [list, id] = setupAsyncCrudList();
     builder.list.bindPropertyArrayList(list, arrayListRules(builder => {
-        builder.addValidator(list => {
+        builder.addValidator()(list => {
             if (list.getElements().length > 1) {
                 return someError;
             }
@@ -223,7 +223,6 @@ test('validator group test', async () => {
     const group = builder.group.of('GROUP', {
         propA,
         propB
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     }, groupRules(builder => {
         builder.addCrossValidator((group) => executeAfterTime(() => {
             if (`${group.propA.getDisplayValue()}+${group.propB.getDisplayValue()}` === 'A+B') {

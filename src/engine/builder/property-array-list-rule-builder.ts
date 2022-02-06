@@ -1,3 +1,5 @@
+import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
+import { AbstractProperty } from "../../properties/abstract-property";
 import { PropertyArrayList } from "../../properties/property-array-list";
 import { PropertyArrayListImpl } from "../../properties/property-array-list-impl";
 import { PropertyArrayListValidator } from "../../validators/property-validator";
@@ -9,15 +11,19 @@ export class PropertyArrayListRuleBuilder<T> {
     
     constructor(
         property: PropertyArrayList<T>,
+        private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
     ) {
         this.property = property as PropertyArrayListImpl<T>;
     }
 
     // ------------------
 
-    addValidator(validator: PropertyArrayListValidator<T>): PropertyArrayListRuleBuilder<T> {
-        this.property.addPropertyValidator(validator);
-        return this;
+    addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyArrayListValidator<T, Dependencies>) => PropertyArrayListRuleBuilder<T> {
+        this.addDependencies(dependencies, this.property, { validation: true });
+        return validator => {
+            this.property.addPropertyValidator(validator);
+            return this;
+        };
     }
 
     addAsyncValidator(validator: (property: PropertyArrayList<T>) => Promise<ValidationMessage[] | undefined>): PropertyArrayListRuleBuilder<T> {

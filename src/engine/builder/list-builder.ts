@@ -55,6 +55,8 @@ export class ListBuilder {
             propertyConfig?: PropertyListConfig & { backpressure?: BackpressureConfig },
             ownedProperties?: readonly AbstractProperty[],
         ) => PropertyArrayListAsyncImpl<T>,
+        private readonly listOfPropertiesBinding: <T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>) => ListOfPropertiesRuleBuilder<T, D>,
+        private readonly propertyArrayListBinding: <T>(list: PropertyArrayList<T>) => PropertyArrayListRuleBuilder<T>,
     ) {}
 
     create<T extends AbstractDataProperty<D>, D>(
@@ -151,7 +153,7 @@ export class ListBuilder {
     // ------------------
 
     bindListOfProperties<T extends AbstractDataProperty<D>, D>(list: ListOfProperties<T, D>, ...definitions: ListOfPropertiesRulesDefinition<T, D>[]): void {
-        const builder = new ListOfPropertiesRuleBuilder<T, D>(list);
+        const builder = this.listOfPropertiesBinding(list);
         definitions.forEach(def => def.buildRules(builder));
     }
 
@@ -167,7 +169,7 @@ export class ListBuilder {
     }
 
     bindPropertyArrayList<D>(list: PropertyArrayList<D>, ...definitions: ArrayListRulesDefinition<D>[]): void {
-        const builder = new PropertyArrayListRuleBuilder(list);
+        const builder = this.propertyArrayListBinding(list);
         definitions.forEach(def => def.buildRules(builder));
     }
 

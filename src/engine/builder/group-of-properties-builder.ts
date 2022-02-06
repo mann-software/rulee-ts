@@ -9,7 +9,8 @@ import { GroupOfPropertiesRuleBuilder } from "./group-of-properties-rule-builder
 export class GroupOfPropertiesBuilder {
 
     constructor(
-        private readonly propertyGroup: <T extends PropertyGroup>(id: string, properties: T) => GroupOfPropertiesImpl<T>
+        private readonly propertyGroup: <T extends PropertyGroup>(id: string, properties: T) => GroupOfPropertiesImpl<T>,
+        private readonly bindPropertyGroup: <T extends PropertyGroup>(prop: GroupOfProperties<T>) => GroupOfPropertiesRuleBuilder<T>,
     ) { }
 
     template<T extends PropertyGroup>(
@@ -34,7 +35,7 @@ export class GroupOfPropertiesBuilder {
     }
 
     bind<T extends PropertyGroup>(prop: GroupOfProperties<T>, ...rulesDefintions: GroupOfPropertiesRulesDefinition<T>[]): void {
-        const builder = new GroupOfPropertiesRuleBuilder(prop);
+        const builder = this.bindPropertyGroup(prop);
         rulesDefintions.forEach(def => def.buildRules(builder));
     }
 }

@@ -4,6 +4,7 @@ import { GroupOfPropertiesImpl } from "../../properties/group-of-properties-impl
 import { GroupOfPropertiesValidator } from "../../validators/property-validator";
 import { CrossValidationResult } from "../../validators/cross-validation-result";
 import { ValidatorInstance } from "../validation/validator-instance-impl";
+import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
 
 export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
 
@@ -11,15 +12,19 @@ export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> {
     
     constructor(
         property: GroupOfProperties<T>,
+        private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
     ) {
         this.property = property as GroupOfPropertiesImpl<T>;
     }
 
     // ------------------
 
-    addValidator(validator: GroupOfPropertiesValidator<T>): GroupOfPropertiesRuleBuilder<T> {
-        this.property.addPropertyValidator(validator);
-        return this;
+    addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: GroupOfPropertiesValidator<T, Dependencies>) => GroupOfPropertiesRuleBuilder<T> {
+        this.addDependencies(dependencies, this.property, { validation: true });
+        return validator => {
+            this.property.addPropertyValidator(validator);
+            return this;
+        };
     }
 
     addCrossValidator(validator: (group: T) => CrossValidationResult | Promise<CrossValidationResult>): GroupOfPropertiesRuleBuilder<T> {

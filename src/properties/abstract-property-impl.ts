@@ -43,7 +43,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private valueChangeListeners?: [ref: number, vcl: ValueChangeListener][];
     private nextValueChangeListenerId?: number;
 
-    protected propertyValidators: PropertyValidator<any>[] = [];
+    protected propertyValidators: PropertyValidator<any, any>[] = [];
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
@@ -234,7 +234,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyValidate  --------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    addPropertyValidator(validator: PropertyValidator<any>) {
+    addPropertyValidator(validator: PropertyValidator<any, any>) {
         this.propertyValidators.push(validator);
     }
 

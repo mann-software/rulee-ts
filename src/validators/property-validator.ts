@@ -1,4 +1,4 @@
-import { GroupOfProperties, PropertyGroup } from "../index";
+import { AbstractProperty, GroupOfProperties, PropertyGroup } from "../index";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { ListOfProperties } from "../properties/list-of-properties";
 import { PropertyArrayList } from "../properties/property-array-list";
@@ -13,24 +13,24 @@ import { ValidationMessage } from "./validation-message";
  * to one property if there are different validations that lead to more
  * than one message at once
  */
-export type PropertyValidator<T extends AbstractDataProperty<unknown>> = (property: T) => ValidationMessage | void;
+export type PropertyValidator<T extends AbstractDataProperty<unknown>, Dependencies extends readonly AbstractProperty[]> = (property: T, ...dependencies: Dependencies) => ValidationMessage | void;
 
 /**
  * Shortcut for PropertyValidator<PropertyScalar<T>>. See {@link PropertyValidator}
  */
-export type PropertyScalarValidator<T> = PropertyValidator<PropertyScalar<T>>;
+export type PropertyScalarValidator<T, Dependencies extends readonly AbstractProperty[]> = PropertyValidator<PropertyScalar<T>, Dependencies>;
 
 /**
  * Shortcut for PropertyValidator<GroupOfProperties<T>>. See {@link PropertyValidator}
  */
-export type GroupOfPropertiesValidator<T extends PropertyGroup> = PropertyValidator<GroupOfProperties<T>>;
+export type GroupOfPropertiesValidator<T extends PropertyGroup, Dependencies extends readonly AbstractProperty[]> = PropertyValidator<GroupOfProperties<T>, Dependencies>;
 
 /**
  * Shortcut for PropertyValidator<PropertyArrayList<T>>. See {@link PropertyValidator}
  */
-export type PropertyArrayListValidator<T> = PropertyValidator<PropertyArrayList<T>>;
+export type PropertyArrayListValidator<T, Dependencies extends readonly AbstractProperty[]> = PropertyValidator<PropertyArrayList<T>, Dependencies>;
 
 /**
  * Shortcut for PropertyValidator<ListOfProperties<T, D>>. See {@link PropertyValidator}
  */
-export type ListOfPropertiesValidator<T extends AbstractDataProperty<D>, D> = PropertyValidator<ListOfProperties<T, D>>;
+export type ListOfPropertiesValidator<T extends AbstractDataProperty<D>, D, Dependencies extends readonly AbstractProperty[]> = PropertyValidator<ListOfProperties<T, D>, Dependencies>;

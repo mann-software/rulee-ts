@@ -21,7 +21,7 @@ test('array list with sum property', () => {
         derive: (list) => list.getElements().reduce((res, cur) => res + cur, 0)
     }, rules(builder => {
         builder.defineVisibility(arrayList)((sum, list) => sum.getNonNullValue() > arrayList.length)
-            .addValidator(sum => {
+            .addValidator()(sum => {
                 if (sum.getNonNullValue() > 42) {
                     return hint42;
                 }
@@ -94,7 +94,7 @@ test('list of lists', async () => {
     const innerTemplate = builder.list.template('INNER_LIST', (listBuilder, id) => {
         return listBuilder.create(id, builder.scalar.template<boolean>('ELEMENT', (scalarBuilder, id, index, siblings) => {
             const prop = scalarBuilder.booleanProperty(id, {}, rules(builder => {
-                builder.addValidator(
+                builder.addValidator()(
                     (prop) => (!prop.getValue() || siblings?.everySibling((sibling, i) => i === index?.idx || !sibling.getValue())) ? undefined : {
                         text: 'At most one element is allowed to be true',
                         type: ValidationType.Error
