@@ -21,7 +21,7 @@ import { BackpressureConfig } from "../../properties/backpressure/backpressure-c
 import { ListBuilder, SelectionMode } from "./list-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { CrossValidator } from "../../validators/cross-validator";
-import { ValidatorInstance } from "../validation/validator-instance-impl";
+import { CrossValidatorInstance, ValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { GroupOfProperties, PropertyGroup } from "../../properties/group-of-properties";
 import { PropertyTemplate } from "../../properties/factory/property-template";
@@ -201,7 +201,7 @@ export class Builder {
 
     addCrossValidator<Properties extends readonly AbstractProperty[]>(...validatedProperties: Properties): (validator: CrossValidator<Properties>) => void {
         return (validator: CrossValidator<Properties>) => {
-            const instance: ValidatorInstance<Properties> = {
+            const instance: CrossValidatorInstance<Properties> = {
                 validationArguments: validatedProperties,
                 validate: validator
             };

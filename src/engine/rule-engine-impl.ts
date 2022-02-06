@@ -9,7 +9,7 @@ import { Builder } from "./builder/builder";
 import { ValidationProcess } from "./validation/validation-process-impl";
 import { CrossValidationResult } from "../validators/cross-validation-result";
 import { ValidationType } from "../validators/validation-type";
-import { ValidatorInstance } from "./validation/validator-instance-impl";
+import { CrossValidatorInstance } from "./validation/validator-instance-impl";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { PropertyGroup } from "../properties/group-of-properties";
 import { RuleSet } from "./rule-set/rule-set";
@@ -23,7 +23,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     private readonly builder: Builder;
     private readonly propertyMap: { [id: PropertyId]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
-    private readonly validations = new WeakMap<ValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
+    private readonly validations = new WeakMap<CrossValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
 
     private readonly dataLinks = new Map<string, [ValueChangeListenerReference, ValueChangeListenerReference]>();
     private readonly snapshots = new Map<string, Snapshot>();
@@ -197,7 +197,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     // -----------------------------------------------------------------------
 
-    cancelValidationAndInvalidateResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void {
+    cancelValidationAndInvalidateResults(validators: readonly CrossValidatorInstance<readonly AbstractProperty[]>[],): void {
         validators.forEach(v => {
             const vprocess = this.getValidationProcess(v);
             vprocess.isLastResultUpToDate = false;
@@ -205,7 +205,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         });
     }
 
-    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<CrossValidationResult | 'cancelled'>[] {
+    validateValidatorInstances(validators: readonly CrossValidatorInstance<readonly AbstractProperty[]>[]): Promise<CrossValidationResult | 'cancelled'>[] {
         return validators.map(validator => {
             const vprocess = this.getValidationProcess(validator);
             if (vprocess.isLastResultUpToDate) {
@@ -241,7 +241,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         });
     }
 
-    private getValidationProcess(validator: ValidatorInstance<readonly AbstractProperty[]>): ValidationProcess {
+    private getValidationProcess(validator: CrossValidatorInstance<readonly AbstractProperty[]>): ValidationProcess {
         const vprocess = this.validations.get(validator);
         if (vprocess) {
             return vprocess;

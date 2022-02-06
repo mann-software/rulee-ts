@@ -38,6 +38,26 @@ test('scalar validation test', async () => {
     expect(msgs).toStrictEqual([]);
 });
 
+test('scalar validation test with dependencies', async () => {
+    const depProp = builder.scalar.stringProperty('DEPENDENCY_ PROP');
+
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.addValidator(depProp)((self, depProp) => {
+            const depPropValue = depProp.getValue();
+            if (depPropValue) {
+                return { text: depPropValue, type: ValidationType.Error };
+            }
+        });
+    }));
+
+    await prop.validate();
+    expect(prop.getValidationMessages()).toStrictEqual([]);
+
+    depProp.setValue('Some Value');
+    await prop.validate();
+    expect(prop.getValidationMessages()).toStrictEqual([{ text: 'Some Value', type: ValidationType.Error }]);
+});
+
 test('required if visible validation test', async () => {
     const propVis = builder.scalar.booleanProperty('PROP_VIS', {
         initialValue: true
@@ -78,6 +98,26 @@ test('async scalar validation test', async () => {
     expect(prop.getValidationMessages()).toStrictEqual([someError]);
 });
 
+test('async scalar validation test with dependencies', async () => {
+    const depProp = builder.scalar.stringProperty('DEPENDENCY_ PROP');
+
+    const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
+        builder.addAsyncValidator(depProp)((self, depProp) => executeAfterTime(() => {
+            const depPropValue = depProp.getValue();
+            if (depPropValue) {
+                return { text: depPropValue, type: ValidationType.Error };
+            }
+        }, 50));
+    }));
+
+    await prop.validate();
+    expect(prop.getValidationMessages()).toStrictEqual([]);
+
+    depProp.setValue('Some Value');
+    await prop.validate();
+    expect(prop.getValidationMessages()).toStrictEqual([{ text: 'Some Value', type: ValidationType.Error }]);
+});
+
 test('cancel validation test', async () => {
     const validationResult: ValidationMessage = someError;
 
@@ -109,7 +149,7 @@ test('set validation messages test (while validating)', async () => {
     expect(prop.getValidationMessages()).toStrictEqual([anotherError]);
 });
 
-test('validator combination test', async () => {
+test('cross validator test', async () => {
     const guard = new GateKeeper(0);
     const propA = builder.scalar.stringProperty('PROP_A');
     const propB = builder.scalar.stringProperty('PROP_B');
@@ -128,6 +168,7 @@ test('validator combination test', async () => {
     void propA.validate();
     const msgs = await propB.validate();
     expect(msgs).toStrictEqual([someError]);
+    expect(propA.getValidationMessages()).toStrictEqual([someError]);
     expect(guard.lastGatePassed).toBe(0);
 
     propA.setValue('Earth');
@@ -136,6 +177,33 @@ test('validator combination test', async () => {
     expect(msgsA).toStrictEqual([someError, someError]);
     expect(msgsB).toStrictEqual([]);
     expect(guard.lastGatePassed).toBe(1);
+});
+
+test('cross validator test with cancellation', async () => {
+    const propA = builder.scalar.stringProperty('PROP_A');
+    const propB = builder.scalar.stringProperty('PROP_B');
+
+    builder.addCrossValidator(propA, propB)((propA, propB) => executeAfterTime(() => {
+        if (propA.getNonNullValue().length + propB.getNonNullValue().length > 3) {
+            return [someError];
+        }
+    }, 50));
+
+    void propA.validate();
+    const msgs = await propB.validate();
+    expect(msgs).toStrictEqual([]);
+
+    propA.setValue('Earth');
+    const msgsA = propA.validate();
+    const msgsB = propB.validate();
+    propA.clearValidationResult(); // cancels also cross validation
+    expect(await msgsA).toStrictEqual([]);
+    expect(await msgsB).toStrictEqual([]);
+    
+    void propA.validate();
+    await propB.validate();
+    expect(propA.getValidationMessages()).toStrictEqual([someError]);
+    expect(propB.getValidationMessages()).toStrictEqual([someError]);
 });
 
 test('validator list test', async () => {

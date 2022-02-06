@@ -29,7 +29,7 @@ export class PropertyScalarRuleBuilder<T> {
     addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
         this.addDependencies(dependencies, this.property, { validation: true });
         return validator => {
-            this.property.addPropertyValidator(validator);
+            this.property.addPropertyValidator(validator, dependencies);
             return this;
         };
     }
@@ -140,7 +140,7 @@ export class PropertyScalarRuleBuilder<T> {
             dependencies: dependencies,
             getValue: fcn
         } as Attribute<boolean>);
-        this.property.addPropertyValidator(this.notEmptyIfRequiredValidator);
+        this.property.addPropertyValidator(this.notEmptyIfRequiredValidator, []);
     }
     
     // ------------------

@@ -1,6 +1,6 @@
 import { AbstractProperty } from "../properties/abstract-property";
 import { CrossValidationResult } from "../validators/cross-validation-result";
-import { ValidatorInstance } from "./validation/validator-instance-impl";
+import { CrossValidatorInstance } from "./validation/validator-instance-impl";
 
 export interface RuleEngineUpdateHandler {
     /**
@@ -18,10 +18,10 @@ export interface RuleEngineUpdateHandler {
      * Call this to cancel ongoing validations as well as to invalidate the last validation result for the given Validator
      * @param validators validators to invalidate
      */
-    cancelValidationAndInvalidateResults(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): void;
+    cancelValidationAndInvalidateResults(validators: readonly CrossValidatorInstance<readonly AbstractProperty[]>[]): void;
     /**
      * Validates the given validators but uses the last validation result if it is still up to date (and not invalidated via cancelValidationAndInvalidateResults)
      * @param validators validators to validate
      */
-    validateValidatorInstances(validators: readonly ValidatorInstance<readonly AbstractProperty[]>[]): Promise<CrossValidationResult | 'cancelled'>[];
+    validateValidatorInstances(validators: readonly CrossValidatorInstance<readonly AbstractProperty[]>[]): Promise<CrossValidationResult | 'cancelled'>[];
 }

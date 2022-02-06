@@ -22,7 +22,7 @@ export class PropertyArrayListRuleBuilder<T> {
     addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyArrayListValidator<T, Dependencies>) => PropertyArrayListRuleBuilder<T> {
         this.addDependencies(dependencies, this.property, { validation: true });
         return validator => {
-            this.property.addPropertyValidator(validator);
+            this.property.addPropertyValidator(validator, dependencies);
             return this;
         };
     }
