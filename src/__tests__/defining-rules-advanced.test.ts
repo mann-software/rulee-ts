@@ -1,6 +1,6 @@
 import { AbstractProperty } from "../properties/abstract-property";
 import { rules, rulesAbstract, rulesComposed, rulesWithDeps, ScalarRulesDefinition } from "../rules/scalar-rules-definition";
-import { PropertyScalarValidator } from "../validators/single-property-validator";
+import { PropertyScalarValidator } from "../validators/property-validator";
 import { ValidationType } from "../validators/validation-type";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 
@@ -65,7 +65,7 @@ test('define abstract rules', () => {
 
     expect(() => builder.scalar.bind(someProp, abstractRule)).toThrowError('No implementation provided');
     
-    const notGreaterThan42Validator: PropertyScalarValidator<number> = prop => {
+    const notGreaterThan42Validator: PropertyScalarValidator<number, []> = prop => {
         if (prop.getNonNullValue() > 42) {
             return {
                 text: 'Must not be greater than 42',
@@ -74,7 +74,7 @@ test('define abstract rules', () => {
         }
     };
     abstractRule.implementWith(rules(builder => {
-        builder.addValidator(notGreaterThan42Validator);
+        builder.addValidator()(notGreaterThan42Validator);
     }));
     builder.scalar.bind(someProp, abstractRule);
 

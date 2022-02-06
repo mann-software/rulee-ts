@@ -4,12 +4,10 @@ export const notEmptyRule = rules(builder => {
     builder.setRequiredIfVisible(true)
 });
 
-export function notEmptyIfSomeOtherNotEmpty<T, Other extends readonly PropertyScalar<unknown>[]>(message: ValidationMessage, ...otherProps: Other) {
-    return rulesWithDeps<T, Other>((builder, ...otherProps) => {
-        builder.addValidator(self => {
-            if (self.isEmpty() && otherProps.some(other => !other.isEmpty())) {
-                return message;
-            }
-        })
-    })(otherProps);
-}
+export const notEmptyIfSomeOtherNotEmpty = (message: ValidationMessage) => rulesWithDeps((builder, ...otherProps: PropertyScalar<unknown>[]) => {
+    builder.addValidator(...otherProps)((self, ...dependencies) => {
+        if (self.isEmpty() && dependencies.some(dep => !dep.isEmpty())) {
+            return message;
+        }
+    })
+});

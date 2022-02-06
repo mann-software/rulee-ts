@@ -8,6 +8,7 @@ import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { RuleEngineImpl } from "./rule-engine-impl";
 import { PropertyId } from "../properties/property-id";
 import { ValidationMessagesMap } from "../validators/validation-messages-map";
+import { ValidationResult } from "../validators/validation-result";
 
 export function createRuleEngine(options: BuilderOptions) {
     return new RuleEngineImpl(options);
@@ -34,19 +35,19 @@ export interface RuleEngine {
     /**
      * Validates all the properties and returns all validation messages that are issued
      */
-    validate(): Promise<ValidationMessagesMap>;
+    validate(): Promise<ValidationResult>;
 
     /**
      * Clears all validation messages and sets the given messages
      * @param validationMessagesMap messages
      * @returns unknown property ids
      */
-    setValidationMessages(validationMessagesMap: ValidationMessagesMap): PropertyId[];
+    setValidationMessages(validationMessages: ValidationMessagesMap | ValidationResult): PropertyId[];
 
     /**
      * Returns all the validation messages that are present
      */
-    getValidationMessages(): ValidationMessagesMap;
+    getValidationMessages(): ValidationResult;
 
     /**
      * Clears all the validation messages and all properties are considered as valid.

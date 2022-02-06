@@ -235,7 +235,7 @@ export class PropertyScalarBuilder {
 
     bind<T>(prop: PropertyScalar<T>, ...rulesDefintions: ScalarRulesDefinition<T>[]): void {
         const ruleBuilder = this.bindPropertyScalar(prop);
-        rulesDefintions.forEach(def => def.apply(ruleBuilder));
+        rulesDefintions.forEach(def => def.buildRules(ruleBuilder));
     }
 
     private bindRulesAndApplyConfig<T>(prop: PropertyScalarImpl<T>, config?: PropertyScalarValueConfig<T>, ...rulesDefintions: ScalarRulesDefinition<T>[]): PropertyScalar<T> {

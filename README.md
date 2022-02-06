@@ -4,6 +4,8 @@
 
 > UI-centered rule engine to manage your business rules.
 
+**Note:** rulee-ts is still *experimental* as long as the version is < 1.0.0. With the beginning of version 1.0.0 the author will use rulee-ts for his own projects in production and semantic versioning will be applied from then on.
+
 Feature-rich to make things easy:
 - fully typed rule definitions
 - supports synchronous and asynchronous processing of rules
@@ -29,4 +31,4 @@ Contributions to rulee-ts are very welcome! Please contact [andre@mann-software.
 
 ## License
 
-Copyright (c) 2021 Andre Mann and Contributors licensed under BSD 3-Clause License.
+Copyright (c) 2022 Andre Mann and Contributors licensed under BSD 3-Clause License.

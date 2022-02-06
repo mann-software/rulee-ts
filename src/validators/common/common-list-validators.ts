@@ -1,6 +1,6 @@
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { ListOfProperties } from "../../properties/list-of-properties";
-import { ListOfPropertiesValidator } from "../single-property-validator";
+import { ListOfPropertiesValidator } from "../property-validator";
 import { ValidationMessage } from "../validation-message";
 
 /**
@@ -13,4 +13,4 @@ import { ValidationMessage } from "../validation-message";
     if (property.length > maxLength) {
         return msg;
     }
-}) as ListOfPropertiesValidator<T, D>;
+}) as ListOfPropertiesValidator<T, D, []>;

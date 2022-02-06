@@ -1,5 +1,5 @@
 import { PropertyScalar } from "../../properties/property-scalar";
-import { PropertyScalarValidator } from "../single-property-validator";
+import { PropertyScalarValidator } from "../property-validator";
 import { ValidationMessage } from "../validation-message";
 
 /**
@@ -11,7 +11,7 @@ export const notEmptyIfRequiredValidator = <T>(valiationMessageProvider: (proper
     if (property.isEmpty() && property.isRequired()) {
         return valiationMessageProvider(property);
     }
-}) as PropertyScalarValidator<T>;
+}) as PropertyScalarValidator<T, []>;
 
 /**
  * creates a validator that checks if the display value matches the given pattern
@@ -20,7 +20,7 @@ export const notEmptyIfRequiredValidator = <T>(valiationMessageProvider: (proper
  * @returns PropertyScalarValidator
  */
 export const patternValidator = <T>(pattern: RegExp, msg: ValidationMessage) => ((property: PropertyScalar<T>) => {
-    if (pattern.test(property.getDisplayValue())) {
+    if (!pattern.test(property.getDisplayValue())) {
         return msg;
     }
-}) as PropertyScalarValidator<T>;
+}) as PropertyScalarValidator<T, []>;

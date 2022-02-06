@@ -26,8 +26,8 @@ test('validation on client and server should return the same result - test with 
     const city = clientEngine.getPropertyById('city') as PropertyScalar<string>;
     city.setDisplayValue('City');
     /// validate on client side:
-    const clientValidationMsgs = await clientEngine.validate();
-    expect(Object.keys(clientValidationMsgs).length).toBe(2);
+    const clientValidationResult = await clientEngine.validate();
+    expect(clientValidationResult.getAllMessages().length).toBe(2);
 
     const clientData = clientRootProperty.exportData();
     // simulate sending the data to the server
@@ -37,8 +37,8 @@ test('validation on client and server should return the same result - test with 
     serverRootProperty.importData(serverData);
     
     // validate on server side
-    const serverValidationMsgs = await serverEngine.validate();
+    const serverValidationResult = await serverEngine.validate();
 
     // the validations must be the same
-    expect(serverValidationMsgs).toStrictEqual(clientValidationMsgs);
+    expect(serverValidationResult.getAllMessages()).toStrictEqual(clientValidationResult.getAllMessages());
 });

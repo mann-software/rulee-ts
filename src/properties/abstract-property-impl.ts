@@ -8,16 +8,17 @@ import { ValidationMessage } from "../validators/validation-message";
 import { PropertyDependency } from "../dependency-graph/property-dependency";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
-import { ValidatorInstance } from "../engine/validation/validator-instance-impl";
+import { AsyncPropertyValidatorInstance, CrossValidatorInstance, PropertyValidatorInstance, ValidatorInstance } from "../engine/validation/validator-instance-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
-import { SinglePropertyValidator } from "../validators/single-property-validator";
+import { PropertyValidator } from "../validators/property-validator";
+import { AsyncPropertyValidator } from "../validators/async-property-validator";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void> | void;
     hasBeenUpdated(): void;
     errorWhileUpdating(error: any): void;
     dependencyHasBeenUpdated(dependency: PropertyDependency): void;
-    addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>): void;
+    addValidator<Properties extends readonly AbstractProperty[]>(validator: CrossValidatorInstance<Properties>): void;
 }
 
 interface UpdatedListener {
@@ -30,20 +31,21 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private automaticallyUpdate = true;
     private manuallyTriggered?: boolean;
     private triggerListener?: TriggerListener;
+    private touched?: boolean;
 
     private needsToRecompute?: boolean; // needsToRecompute iff true or undefined
     private recomputingCount?: number;
     private currentRecomputing?: Promise<void>; // the current recompting of update process
     private updatedListeners?: UpdatedListener[];
 
-    private needsToRevalidate?: boolean; // needsToRevalidate iff true or undefined
-    private validators?: ValidatorInstance<readonly AbstractProperty[]>[];
+    private crossValidators?: CrossValidatorInstance<readonly AbstractProperty[]>[];
     private validationMessages: ValidationMessage[] = [];
 
     private valueChangeListeners?: [ref: number, vcl: ValueChangeListener][];
     private nextValueChangeListenerId?: number;
 
-    protected singlePropertyValidators: SinglePropertyValidator<any>[] = [];
+    private propertyValidators?: PropertyValidatorInstance<any, readonly AbstractProperty[]>[];
+    private asyncPropertyValidators?: AsyncPropertyValidatorInstance<any, readonly AbstractProperty[]>[];
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
@@ -234,49 +236,73 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     // -- handing internallyValidate  --------------------------------------------------------
     // ---------------------------------------------------------------------------------------
 
-    addSinglePropertyValidator(validator: SinglePropertyValidator<any>) {
-        this.singlePropertyValidators.push(validator);
+    addPropertyValidator<Dependencies extends readonly AbstractProperty[]>(validator: PropertyValidator<any, any>, dependencies: Dependencies) {
+        if (!this.propertyValidators) {
+            this.propertyValidators = [];
+        }
+        this.propertyValidators.push({
+            validationArguments: [...dependencies],
+            validate: validator
+        });
     }
 
-    protected getSinglePropertyValidationResults() {
-        return this.singlePropertyValidators.reduce((res, sv) => {
-            const msg = sv(this);
+    addAsyncPropertyValidator<Dependencies extends readonly AbstractProperty[]>(validator: AsyncPropertyValidator<any, any>, dependencies: Dependencies) {
+        if (!this.asyncPropertyValidators) {
+            this.asyncPropertyValidators = [];
+        }
+        this.asyncPropertyValidators.push({
+            validationArguments: [...dependencies],
+            validate: validator
+        });
+    }
+
+    protected getPropertyValidatorResults() {
+        return this.propertyValidators?.reduce((res, validatorInstance) => {
+            const msg = validatorInstance.validate(this, ...validatorInstance.validationArguments);
             if (msg) {
                 res.push(msg);
             }
             return res;
-        }, [] as ValidationMessage[]);
+        }, [] as ValidationMessage[]) ?? [];
     }
 
-    addValidator<Properties extends readonly AbstractProperty[]>(validator: ValidatorInstance<Properties>) {
-        if (!this.validators) {
-            this.validators = [];
+    protected async getAsyncPropertyValidatorResults() {
+        if (this.asyncPropertyValidators) {
+            const messages = await Promise.all(this.asyncPropertyValidators.map(validatorInstance =>
+                validatorInstance.validate(this, ...validatorInstance.validationArguments)
+            ));
+            return messages.filter(msg => msg !== undefined) as ValidationMessage[];
         }
-        this.validators.push(validator as unknown as ValidatorInstance<readonly AbstractProperty[]>);
+        return [];
+    }
+
+    addValidator<Properties extends readonly AbstractProperty[]>(validator: CrossValidatorInstance<Properties>) {
+        if (!this.crossValidators) {
+            this.crossValidators = [];
+        }
+        this.crossValidators.push(validator as unknown as CrossValidatorInstance<readonly AbstractProperty[]>);
     }
 
     async validate(): Promise<ValidationMessage[]> {
-        if (this.needsToRevalidate !== false) {
-            this.needsToRevalidate = false;
-            const updated = this.awaitAsyncUpdate();
-            if (updated) {
-                await updated;
-            }
-            const validationMessages = this.getSinglePropertyValidationResults();
-            if (this.validators) {
-                const results = await Promise.all(this.updateHandler.validateValidatorInstances(this.validators));
-                if (results.some(res => res === 'cancelled')) {
-                    return this.getValidationMessages();
+        const updated = this.awaitAsyncUpdate();
+        if (updated) {
+            await updated;
+        }
+        const validationMessages: ValidationMessage[] = this.getPropertyValidatorResults();
+        this.updateValidationMessages(validationMessages);
+        const asyncValidationMessagesPromise = this.asyncPropertyValidators ? this.getAsyncPropertyValidatorResults() : undefined;
+        if (this.crossValidators) {
+            const results = await Promise.all(this.updateHandler.validateValidatorInstances(this.crossValidators));
+            results.filter(res => res !== 'cancelled').forEach(result => {
+                if (result instanceof Array) {
+                    validationMessages.push(...result);
+                } else if (result instanceof Object && result[this.id]) {
+                    validationMessages.push(...result[this.id]);
                 }
-                results.forEach(result => {
-                    if (result instanceof Array) {
-                        validationMessages.push(...result);
-                    } else if (result instanceof Object && result[this.id]) {
-                        validationMessages.push(...result[this.id]);
-                    }
-                });
-            }
-            this.updateValidationMessages(validationMessages);
+            });
+        }
+        if (asyncValidationMessagesPromise) {
+            validationMessages.push(...await asyncValidationMessagesPromise);
         }
         return this.getValidationMessages();
     }
@@ -285,13 +311,13 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         return this.validationMessages.every(msg => msg.type.isValid);
     }
 
+    getValidationMessages(): ValidationMessage[] {
+        return this.validationMessages;
+    }
+
     setValidationMessages(messages: ValidationMessage[]): void {
         this.cancelValidationAndInvalidateResults();
         this.updateValidationMessages(messages);
-    }
-
-    getValidationMessages(): ValidationMessage[] {
-        return this.validationMessages;
     }
 
     clearValidationResult(): void {
@@ -300,9 +326,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     private cancelValidationAndInvalidateResults() {
-        this.needsToRevalidate = true;
-        if (this.validators) {
-            this.updateHandler.cancelValidationAndInvalidateResults(this.validators);
+        if (this.crossValidators) {
+            this.updateHandler.cancelValidationAndInvalidateResults(this.crossValidators);
         }
     }
 
@@ -325,7 +350,7 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         const ref = { id } as ValueChangeListenerReference;
 
         this.valueChangeListeners.push([id, changed]);
-        if (changed.needsAnUpdate && (this.needsToRecompute !== false || this.needsToRevalidate !== false)) {
+        if (changed.needsAnUpdate && this.needsToRecompute !== false) {
             changed.needsAnUpdate();
         }
         return ref;
@@ -365,6 +390,16 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         if (this.triggerListener) {
             trigger.deregisterTriggerListener(this.triggerListener);
         }
+    }
+
+    // --------------------------------------------------------------------------------------
+
+    setTouched(touched: boolean): void {
+        this.touched = touched;
+    }
+
+    isTouched(): boolean {
+        return this.touched ?? false;
     }
 
     // --------------------------------------------------------------------------------------

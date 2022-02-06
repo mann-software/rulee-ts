@@ -5,14 +5,14 @@ import { AbstractRulesDefinition, RulesDefinition, RulesDefinitionComposition, R
 
 export type ListOfPropertiesRulesDefinition<T extends AbstractDataProperty<D>, D> = RulesDefinition<ListOfPropertiesRuleBuilder<T, D>>;
 
-export function listOfPropertiesRules<T extends AbstractDataProperty<D>, D>(apply: (builder: ListOfPropertiesRuleBuilder<T, D>) => void): ListOfPropertiesRulesDefinition<T, D> {
+export function listOfPropertiesRules<T extends AbstractDataProperty<D>, D>(buildRules: (builder: ListOfPropertiesRuleBuilder<T, D>) => void): ListOfPropertiesRulesDefinition<T, D> {
     return {
-        apply
+        buildRules
     };
 }
 
-export function listOfPropertiesRulesWithDeps<T extends AbstractDataProperty<D>, D, Dependencies extends readonly AbstractProperty[]>(apply: (builder: ListOfPropertiesRuleBuilder<T, D>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => ListOfPropertiesRulesDefinition<T, D> {
-    return dependencies => new RulesDefinitionWithDependencies(dependencies, apply);
+export function listOfPropertiesRulesWithDeps<T extends AbstractDataProperty<D>, D, Dependencies extends readonly AbstractProperty[]>(buildRules: (builder: ListOfPropertiesRuleBuilder<T, D>, ...dependencies: Dependencies) => void): (dependencies: Dependencies) => ListOfPropertiesRulesDefinition<T, D> {
+    return dependencies => new RulesDefinitionWithDependencies(dependencies, buildRules);
 }
 
 export function listOfPropertiesRulesComposed<T extends AbstractDataProperty<D>, D>(...defintions: ListOfPropertiesRulesDefinition<T, D>[]): ListOfPropertiesRulesDefinition<T, D> {

@@ -25,6 +25,18 @@ export interface AbstractProperty {
     removeUpdateTrigger(trigger: Trigger): void;
 
     /**
+     * Set flag to indicate that the user has touched this property. Might be useful for binding a property to an 
+     * input component of the view layer
+     * @param touched is touched
+     */
+    setTouched(touched: boolean): void;
+
+    /**
+     * Set flag to indicate that the user has touched this field. Default value is false
+     */
+    isTouched(): boolean;
+
+    /**
      * Triggers the validation
      */
     validate(): Promise<ValidationMessage[]>;
