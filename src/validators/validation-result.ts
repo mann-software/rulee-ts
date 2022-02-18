@@ -1,64 +1,66 @@
 import { ValidationMessage } from "./validation-message";
 import { ValidationType } from "./validation-type";
 import { ValidationMessagesMap } from "./validation-messages-map";
+import { PropertyId } from "../properties/property-id";
+import { AbstractDataProperty } from "../index";
 
+export type ValidationMessageToString = (validationMessage: ValidationMessage, property: AbstractDataProperty<unknown>) => string;
 
 export class ValidationResult {
 
+    private valid?: boolean;
+
     constructor(
-        private readonly validationMessagesMap: ValidationMessagesMap
+        private readonly validationMessagesMap: ValidationMessagesMap,
+        private readonly getPropertyById: (id: PropertyId) => AbstractDataProperty<unknown>
     ) { }
 
-    getValidationMessagesMap() {
+    getValidationMessagesMap(): ValidationMessagesMap {
         return this.validationMessagesMap;
     }
 
-    getAllMessages() {
-        return this.flatten(this.validationMessagesMap);
+    getAllMessages(): ValidationMessage[] {
+        return Object.values(this.getValidationMessagesMap()).flat();
     }
 
-    private flatten(map: ValidationMessagesMap): ValidationMessage[] {
-        return Object.values(map).flat();
+    getAllMessagesAsStrings(convert: ValidationMessageToString): string[] {
+        return Object.entries(this.getValidationMessagesMap()).flatMap(([id, messages]) => {
+            const property = this.getPropertyById(id);
+            return messages.map(message => convert(message, property));
+        });
     }
 
-    // --------------------------------------------------------------------------------
-    getAllMessagesOfType(type: ValidationType): ValidationMessage[] {
-        return this.flatten(this.filterByType(type));
-    }
-
-    getAllValidMessages(): ValidationMessage[] {
-        return this.flatten(this.filterValid());
-    }
-
-    getAllInvalidMessages(): ValidationMessage[] {
-        return this.flatten(this.filterInvalid());
-    }
-
-    getAllMessagesBy(fcn: (msg: ValidationMessage) => boolean): ValidationMessage[] {
-        return this.flatten(this.filterBy(fcn));
+    isValid(): boolean {
+        if (this.valid === undefined) {
+            this.valid = Object.values(this.getValidationMessagesMap()).every(messages =>
+                messages.every(message => message.type.isValid)
+            );
+        }
+        return this.valid; 
     }
 
     // --------------------------------------------------------------------------------
-    filterByType(type: ValidationType): ValidationMessagesMap {
-        return this.filterBy(msg => msg.type.name === type.name);
+    filterByType(...types: ValidationType[]): ValidationResult {
+        return this.filterBy(msg => !!types.find(type => msg.type.name === type.name));
     }
 
-    filterValid(): ValidationMessagesMap {
+    filterValid(): ValidationResult {
         return this.filterBy(msg => msg.type.isValid);
     }
 
-    filterInvalid(): ValidationMessagesMap {
+    filterInvalid(): ValidationResult {
         return this.filterBy(msg => !msg.type.isValid);
     }
 
-    filterBy(fcn: (msg: ValidationMessage) => boolean): ValidationMessagesMap {
-        return Object.keys(this.validationMessagesMap).reduce((res, key) => {
+    filterBy(fcn: (msg: ValidationMessage) => boolean): ValidationResult {
+        const validationMap = Object.keys(this.validationMessagesMap).reduce((res, key) => {
             const filteredMsgs = this.validationMessagesMap[key].filter(msg => fcn(msg));
             if (filteredMsgs.length > 0) {
                 res[key] = filteredMsgs;
             }
             return res;
         }, {} as ValidationMessagesMap);
+        return new ValidationResult(validationMap, this.getPropertyById);
     }
 
 }

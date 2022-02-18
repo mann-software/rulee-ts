@@ -76,7 +76,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
             }
             return res;
         }, {} as ValidationMessagesMap);
-        return new ValidationResult(map);
+        return new ValidationResult(map, (id) => this.propertyMap[id]);
     }
 
     clearValidationResult(): void {
