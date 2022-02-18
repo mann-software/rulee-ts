@@ -1,7 +1,6 @@
 import { PropertyScalar } from "./property-scalar";
 import { ValueProvider } from "../provider/value-provider/value-provider";
 import { ValueConverter } from "../value-converter/value-converter";
-import { AttributeId } from "../attributes/attribute-id";
 import { Attribute } from "../attributes/attribute";
 import { PropertyId } from "./property-id";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
@@ -14,13 +13,10 @@ import { assertThat } from "../util/assertions/assertions";
 export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements PropertyScalar<T> {
 
     private currentValue?: T | null; // undefined if synchonous and not cached
-
     protected initialValue?: T | null;
+
     private placeholder?: string;
     private infoText?: string;
-    
-    protected attributeMap?: Map<AttributeId<unknown>, Attribute<any>>;
-    protected visible?: Attribute<boolean>;
     protected required?: Attribute<boolean>;
 
     constructor(
@@ -89,19 +85,8 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         this.infoText = infoText;
     }
 
-    defineVisibility(visibility?: Attribute<boolean>) {
-        this.visible = visibility;
-    }
-
     defineRequiredIfVisible(mandatoriness?: Attribute<boolean>) {
         this.required = mandatoriness;
-    }
-
-    defineAttribute(attribute: Attribute<unknown>) {
-        if (!this.attributeMap) {
-            this.attributeMap = new Map();
-        }
-        this.attributeMap.set(attribute.id, attribute);
     }
 
     // ------------------
@@ -154,16 +139,8 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return this.getCurrentValue();
     }
 
-    get<A>(id: AttributeId<A>): A | undefined {
-        return this.attributeMap?.get(id)?.getValue();
-    }
-
     isRequired(): boolean {
         return !!this.required && this.required.getValue() && this.isVisible();
-    }
-
-    isVisible(): boolean {
-        return this.visible?.getValue() ?? true;
     }
 
     isEmpty() {

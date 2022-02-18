@@ -12,6 +12,8 @@ import { AsyncPropertyValidatorInstance, CrossValidatorInstance, PropertyValidat
 import { AbstractDataProperty } from "./abstract-data-property";
 import { PropertyValidator } from "../validators/property-validator";
 import { AsyncPropertyValidator } from "../validators/async-property-validator";
+import { AttributeId } from "../attributes/attribute-id";
+import { Attribute } from "../attributes/attribute";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void> | void;
@@ -49,7 +51,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     abstract id: string;
     backpressureConfig?: BackpressureConfig;
+
     private label?: string;
+    private attributeMap?: Map<AttributeId<unknown>, Attribute<any>>;
+    private visible?: Attribute<boolean>;
 
     constructor(
         protected updateHandler: RuleEngineUpdateHandler,
@@ -409,7 +414,26 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     }
 
     getLabel(): string {
-        return this.label ?? '';
+        return this.label ?? this.id;
+    }
+
+    defineAttribute(attribute: Attribute<unknown>) {
+        if (!this.attributeMap) {
+            this.attributeMap = new Map();
+        }
+        this.attributeMap.set(attribute.id, attribute);
+    }
+
+    get<A>(id: AttributeId<A>): A | undefined {
+        return this.attributeMap?.get(id)?.getValue();
+    }
+
+    defineVisibility(visibility?: Attribute<boolean>) {
+        this.visible = visibility;
+    }
+
+    isVisible(): boolean {
+        return this.visible?.getValue() ?? true;
     }
 
     // --------------------------------------------------------------------------------------

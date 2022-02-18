@@ -1,4 +1,3 @@
-import { AttributeId } from "../attributes/attribute-id";
 import { AbstractDataProperty } from "./abstract-data-property";
 import { AbstractProperty } from "./abstract-property";
 import { PropertyScalarImpl } from "./property-scalar-impl";
@@ -59,11 +58,8 @@ export interface PropertyScalar<D> extends AbstractDataProperty<D> {
      */
     setValue(value: D | null): void;
 
-    get<A>(id: AttributeId<A>): A | undefined;
     isRequired(): boolean;
-    isVisible(): boolean;
     isEmpty(): boolean;
-    getLabel(): string;
     getInfoText(): string;
     getPlaceholder(): string;
 }
