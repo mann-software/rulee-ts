@@ -9,7 +9,7 @@ import { Rule } from "../../rules/rule";
 import { PropertyScalarValidator } from "../../validators/property-validator";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 import { AsyncPropertyScalarValidator } from "../../validators/async-property-validator";
-import { AbstractPropertyRuleBuilder } from "./abstract-property-rule-builder";
+import { AbstractPropertyRuleBuilder } from "./abstract-property-rule-builder-impl";
 
 export class PropertyScalarRuleBuilder<T> extends AbstractPropertyRuleBuilder<T, PropertyScalarImpl<T>> {
     
@@ -25,19 +25,11 @@ export class PropertyScalarRuleBuilder<T> extends AbstractPropertyRuleBuilder<T,
     // ------------------
 
     addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
-        this.addDependencies(dependencies, this.property, { validation: true });
-        return validator => {
-            this.property.addPropertyValidator(validator, dependencies);
-            return this;
-        };
+        return this.addValidatorInternal(...dependencies);
     }
 
     addAsyncValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncPropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
-        this.addDependencies(dependencies, this.property, { validation: true });
-        return validator => {
-            this.property.addAsyncPropertyValidator(validator, dependencies);
-            return this;
-        };
+        return this.addAsyncValidatorInternal(...dependencies);
     }
 
     // ------------------

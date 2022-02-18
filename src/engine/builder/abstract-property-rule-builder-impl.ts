@@ -7,6 +7,8 @@ import { ValueChangeListener } from "../../properties/value-change-listener";
 import { Rule } from "../../rules/rule";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 import { AbstractPropertyImpl } from "../../properties/abstract-property-impl";
+import { PropertyValidator } from "../../validators/property-validator";
+import { AsyncPropertyValidator } from "../../validators/async-property-validator";
 
 export abstract class AbstractPropertyRuleBuilder<D, Property extends AbstractPropertyImpl<D>> {
 
@@ -17,8 +19,8 @@ export abstract class AbstractPropertyRuleBuilder<D, Property extends AbstractPr
     ) { }
 
     // ------------------
-/*
-    addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
+
+    protected addValidatorInternal<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: PropertyValidator<Property, Dependencies>) => this {
         this.addDependencies(dependencies, this.property, { validation: true });
         return validator => {
             this.property.addPropertyValidator(validator, dependencies);
@@ -26,14 +28,14 @@ export abstract class AbstractPropertyRuleBuilder<D, Property extends AbstractPr
         };
     }
 
-    addAsyncValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncPropertyScalarValidator<T, Dependencies>) => PropertyScalarRuleBuilder<T> {
+    protected addAsyncValidatorInternal<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncPropertyValidator<Property, Dependencies>) => this {
         this.addDependencies(dependencies, this.property, { validation: true });
         return validator => {
             this.property.addAsyncPropertyValidator(validator, dependencies);
             return this;
         };
     }
-*/
+
     set<A>(attribudeId: AttributeId<A>, value: A): this {
         this.defineAttributeFunction(attribudeId, [], () => value);
         return this;
