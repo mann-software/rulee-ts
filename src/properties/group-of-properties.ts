@@ -1,5 +1,5 @@
 import { AbstractProperty } from "./abstract-property";
-import { AbstractDataProperty, DataTypeAsProperty, DataTypeOfProperty } from "./abstract-data-property";
+import { AbstractDataProperty, DataTypeOfProperty } from "./abstract-data-property";
 
 export interface PropertyGroup { 
     [id: string]: AbstractDataProperty<unknown>;
