@@ -1,12 +1,13 @@
-import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { PropertyGroup, GroupOfProperties, PropertyGroupData } from "./group-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
+import { AbstractProperty } from "./abstract-property";
+import { AbstractParentPropertyImpl } from "./abstract-parent-property-impl";
 
 /**
  * Manages an ordered set of properties
  */
-export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractPropertyImpl<PropertyGroupData<T>> implements GroupOfProperties<T> {
+export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractParentPropertyImpl<PropertyGroupData<T>> implements GroupOfProperties<T> {
 
     readonly propertiesAsList: AbstractDataProperty<unknown>[];
 
@@ -18,16 +19,16 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
         super(updateHandler);
         this.propertiesAsList = Object.keys(this.properties).map(propKey => this.properties[propKey]);
     }
+    
+    protected getChildren(): AbstractProperty[] {
+        return this.propertiesAsList;
+    }
 
     protected internallySyncUpdate(): void {
         throw new Error("Method not implemented.");
     }
     protected internallyAsyncUpdate<V>(): { asyncPromise: Promise<V>; resolve: (value: V) => void } {
         throw new Error("Method not implemented.");
-    }
-
-    isValid(): boolean {
-        return super.isValid() && Object.keys(this.properties).every(k => this.properties[k].isValid());
     }
 
     isProcessing(): boolean {

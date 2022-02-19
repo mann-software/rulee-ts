@@ -1,4 +1,3 @@
-import { AbstractPropertyImpl } from "./abstract-property-impl";
 import { ListOfProperties } from "./list-of-properties";
 import { RuleEngineUpdateHandler } from "../engine/rule-engine-update-handler-impl";
 import { OwnerRelation } from "../dependency-graph/dependency-graph";
@@ -7,11 +6,13 @@ import { ListIndexImpl } from "./lists/index/list-index-impl";
 import { PropertyTemplate } from "./factory/property-template";
 import { SiblingAccess } from "../provider/list-provider/sibling-access";
 import { SingleSelection } from "./lists/selection/single-selection";
+import { AbstractParentPropertyImpl } from "./abstract-parent-property-impl";
+import { AbstractProperty } from "./abstract-property";
 
 /**
  * Manages a list of properties. Can be ProperyScalar, PropertyGroup or PropertyList
  */
-export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D>, SiblingAccess<T> {
+export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractParentPropertyImpl<(D | null)[]> implements ListOfProperties<T, D>, SiblingAccess<T> {
 
     private internalList: { prop: T; index: ListIndexImpl }[] = [];
     readonly siblingCount = this.list.length;
@@ -37,6 +38,10 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         if (!isMultiSelect) {
             this.singleSelection = new SingleSelection();
         }
+    }
+
+    protected getChildren(): AbstractProperty[] {
+        return this.list;
     }
 
     protected internallySyncUpdate(): void {
