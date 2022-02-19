@@ -32,9 +32,10 @@ import { PropertyArrayListAsyncImpl, PropertyArrayListSyncImpl } from "../../pro
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 import { RuleEngineImpl } from "../rule-engine-impl";
 import { GroupOfPropertiesRuleBuilder } from "./group-of-properties-rule-builder";
-import { ListOfProperties, PropertyArrayList } from "../../index";
 import { ListOfPropertiesRuleBuilder } from "./list-of-properties-rule-builder";
 import { PropertyArrayListRuleBuilder } from "./property-array-list-rule-builder";
+import { ListOfProperties } from "../../properties/list-of-properties";
+import { PropertyArrayList } from "../../properties/property-array-list";
 
 export class Builder {
 

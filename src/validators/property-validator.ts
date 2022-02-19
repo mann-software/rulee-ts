@@ -1,5 +1,6 @@
-import { AbstractProperty, GroupOfProperties, PropertyGroup } from "../index";
 import { AbstractDataProperty } from "../properties/abstract-data-property";
+import { AbstractProperty } from "../properties/abstract-property";
+import { GroupOfProperties, PropertyGroup } from "../properties/group-of-properties";
 import { ListOfProperties } from "../properties/list-of-properties";
 import { PropertyArrayList } from "../properties/property-array-list";
 import { PropertyScalar } from "../properties/property-scalar";

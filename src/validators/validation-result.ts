@@ -2,7 +2,7 @@ import { ValidationMessage } from "./validation-message";
 import { ValidationType } from "./validation-type";
 import { ValidationMessagesMap } from "./validation-messages-map";
 import { PropertyId } from "../properties/property-id";
-import { AbstractDataProperty } from "../index";
+import { AbstractDataProperty } from "../properties/abstract-data-property";
 
 export type ValidationMessageToString = (validationMessage: ValidationMessage, property: AbstractDataProperty<unknown>) => string;
 

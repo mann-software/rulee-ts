@@ -50,7 +50,6 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
     private asyncPropertyValidators?: AsyncPropertyValidatorInstance<any, readonly AbstractProperty[]>[];
 
     abstract id: string;
-    backpressureConfig?: BackpressureConfig;
 
     private label?: string;
     private attributeMap?: Map<AttributeId<unknown>, Attribute<any>>;
@@ -58,10 +57,8 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     constructor(
         protected updateHandler: RuleEngineUpdateHandler,
-        backpressureConfig?: BackpressureConfig
-    ) {
-        this.backpressureConfig = backpressureConfig;
-    }
+        public backpressureConfig?: BackpressureConfig
+    ) { }
 
     // ---------------------------------------------------------------------------------------
     // -- handing internallyUpdate -----------------------------------------------------------
