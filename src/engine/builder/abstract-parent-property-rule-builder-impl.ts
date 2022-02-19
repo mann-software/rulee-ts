@@ -1,6 +1,6 @@
-import { ValidationMessage } from "../../index";
 import { AbstractProperty } from "../../properties/abstract-property";
 import { AbstractPropertyImpl } from "../../properties/abstract-property-impl";
+import { ValidationMessage } from "../../validators/validation-message";
 import { AbstractPropertyRuleBuilder } from "./abstract-property-rule-builder-impl";
 
 
@@ -15,9 +15,12 @@ export abstract class AbstractParentPropertyRuleBuilder<D, Property extends Abst
     }
 
     defineValidIfAllChildrenValid(message: (invalidChildren: AbstractProperty[]) => ValidationMessage) {
-        this.addValidatorInternal(...this.getChildren())((self, ...children) => {
+        this.addAsyncValidatorInternal(...this.getChildren())(async (self, ...children) => {
+            await Promise.all(children.map(child => child.validate()));
             const invalidChildren = children.filter(child => child.isValid());
-            return message(invalidChildren);
+            if (invalidChildren.length > 0) {
+                return message(invalidChildren);
+            }
         });
     }
 

@@ -134,6 +134,7 @@ export class Builder {
         return new GroupOfPropertiesRuleBuilder<T>(
             prop,
             (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+            this.textInterpreters,
         );
     }
 
@@ -150,6 +151,7 @@ export class Builder {
         return new ListOfPropertiesRuleBuilder<T, D>(
             prop,
             (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+            this.textInterpreters,
         );
     }
 
@@ -177,6 +179,7 @@ export class Builder {
         return new PropertyArrayListRuleBuilder<T>(
             prop,
             (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
+            this.textInterpreters,
         );
     }
 

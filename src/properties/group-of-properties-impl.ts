@@ -8,7 +8,7 @@ import { AbstractDataProperty } from "./abstract-data-property";
  */
 export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractPropertyImpl<PropertyGroupData<T>> implements GroupOfProperties<T> {
 
-    readonly propertiesAsList: readonly AbstractDataProperty<unknown>[];
+    readonly propertiesAsList: AbstractDataProperty<unknown>[];
 
     constructor(
         readonly id: string,

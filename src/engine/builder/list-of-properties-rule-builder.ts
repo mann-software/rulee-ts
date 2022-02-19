@@ -1,41 +1,37 @@
 import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
-import { AsyncListOfPropertiesValidator } from "../../index";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { AbstractProperty } from "../../properties/abstract-property";
 import { ListOfProperties } from "../../properties/list-of-properties";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
+import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
+import { AsyncListOfPropertiesValidator } from "../../validators/async-property-validator";
 import { ListOfPropertiesValidator } from "../../validators/property-validator";
+import { AbstractParentPropertyRuleBuilder } from "./abstract-parent-property-rule-builder-impl";
 
-export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> {
-
-    private readonly property: ListOfPropertiesImpl<T, D>;
+export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> extends AbstractParentPropertyRuleBuilder<(D | null)[], ListOfPropertiesImpl<T, D>> {
     
     constructor(
         property: ListOfProperties<T, D>,
-        private readonly addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
+        addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
+        textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
-        this.property = property as ListOfPropertiesImpl<T, D>;
+        super(property as ListOfPropertiesImpl<T, D>, addDependencies, textInterpreters);
+    }
+
+    protected getChildren(): AbstractProperty[] {
+        return this.property.list;
     }
 
     // ------------------
 
     addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: ListOfPropertiesValidator<T, D, Dependencies>) => ListOfPropertiesRuleBuilder<T, D> {
-        this.addDependencies(dependencies, this.property, { validation: true });
-        return validator => {
-            this.property.addPropertyValidator(validator, dependencies);
-            return this;
-        };
+        return this.addValidatorInternal(...dependencies);
     }
 
     addAsyncValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: AsyncListOfPropertiesValidator<T, D, Dependencies>) => ListOfPropertiesRuleBuilder<T, D> {
-        this.addDependencies(dependencies, this.property, { validation: true });
-        return validator => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            this.property.addAsyncPropertyValidator(validator, dependencies);
-            return this;
-        };
+        return this.addAsyncValidatorInternal(...dependencies);
     }
-    
+
     // ------------------
     
 }
