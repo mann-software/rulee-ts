@@ -20,7 +20,6 @@ export * from "./engine/builder/trigger-builder";
 export * from "./engine/rule-set/rule-set";
 export * from "./engine/snapshot/snapshot";
 export * from "./properties/abstract-data-property";
-export * from "./properties/abstract-parent-property";
 export * from "./properties/abstract-property";
 export * from "./properties/choice";
 export * from "./properties/group-of-properties";

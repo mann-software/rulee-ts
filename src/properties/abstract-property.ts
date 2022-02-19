@@ -4,6 +4,7 @@ import { Trigger } from "./trigger";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { ValidationMessage } from "../validators/validation-message";
 import { AttributeId } from "../attributes/attribute-id";
+import { ValidationResult } from "../validators/validation-result";
 
 export interface AbstractProperty {
     readonly id: PropertyId;
@@ -59,6 +60,11 @@ export interface AbstractProperty {
      * Triggers the validation
      */
     validate(): Promise<ValidationMessage[]>;
+
+    /**
+     * Validates recursively the owned properties and the property itself
+     */
+    validateRecursively(): Promise<ValidationResult>;
 
     /**
      * Indicates that the current property has an valid state

@@ -14,6 +14,8 @@ import { PropertyValidator } from "../validators/property-validator";
 import { AsyncPropertyValidator } from "../validators/async-property-validator";
 import { AttributeId } from "../attributes/attribute-id";
 import { Attribute } from "../attributes/attribute";
+import { ValidationResult } from "../validators/validation-result";
+import { ValidationMessagesMap } from "../validators/validation-messages-map";
 
 export interface AbstractPropertyWithInternals<D> extends AbstractDataProperty<D> {
     internallyUpdate(): Promise<void> | void;
@@ -307,6 +309,17 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
             validationMessages.push(...await asyncValidationMessagesPromise);
         }
         return this.getValidationMessages();
+    }
+
+    async validateRecursively(): Promise<ValidationResult> {
+        const validationMap = await this.validateRecursivelyInternal();
+        return new ValidationResult(validationMap, (id) => this.updateHandler.getPropertyById(id)!)
+    }
+
+    async validateRecursivelyInternal(): Promise<ValidationMessagesMap> {
+        return {
+            [this.id]: await this.validate()
+        };
     }
 
     isValid(): boolean {
