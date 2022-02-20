@@ -17,6 +17,8 @@ import { RuleEngine } from "./rule-engine";
 import { ValidationMessagesMap } from "../validators/validation-messages-map";
 import { ValidationResult } from "../validators/validation-result";
 import { PropertyId } from "../properties/property-id";
+import { RuleEngineData } from "./data/rule-engine-data";
+import { RulesVersion } from "./data/rules-version";
 
 export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
@@ -36,11 +38,15 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         this.builder = new Builder(options, this, this.dependencyGraph, this.propertyMap);
     }
 
+    getVersion(): RulesVersion {
+        throw new Error("Method not implemented."); // TODO
+    }
+
     getBuilder(): Builder {
         return this.builder;
     }
 
-    getPropertyById(id: string): AbstractProperty | undefined {
+    getPropertyById(id: string): AbstractDataProperty<unknown> | undefined {
         return this.propertyMap[id];
     }
     
@@ -85,10 +91,30 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     
     // -----------------------------------------------------------------------
 
+    exportData(onlySelectedProperties?: string[]): RuleEngineData {
+        throw new Error("Method not implemented."); // TODO
+    }
+
+    importData(data: RuleEngineData): void {
+        if (this.getVersion().compatibleWith.exec(data.rulesVersion) == null) {
+            // TODO try to use data migrators
+            throw new Error(`Version "${data.rulesVersion}" of imported data is not compatible with current version "${this.getVersion().version}" and there are missing porper data migrators`);
+        }
+        this.setToInitialState();
+        Object.entries(data.data).forEach(([propertyId, propData]) => {
+            const prop = this.getPropertyById(propertyId);
+            prop?.importData(propData);
+        });
+    }
+
+    setToInitialState(): void {
+        this.properties.forEach(property => property.setToInitialState()); // TODO ensure that all ongoig validations etc. are cancelled
+    }
+
     takeSnapShot(key = 'default'): Snapshot {
         const snap = {
             key,
-            data: this.properties.map(p => p.exportData())
+            data: this.exportData()
         } as Snapshot;
         this.snapshots.set(key, snap);
         return snap;
@@ -97,7 +123,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     restoreSnapShot(key = 'default'): void {
         const snap = this.snapshots.get(key);
         if (snap) {
-            snap.data.forEach((d: unknown, i: number) => this.properties[i].importData(d))
+            this.importData(snap.data);
         }
     }
     
