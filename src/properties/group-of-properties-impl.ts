@@ -46,7 +46,7 @@ export class GroupOfPropertiesImpl<T extends PropertyGroup> extends AbstractProp
     // -- data relevant -
     // ------------------
 
-    setToInitialState(): void {
+    setDataToInitialState(): void {
         this.propertiesAsList.forEach(prop => prop.setToInitialState());
     }
 

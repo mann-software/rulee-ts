@@ -20,6 +20,10 @@ export class ObjectValueProvider<O, T> implements ValueProvider<T> {
         return false;
     }
 
+    cancelProcessing(): void {
+        // No-Op
+    }
+
     isProcessing(): boolean {
         return false;
     }

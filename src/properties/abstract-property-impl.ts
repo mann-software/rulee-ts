@@ -418,10 +418,19 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         toProperty.importData(this.exportData());
     }
 
+    setToInitialState(): void {
+        this.clearValidationResult();
+        this.needsToRecompute = true;
+        this.currentRecomputing = undefined;
+        this.setDataToInitialState();
+        this.touched = false;
+    }
+
+    protected abstract setDataToInitialState(): void;
+
     abstract isAsynchronous(): boolean;
     abstract isProcessing(): boolean;
     abstract isReadOnly(): boolean;
-    abstract setToInitialState(): void;
     abstract exportData(): D | null;
     abstract importData(data: D | null): void;
 }

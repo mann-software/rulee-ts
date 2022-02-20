@@ -30,6 +30,10 @@ export class DerivedAsyncValueProvider<T, Dependencies extends readonly Abstract
         return true;
     }
 
+    cancelProcessing(): void {
+        this.processing = false;
+    }
+
     isProcessing(): boolean {
         return this.processing;
     }

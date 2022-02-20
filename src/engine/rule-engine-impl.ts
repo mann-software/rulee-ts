@@ -86,7 +86,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     }
 
     clearValidationResult(): void {
-        Object.values(this.propertyMap).forEach(prop => prop.clearValidationResult());
+        this.properties.forEach(prop => prop.clearValidationResult());
     }
     
     // -----------------------------------------------------------------------
@@ -108,7 +108,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     }
 
     setToInitialState(): void {
-        this.properties.forEach(property => property.setToInitialState()); // TODO ensure that all ongoig validations etc. are cancelled
+        this.properties.forEach(property => property.setToInitialState());
     }
 
     takeSnapShot(key = 'default'): Snapshot {

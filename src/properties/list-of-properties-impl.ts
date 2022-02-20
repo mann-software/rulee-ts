@@ -14,12 +14,15 @@ import { SingleSelection } from "./lists/selection/single-selection";
 export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends AbstractPropertyImpl<(D | null)[]> implements ListOfProperties<T, D>, SiblingAccess<T> {
 
     private internalList: { prop: T; index: ListIndexImpl }[] = [];
-    readonly siblingCount = this.list.length;
     private readonly singleSelection?: SingleSelection;
     private nxtId = 0;
 
     get length() {
         return this.internalList.length;
+    }
+
+    get siblingCount() {
+        return this.length;
     }
 
     get list() {
@@ -284,7 +287,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     // -- data relevant -
     // ------------------
 
-    setToInitialState(): void {
+    setDataToInitialState(): void {
         this.internalList = [];
     }
 
