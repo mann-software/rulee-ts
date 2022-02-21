@@ -21,7 +21,7 @@ import { BackpressureConfig } from "../../properties/backpressure/backpressure-c
 import { ListBuilder, SelectionMode } from "./list-builder";
 import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { CrossValidator } from "../../validators/cross-validator";
-import { CrossValidatorInstance, ValidatorInstance } from "../validation/validator-instance-impl";
+import { CrossValidatorInstance } from "../validation/validator-instance-impl";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { GroupOfProperties, PropertyGroup } from "../../properties/group-of-properties";
 import { PropertyTemplate } from "../../properties/factory/property-template";
@@ -228,7 +228,7 @@ export class Builder {
         return this.dependencyGraph.createVisJsData(this.properties);
     }
 
-    generateNetworkGraphHtmlPage() {
+    generateDependencyGraphHtmlPage() {
         const graph = this.asVisJsData();
         const nodes = JSON.stringify(graph.nodes);
         const edges = JSON.stringify(graph.edges);

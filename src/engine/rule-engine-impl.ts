@@ -91,8 +91,19 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     
     // -----------------------------------------------------------------------
 
-    exportData(onlySelectedProperties?: string[]): RuleEngineData {
-        throw new Error("Method not implemented."); // TODO
+    exportData(onlySelectedProperties?: AbstractDataProperty<unknown>[]): RuleEngineData {
+        const rulesVersion = this.getVersion().version;
+
+        const propsToExport = onlySelectedProperties ? onlySelectedProperties : this.properties.filter(prop => !this.dependencyGraph.isOwnedProperty(prop.id));
+        const data = propsToExport.reduce<Record<PropertyId, unknown>>((res, prop) => {
+            res[prop.id] = prop.exportData();
+            return res;
+        }, {});
+
+        return {
+            rulesVersion,
+            data
+        };
     }
 
     importData(data: RuleEngineData): void {

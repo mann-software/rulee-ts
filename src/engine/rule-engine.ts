@@ -68,7 +68,7 @@ export interface RuleEngine {
      * 
      * @param onlySelectedProperties if provided, only these properties will be exported
      */
-    exportData(onlySelectedProperties?: PropertyId[]): RuleEngineData;
+    exportData(onlySelectedProperties?: AbstractDataProperty<unknown>[]): RuleEngineData;
 
     /**
      * Imports the data. A version compatibility check according to the current {@link RulesVersion} is performed beforehand.
