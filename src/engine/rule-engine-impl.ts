@@ -19,12 +19,15 @@ import { ValidationResult } from "../validators/validation-result";
 import { PropertyId } from "../properties/property-id";
 import { RuleEngineData } from "./data/rule-engine-data";
 import { RulesVersion } from "./data/rules-version";
+import { DataMigrator } from "./data/data-migrator";
 
 export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     private readonly builder: Builder;
     private readonly propertyMap: { [id: PropertyId]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
+    private readonly version: RulesVersion;
+    private readonly dataMigrators?: DataMigrator[];
     private readonly validations = new WeakMap<CrossValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
 
     private readonly dataLinks = new Map<string, [ValueChangeListenerReference, ValueChangeListenerReference]>();
@@ -36,10 +39,16 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     constructor(options: BuilderOptions) {
         this.builder = new Builder(options, this, this.dependencyGraph, this.propertyMap);
+        this.version = options.version;
+        this.dataMigrators = options.dataMigrators;
     }
 
     getVersion(): RulesVersion {
-        throw new Error("Method not implemented."); // TODO
+        return this.version;
+    }
+
+    private isCompatible(data: RuleEngineData) {
+        return this.getVersion().compatibleWith(data.rulesVersion);
     }
 
     getBuilder(): Builder {
@@ -107,9 +116,19 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     }
 
     importData(data: RuleEngineData): void {
-        if (this.getVersion().compatibleWith.exec(data.rulesVersion) == null) {
-            // TODO try to use data migrators
-            throw new Error(`Version "${data.rulesVersion}" of imported data is not compatible with current version "${this.getVersion().version}" and there are missing porper data migrators`);
+        if (!this.isCompatible(data)) {
+            this.dataMigrators?.forEach(migrator => {
+                if (migrator.acceptsVersion.exec(data.rulesVersion) != null) {
+                    data = {
+                        rulesVersion: migrator.newVersion,
+                        data: migrator.migrate(data)
+                    };
+                }
+            });
+            
+            if (!this.isCompatible(data)) {
+                throw new Error(`Version "${data.rulesVersion}" of imported data is not compatible with current version "${this.getVersion().version}" and there are missing porper data migrators`);
+            }
         }
         this.setToInitialState();
         Object.entries(data.data).forEach(([propertyId, propData]) => {

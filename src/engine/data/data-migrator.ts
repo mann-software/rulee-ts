@@ -1,31 +1,27 @@
+import { PropertyId } from "../../properties/property-id";
 import { RuleEngineData } from "./rule-engine-data";
 import { SemanticRulesVersion } from "./rules-version";
 
 export interface DataMigrator {
-    readonly fromVersions: RegExp;
-    readonly toVersion: string;
-    migrate(data: RuleEngineData): RuleEngineData;
+    readonly acceptsVersion: (version: string) => boolean;
+    readonly newVersion: string;
+    migrate(data: RuleEngineData): Record<PropertyId, unknown>;
 }
 
 export const SemanticVersionDataMigrator = (
-    fromVersions: {
+    fromVersion: {
         major: number;
-        minor?: number;
-        patch?: number;
-        suffix?: string;
+        minor: number;
+        patch: number;
     },
     toVersion: {
         major: number;
         minor: number;
         patch: number;
-        suffix?: string;
     },
-    migrate: (data: RuleEngineData) => RuleEngineData
+    migrate: (data: RuleEngineData) => Record<PropertyId, unknown>
 ) => ({
-    fromVersions: new RegExp(
-        [fromVersions.major, fromVersions.minor, fromVersions.patch].filter(s => !!s).join('.')
-        + (fromVersions.suffix ? `-${fromVersions.suffix}` : '')
-    ),
-    toVersion: SemanticRulesVersion(toVersion.major, toVersion.minor, toVersion.patch, toVersion.suffix).version,
+    acceptsVersion: version => SemanticRulesVersion(fromVersion.major, fromVersion.minor, fromVersion.patch).compatibleWith(version),
+    newVersion: SemanticRulesVersion(toVersion.major, toVersion.minor, toVersion.patch).version,
     migrate
 } as DataMigrator);
