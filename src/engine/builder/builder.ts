@@ -127,6 +127,9 @@ export class Builder {
         const prop = new GroupOfPropertiesImpl(id, properties, this.ruleEngine);
         this.addProperty(prop);
         this.addDependencies(this.dependencyGraph, prop.propertiesAsList, prop, { value: true });
+        prop.propertiesAsList.forEach(owned => 
+            this.dependencyGraph.addOwnerDependency(prop, owned, false)
+        );
         return prop;
     }
 

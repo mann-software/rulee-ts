@@ -33,7 +33,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     private readonly dataLinks = new Map<string, [ValueChangeListenerReference, ValueChangeListenerReference]>();
     private readonly snapshots = new Map<string, Snapshot>();
 
-    private get properties() {
+    private get properties(): AbstractPropertyWithInternals<unknown>[] {
         return Object.values(this.propertyMap);
     }
 
@@ -308,6 +308,18 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
             }
             this.validations.set(validator, newProcess);
             return newProcess;
+        }
+    }
+    
+    // -----------------------------------------------------------------------
+
+    removeOwnedProperties(id: PropertyId): void {
+        const removed = this.dependencyGraph.removeOwnedProperties(id);
+        if (removed) {
+            removed.forEach(id => {
+                delete this.propertyMap[id];
+                this.removeOwnedProperties(id)
+            });
         }
     }
 

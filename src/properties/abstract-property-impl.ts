@@ -428,6 +428,10 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
 
     protected abstract setDataToInitialState(): void;
 
+    protected removeOwnedProperties(): void {
+        this.updateHandler.removeOwnedProperties(this.id);
+    }
+
     abstract isAsynchronous(): boolean;
     abstract isProcessing(): boolean;
     abstract isReadOnly(): boolean;

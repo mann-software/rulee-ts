@@ -288,6 +288,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
     // ------------------
 
     setDataToInitialState(): void {
+        this.removeOwnedProperties();
         this.internalList = [];
     }
 
