@@ -41,7 +41,7 @@ export class TypeaheadValueProvider<T, S extends PropertyArrayListReadonly<Choic
         return false;
     }
 
-    cancelProcessing(): void {
+    setDataToInitialState(): void {
         // No-Op
     }
 

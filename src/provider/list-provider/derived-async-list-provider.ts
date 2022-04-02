@@ -27,6 +27,9 @@ export class DerivedAsyncListProvider<T, Dependencies extends readonly AbstractP
     removeProperty(index: number): Promise<void> {
         return Promise.resolve();
     }
+    setDataToInitialState(): void {
+        this.processing = false; // TODO cancel
+    }
     isAsynchronous(): boolean {
         return true;
     }

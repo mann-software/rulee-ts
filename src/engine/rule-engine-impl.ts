@@ -118,7 +118,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     importData(data: RuleEngineData): void {
         if (!this.isCompatible(data)) {
             this.dataMigrators?.forEach(migrator => {
-                if (migrator.acceptsVersion.exec(data.rulesVersion) != null) {
+                if (migrator.acceptsVersion(data.rulesVersion) != null) {
                     data = {
                         rulesVersion: migrator.newVersion,
                         data: migrator.migrate(data)

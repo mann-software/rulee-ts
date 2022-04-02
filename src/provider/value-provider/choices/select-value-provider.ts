@@ -30,11 +30,15 @@ export class SelectValueProvider<T, S extends PropertyArrayListReadonly<Choice<T
     }
 
     isAsynchronous(): boolean {
-        return false;
+        return false; // choices may be asynchronous, but value retrieval is not
     }
 
     isProcessing(): boolean {
         return this.choicesSource.isProcessing();
+    }
+
+    setDataToInitialState(): void {
+        this.choicesSource.setToInitialState();
     }
 
     shouldBeCached(): boolean {

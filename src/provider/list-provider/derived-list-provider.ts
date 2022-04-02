@@ -21,6 +21,9 @@ export class DerivedListProvider<T, Dependencies extends readonly AbstractProper
     removeProperty(index: number): void {
         // no-op
     }
+    setDataToInitialState(): void {
+        // no-op
+    }
     isAsynchronous(): boolean {
         return false;
     }

@@ -20,7 +20,7 @@ export class ObjectValueProvider<O, T> implements ValueProvider<T> {
         return false;
     }
 
-    cancelProcessing(): void {
+    setDataToInitialState(): void {
         // No-Op
     }
 

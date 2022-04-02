@@ -16,7 +16,7 @@ export class SimpleValueProvider<T> implements ValueProvider<T> {
         return false;
     }
 
-    cancelProcessing(): void {
+    setDataToInitialState(): void {
         // No-Op
     }
 

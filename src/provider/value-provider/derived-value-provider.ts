@@ -23,7 +23,7 @@ export class DerivedValueProvider<T, Dependencies extends readonly AbstractPrope
         return false;
     }
 
-    cancelProcessing(): void {
+    setDataToInitialState(): void {
         // No-Op
     }
 
