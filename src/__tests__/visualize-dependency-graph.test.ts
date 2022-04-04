@@ -29,7 +29,7 @@ test('list of group properties with sum-property', () => {
     expect(graphData.nodes.filter(node => node.group === 'group-async')).toHaveLength(2);
     expect(graphData.nodes.filter(node => node.group === 'list')).toHaveLength(1);
 
-    const htmlString = builder.generateNetworkGraphHtmlPage();
+    const htmlString = builder.generateDependencyGraphHtmlPage();
     // console.log(htmlString);
     expect(htmlString.includes('<html>') && htmlString.includes('</html>')).toBe(true);
 });

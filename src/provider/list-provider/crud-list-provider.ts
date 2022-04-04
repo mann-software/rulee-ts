@@ -34,6 +34,9 @@ export class CrudListProvider<T, Dependencies extends readonly AbstractProperty[
             this.resource.splice(index, 1);
         }
     }
+    setDataToInitialState(): void {
+        this.resource = this.resourceProvider(this.dependencies);
+    }
     isAsynchronous(): boolean {
         return false;
     }

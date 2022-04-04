@@ -40,6 +40,9 @@ export class CrudAsyncListProvider<T, Dependencies extends readonly AbstractProp
             this.processing--;
         });
     }
+    setDataToInitialState(): void {
+        // TODO cancel
+    }
     isAsynchronous(): boolean {
         return true;
     }

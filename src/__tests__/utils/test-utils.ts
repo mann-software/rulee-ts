@@ -6,13 +6,17 @@ import { BuilderOptions } from '../../engine/builder/builder-options';
 import { PropertyArrayListCrudAsync } from '../../properties/property-array-list';
 import { PropertyScalar } from '../../properties/property-scalar';
 import { executeAfterTime, valueAfterTime } from './timing-utils';
+import { SemanticRulesVersion } from '../../engine/data/rules-version';
 
 export const emptyButRequiredMessageTestUtil: ValidationMessage = {
     type: ValidationType.Error,
     text: 'Must not be empty'
 };
 
-const defaultOptions: BuilderOptions = { emptyButRequiredMessage: emptyButRequiredMessageTestUtil };
+const defaultOptions: BuilderOptions = { 
+    version: SemanticRulesVersion(1, 0, 0),
+    emptyButRequiredMessage: emptyButRequiredMessageTestUtil,
+};
 
 export const builderAndRuleEngineFactory: (options?: Partial<BuilderOptions>) => [Builder, RuleEngine] = (options?: Partial<BuilderOptions>) => {
     const mergedOptions = !options ? defaultOptions : { ...defaultOptions, ...options };

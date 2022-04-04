@@ -16,6 +16,10 @@ export class ConstantValueProvider<T> implements ValueProvider<T> {
         return false;
     }
 
+    setDataToInitialState(): void {
+        // No-Op
+    }
+
     isProcessing(): boolean {
         return false;
     }

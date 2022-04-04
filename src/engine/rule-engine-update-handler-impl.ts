@@ -30,4 +30,9 @@ export interface RuleEngineUpdateHandler {
      * See: {@link RuleEngine.getPropertyById}
      */
     getPropertyById(id: PropertyId): AbstractDataProperty<unknown> | undefined;
+    /*
+     * Recursively removes owned properties
+     * @param property owning property
+     */
+    removeOwnedProperties(ownerId: PropertyId, ownedProperties?: PropertyId[]): void; // TODO move to interface OwnerRelation
 }

@@ -17,23 +17,38 @@ import { RuleEngine } from "./rule-engine";
 import { ValidationMessagesMap } from "../validators/validation-messages-map";
 import { ValidationResult } from "../validators/validation-result";
 import { PropertyId } from "../properties/property-id";
+import { RuleEngineData } from "./data/rule-engine-data";
+import { RulesVersion } from "./data/rules-version";
+import { DataMigrator } from "./data/data-migrator";
 
 export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     private readonly builder: Builder;
     private readonly propertyMap: { [id: PropertyId]: AbstractPropertyWithInternals<unknown> } = {};
     private readonly dependencyGraph = new DependencyGraph();
+    private readonly version: RulesVersion;
+    private readonly dataMigrators?: DataMigrator[];
     private readonly validations = new WeakMap<CrossValidatorInstance<readonly AbstractProperty[]>, ValidationProcess>();
 
     private readonly dataLinks = new Map<string, [ValueChangeListenerReference, ValueChangeListenerReference]>();
     private readonly snapshots = new Map<string, Snapshot>();
 
-    private get properties() {
+    private get properties(): AbstractPropertyWithInternals<unknown>[] {
         return Object.values(this.propertyMap);
     }
 
     constructor(options: BuilderOptions) {
         this.builder = new Builder(options, this, this.dependencyGraph, this.propertyMap);
+        this.version = options.version;
+        this.dataMigrators = options.dataMigrators;
+    }
+
+    getVersion(): RulesVersion {
+        return this.version;
+    }
+
+    private isCompatible(data: RuleEngineData) {
+        return this.getVersion().compatibleWith(data.rulesVersion);
     }
 
     getBuilder(): Builder {
@@ -80,15 +95,53 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     }
 
     clearValidationResult(): void {
-        Object.values(this.propertyMap).forEach(prop => prop.clearValidationResult());
+        this.properties.forEach(prop => prop.clearValidationResult());
     }
     
     // -----------------------------------------------------------------------
 
+    exportData(onlySelectedProperties?: AbstractDataProperty<unknown>[]): RuleEngineData {
+        const rulesVersion = this.getVersion().version;
+
+        const propsToExport = onlySelectedProperties ? onlySelectedProperties : this.properties.filter(prop => !this.dependencyGraph.isOwnedProperty(prop.id));
+        const data = propsToExport.reduce<Record<PropertyId, unknown>>((res, prop) => {
+            res[prop.id] = prop.exportData();
+            return res;
+        }, {});
+
+        return {
+            rulesVersion,
+            data
+        };
+    }
+
+    importData(data: RuleEngineData): void {
+        this.dataMigrators?.forEach(migrator => {
+            if (migrator.acceptsVersion(data.rulesVersion) != null) {
+                data = {
+                    rulesVersion: migrator.newVersion,
+                    data: migrator.migrate(data)
+                };
+            }
+        });
+        if (!this.isCompatible(data)) {
+            throw new Error(`Version "${data.rulesVersion}" of imported data is not compatible with current version "${this.getVersion().version}" and there are missing porper data migrators`);
+        }
+        this.setToInitialState();
+        Object.entries(data.data).forEach(([propertyId, propData]) => {
+            const prop = this.getPropertyById(propertyId);
+            prop?.importData(propData);
+        });
+    }
+
+    setToInitialState(): void {
+        this.properties.forEach(property => property.setToInitialState());
+    }
+
     takeSnapShot(key = 'default'): Snapshot {
         const snap = {
             key,
-            data: this.properties.map(p => p.exportData())
+            data: this.exportData()
         } as Snapshot;
         this.snapshots.set(key, snap);
         return snap;
@@ -97,7 +150,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     restoreSnapShot(key = 'default'): void {
         const snap = this.snapshots.get(key);
         if (snap) {
-            snap.data.forEach((d: unknown, i: number) => this.properties[i].importData(d))
+            this.importData(snap.data);
         }
     }
     
@@ -252,6 +305,18 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
             }
             this.validations.set(validator, newProcess);
             return newProcess;
+        }
+    }
+    
+    // -----------------------------------------------------------------------
+
+    removeOwnedProperties(ownerId: PropertyId, ownedProperties?: PropertyId[]): void {
+        const removed = this.dependencyGraph.removeOwnedProperties(ownerId, ownedProperties);
+        if (removed) {
+            removed.forEach(id => {
+                delete this.propertyMap[id];
+                this.removeOwnedProperties(id)
+            });
         }
     }
 

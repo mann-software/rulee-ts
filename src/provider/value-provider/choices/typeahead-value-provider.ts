@@ -41,6 +41,10 @@ export class TypeaheadValueProvider<T, S extends PropertyArrayListReadonly<Choic
         return false;
     }
 
+    setDataToInitialState(): void {
+        // No-Op
+    }
+
     isProcessing(): boolean {
         return this.choicesSource.isProcessing();
     }

@@ -13,8 +13,9 @@ export abstract class PropertyArrayListImpl<T> extends AbstractPropertyImpl<T[]>
     
     protected workingList: T[] = [];
     
-    setToInitialState(): void {
+    setDataToInitialState(): void {
         this.needsAnUpdate(false);
+        this.workingList = [];
     }
     
     get length() {
@@ -104,6 +105,12 @@ export class PropertyArrayListAsyncImpl<T> extends PropertyArrayListImpl<T> impl
         backpressureConfig?: BackpressureConfig,
     ) {
         super(updateHandler, backpressureConfig);
+    }
+
+    setDataToInitialState(): void {
+        super.setDataToInitialState();
+        this.awaitUpdateBeforeApply = undefined;
+        this.syncPromise = undefined;
     }
 
     getElements(): T[] {
