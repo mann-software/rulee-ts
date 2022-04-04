@@ -58,7 +58,8 @@ export class PropertyScalarImpl<T> extends AbstractPropertyImpl<T> implements Pr
         return this.currentValue !== undefined ? this.currentValue : this.valueProvider.getValue() as (T | null);
     }
 
-    setToInitialState() {
+    setDataToInitialState() {
+        this.valueProvider.setDataToInitialState();
         const initialValue = this.initialValue !== undefined ? this.initialValue : null;
         if (this.valueProvider.shouldBeCached() || this.isAsynchronous()) {
             this.currentValue = initialValue;

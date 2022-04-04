@@ -66,6 +66,7 @@ export class DependencyGraph implements OwnerRelation {
     private readonly edgesMap: EdgesMap = new Map<string, OutgoingMap>();
     private readonly asyncEdgesMap: AsyncEdgesMap = new Map<string, AbstractProperty[]>();
     private readonly ownerMap = new Map<PropertyId, PropertyId[]>();
+    private ownedProperties?: Set<PropertyId>
 
     // --------
 
@@ -107,6 +108,28 @@ export class DependencyGraph implements OwnerRelation {
         } else {
             this.ownerMap.set(owner.id, [ownedProperty.id]);
         }
+        this.ownedProperties = undefined; // needs to be recomputed
+    }
+
+    isOwnedProperty(id: PropertyId) {
+        if (this.ownedProperties === undefined) {
+            this.ownedProperties = new Set();
+            this.ownerMap.forEach(owned => owned.forEach(o => this.ownedProperties?.add(o)));
+        }
+        return this.ownedProperties.has(id);
+    }
+
+    removeOwnedProperties(ownerId: PropertyId, ownedProperties?: PropertyId[]): PropertyId[] | undefined {
+        const owned = this.ownerMap.get(ownerId);
+        if (owned) {
+            const propertiesToKeep = !ownedProperties ? [] : owned.filter(prop => !ownedProperties.includes(prop));
+            if (propertiesToKeep.length === 0) {
+                this.ownerMap.delete(ownerId);
+            } else {
+                this.ownerMap.set(ownerId, propertiesToKeep)
+            }
+        }
+        return owned;
     }
     
     // --------

@@ -23,6 +23,10 @@ export class ChoiceValueProvider<T> implements ValueProvider<T> {
         return this.choiceList;
     }
 
+    setDataToInitialState(): void {
+        // no-op
+    }
+
     isAsynchronous(): boolean {
         return false;
     }

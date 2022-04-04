@@ -11,13 +11,14 @@ export class DerivedAsyncValueProvider<T, Dependencies extends readonly Abstract
         private readonly set?: (value: T | null, ...dependencies: Dependencies) => Promise<void>
     ) {}
 
-    getValue(): Promise<T | null> {
+    async getValue(): Promise<T | null> {
         this.processing = true;
-        return this.get(this.dependencies).then(result => {
+        try {
+            const result = await this.get(this.dependencies);
             return result;
-        }).finally(() => {
+        } finally {
             this.processing = false;
-        });
+        }
     }
 
     setValue(value: T | null): Promise<void> | void {
@@ -28,6 +29,10 @@ export class DerivedAsyncValueProvider<T, Dependencies extends readonly Abstract
 
     isAsynchronous(): boolean {
         return true;
+    }
+
+    setDataToInitialState(): void {
+        this.processing = false; // TODO cancel
     }
 
     isProcessing(): boolean {

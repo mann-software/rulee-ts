@@ -9,12 +9,19 @@ import { RuleEngineImpl } from "./rule-engine-impl";
 import { PropertyId } from "../properties/property-id";
 import { ValidationMessagesMap } from "../validators/validation-messages-map";
 import { ValidationResult } from "../validators/validation-result";
+import { RuleEngineData } from "./data/rule-engine-data";
+import { RulesVersion } from "./data/rules-version";
 
 export function createRuleEngine(options: BuilderOptions) {
     return new RuleEngineImpl(options);
 }
 
 export interface RuleEngine {
+
+    /**
+     * Returns the version of the defined rules
+     */
+    getVersion(): RulesVersion;
 
     /**
      * Returns the Builder to define new properties.
@@ -57,8 +64,36 @@ export interface RuleEngine {
     
     // -----------------------------------------------------------------------
 
+    /**
+     * 
+     * @param onlySelectedProperties if provided, only these properties will be exported
+     */
+    exportData(onlySelectedProperties?: AbstractDataProperty<unknown>[]): RuleEngineData;
+
+    /**
+     * Imports the data. A version compatibility check according to the current {@link RulesVersion} is performed beforehand.
+     * Before the actual import the rule engine is set to initial state, meaning: if only selected properties were exported,
+     * then all other properties are in the initial state.
+     * 
+     * @param data data to import
+     */
+    importData(data: RuleEngineData): void;
+
+    /**
+     * (Re-)sets the rule engines data to the initial state
+     */
+    setToInitialState(): void;
+
+    /**
+     * Save a snapshot of the current rule engines state. It is stored in the RAM.
+     * @param key key used to store multiple snapshots
+     */
     takeSnapShot(key?: string): Snapshot;
 
+    /**
+     * restores the state of the rule engine for the given snapshot
+     * @param key snapshot key
+     */
     restoreSnapShot(key?: string): void;
     
     // -----------------------------------------------------------------------

@@ -8,7 +8,7 @@ import { ValidationMessage } from "../validators/validation-message";
 import { PropertyDependency } from "../dependency-graph/property-dependency";
 import { BackpressureConfig } from "./backpressure/backpressure-config";
 import { AssertionError } from "../util/assertions/assertion-error";
-import { AsyncPropertyValidatorInstance, CrossValidatorInstance, PropertyValidatorInstance, ValidatorInstance } from "../engine/validation/validator-instance-impl";
+import { AsyncPropertyValidatorInstance, CrossValidatorInstance, PropertyValidatorInstance } from "../engine/validation/validator-instance-impl";
 import { AbstractDataProperty } from "./abstract-data-property";
 import { PropertyValidator } from "../validators/property-validator";
 import { AsyncPropertyValidator } from "../validators/async-property-validator";
@@ -418,10 +418,23 @@ export abstract class AbstractPropertyImpl<D> implements AbstractPropertyWithInt
         toProperty.importData(this.exportData());
     }
 
+    setToInitialState(): void {
+        this.clearValidationResult();
+        this.needsToRecompute = true;
+        this.currentRecomputing = undefined;
+        this.setDataToInitialState();
+        this.touched = false;
+    }
+
+    protected abstract setDataToInitialState(): void;
+
+    protected removeOwnedProperties(properties?: AbstractProperty[]): void {
+        this.updateHandler.removeOwnedProperties(this.id, properties?.map(prop => prop.id));
+    }
+
     abstract isAsynchronous(): boolean;
     abstract isProcessing(): boolean;
     abstract isReadOnly(): boolean;
-    abstract setToInitialState(): void;
     abstract exportData(): D | null;
     abstract importData(data: D | null): void;
 }
