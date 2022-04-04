@@ -119,10 +119,15 @@ export class DependencyGraph implements OwnerRelation {
         return this.ownedProperties.has(id);
     }
 
-    removeOwnedProperties(id: PropertyId): PropertyId[] | undefined {
-        const owned = this.ownerMap.get(id);
+    removeOwnedProperties(ownerId: PropertyId, ownedProperties?: PropertyId[]): PropertyId[] | undefined {
+        const owned = this.ownerMap.get(ownerId);
         if (owned) {
-            this.ownerMap.delete(id);
+            const propertiesToKeep = !ownedProperties ? [] : owned.filter(prop => !ownedProperties.includes(prop));
+            if (propertiesToKeep.length === 0) {
+                this.ownerMap.delete(ownerId);
+            } else {
+                this.ownerMap.set(ownerId, propertiesToKeep)
+            }
         }
         return owned;
     }

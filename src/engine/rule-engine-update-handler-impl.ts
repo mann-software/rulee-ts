@@ -29,5 +29,5 @@ export interface RuleEngineUpdateHandler {
      * Recursively removes owned properties
      * @param property owning property
      */
-    removeOwnedProperties(id: PropertyId): void;
+    removeOwnedProperties(ownerId: PropertyId, ownedProperties?: PropertyId[]): void; // TODO move to interface OwnerRelation
 }

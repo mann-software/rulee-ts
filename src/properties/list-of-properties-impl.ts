@@ -59,7 +59,6 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         if (property) {
             property.transferData(prop);
         }
-        this.ownerRelation.addOwnerDependency(this, prop);
         if (!dontNotify) {
             this.needsAnUpdate();
         }
@@ -82,7 +81,6 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
             const index = atIndex !== undefined ? atIndex + i : undefined;
             const prop = this.addPropertyInternal(index);
             prop.importData(d);
-            this.ownerRelation.addOwnerDependency(this, prop);
             return prop;
         });
         this.needsAnUpdate();
@@ -101,6 +99,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         } else {
             this.internalList.push({prop, index});
         }
+        this.ownerRelation.addOwnerDependency(this, prop);
         return prop;
     }
 
@@ -159,6 +158,7 @@ export class ListOfPropertiesImpl<T extends AbstractDataProperty<D>, D> extends 
         this.singleSelection?.removePropertyAtIndex(index);
         if (index >= 0 && index < this.internalList.length) {
             const [removed] = this.internalList.splice(index, 1);
+            this.removeOwnedProperties([removed.prop]);
             this.adjustIndices(index);
             this.needsAnUpdate();
             return removed?.prop;

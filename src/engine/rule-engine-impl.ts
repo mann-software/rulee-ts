@@ -116,19 +116,16 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     }
 
     importData(data: RuleEngineData): void {
-        if (!this.isCompatible(data)) {
-            this.dataMigrators?.forEach(migrator => {
-                if (migrator.acceptsVersion(data.rulesVersion) != null) {
-                    data = {
-                        rulesVersion: migrator.newVersion,
-                        data: migrator.migrate(data)
-                    };
-                }
-            });
-            
-            if (!this.isCompatible(data)) {
-                throw new Error(`Version "${data.rulesVersion}" of imported data is not compatible with current version "${this.getVersion().version}" and there are missing porper data migrators`);
+        this.dataMigrators?.forEach(migrator => {
+            if (migrator.acceptsVersion(data.rulesVersion) != null) {
+                data = {
+                    rulesVersion: migrator.newVersion,
+                    data: migrator.migrate(data)
+                };
             }
+        });
+        if (!this.isCompatible(data)) {
+            throw new Error(`Version "${data.rulesVersion}" of imported data is not compatible with current version "${this.getVersion().version}" and there are missing porper data migrators`);
         }
         this.setToInitialState();
         Object.entries(data.data).forEach(([propertyId, propData]) => {
@@ -313,8 +310,8 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
     
     // -----------------------------------------------------------------------
 
-    removeOwnedProperties(id: PropertyId): void {
-        const removed = this.dependencyGraph.removeOwnedProperties(id);
+    removeOwnedProperties(ownerId: PropertyId, ownedProperties?: PropertyId[]): void {
+        const removed = this.dependencyGraph.removeOwnedProperties(ownerId, ownedProperties);
         if (removed) {
             removed.forEach(id => {
                 delete this.propertyMap[id];

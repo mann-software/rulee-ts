@@ -9,7 +9,7 @@ import { SemanticRulesVersion } from "./rules-version";
 export interface DataMigrator {
     readonly acceptsVersion: (version: string) => boolean;
     readonly newVersion: string;
-    migrate(data: RuleEngineData): Record<PropertyId, unknown>;
+    migrate(data: RuleEngineData): Record<PropertyId, any>;
 }
 
 /**
@@ -26,7 +26,7 @@ export const SemanticVersionDataMigrator = (
         minor: number;
         patch: number;
     },
-    migrate: (data: RuleEngineData) => Record<PropertyId, unknown>
+    migrate: (data: RuleEngineData) => Record<PropertyId, any>
 ) => ({
     acceptsVersion: version => SemanticRulesVersion(fromVersion.major, fromVersion.minor, fromVersion.patch).compatibleWith(version),
     newVersion: SemanticRulesVersion(toVersion.major, toVersion.minor, toVersion.patch).version,
