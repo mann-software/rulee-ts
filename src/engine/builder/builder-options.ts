@@ -10,7 +10,7 @@ export interface BuilderOptions {
     /**
      * Used for validation: Property is empty according its emptyValueFcn but required
      */
-    emptyButRequiredMessage: ((property: PropertyScalar<unknown>) => ValidationMessage) | ValidationMessage
+    emptyButRequiredMessage: ((property: PropertyScalar<unknown>) => ValidationMessage) | ValidationMessage;
     /**
      * See: {@link RulesVersion}.
      * 

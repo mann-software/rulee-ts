@@ -70,8 +70,6 @@ test('validation on client and server should return the same result - test on ro
 
     // the validations must be the same
     expect(serverValidationResult.getAllMessages()).toStrictEqual(clientValidationResult.getAllMessages());
-
-    clientRootProperty.setValidationMessages
 });
 
 test('validation of single root property should return same result as full rule engine validation', async () => {
