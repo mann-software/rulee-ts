@@ -18,10 +18,6 @@ export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> e
         super(property as ListOfPropertiesImpl<T, D>, addDependencies, textInterpreters);
     }
 
-    protected getChildren(): AbstractProperty[] {
-        return this.property.list;
-    }
-
     // ------------------
 
     addValidator<Dependencies extends readonly AbstractProperty[]>(...dependencies: Dependencies): (validator: ListOfPropertiesValidator<T, D, Dependencies>) => ListOfPropertiesRuleBuilder<T, D> {
