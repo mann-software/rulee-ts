@@ -3,6 +3,8 @@ import { RuleEngine } from "../../engine/rule-engine";
 import { buildPerson } from "./common/person.properties";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { Person } from "./common/person.api";
+import { RuleEngineData } from "../../engine/data/rule-engine-data";
+import { ValidationMessagesMap } from "../../validators/validation-messages-map";
 
 let clientEngine: RuleEngine;
 let clientRootProperty: AbstractDataProperty<unknown>;
@@ -26,17 +28,28 @@ test('validation on client and server should return the same result - test on wh
     const clientValidationResult = await clientEngine.validateAllProperties();
     expect(clientValidationResult.getAllMessages().length).toBe(2);
 
-    const clientData = clientRootProperty.exportData();
+    const clientData = clientEngine.exportData();
     // simulate sending the data to the server
     // the rational is the follwing: if the data is sent to the server, the data is serialized, transfered and deserialized
     // thus, the relevant part of this test is to serialized and deserialized the data
-    const serverData = JSON.parse(JSON.stringify(clientData)) as Person
-    serverRootProperty.importData(serverData);
+    const serverData = JSON.parse(JSON.stringify(clientData)) as RuleEngineData
+    serverEngine.importData(serverData);
     
     // validate on server side
     const serverValidationResult = await serverEngine.validateAllProperties();
 
     // the validations must be the same
+    expect(serverValidationResult.getAllMessages()).toStrictEqual(clientValidationResult.getAllMessages());
+
+    // sending the validation response to the client
+    const clientValidationMessagesMap = JSON.parse(
+        JSON.stringify(serverValidationResult.getValidationMessagesMap())
+    ) as ValidationMessagesMap;
+
+    clientEngine.clearValidationResult();
+    expect(clientEngine.getValidationMessages().getAllMessages()).toEqual([]);
+
+    clientEngine.setValidationMessages(clientValidationMessagesMap);
     expect(serverValidationResult.getAllMessages()).toStrictEqual(clientValidationResult.getAllMessages());
 });
 
@@ -53,10 +66,12 @@ test('validation on client and server should return the same result - test on ro
     serverRootProperty.importData(serverData);
     
     // validate on server side
-    const serverValidationResult = await serverEngine.getPropertyById('person')!.validateRecursively();
+    const serverValidationResult = await serverRootProperty.validateRecursively();
 
     // the validations must be the same
     expect(serverValidationResult.getAllMessages()).toStrictEqual(clientValidationResult.getAllMessages());
+
+    clientRootProperty.setValidationMessages
 });
 
 test('validation of single root property should return same result as full rule engine validation', async () => {

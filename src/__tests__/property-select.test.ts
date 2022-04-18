@@ -1,3 +1,5 @@
+import { isPropertyScalar } from "../properties/property-scalar";
+import { isPropertyScalarWithChoices } from "../properties/property-scalar-with-choices";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { valueAfterTime } from "./utils/timing-utils";
 
@@ -8,6 +10,9 @@ test('static property select WITHOUT default choice and WITHOUT empty choice', (
         { value: 'a', displayValue: 'A' },
         { value: 'b', displayValue: 'B' },
     ]);
+
+    expect(isPropertyScalar(propA)).toBe(true);
+    expect(isPropertyScalarWithChoices(propA)).toBe(true);
 
     expect(propA.getChoices()).toStrictEqual([
         { value: 'a', displayValue: 'A' },

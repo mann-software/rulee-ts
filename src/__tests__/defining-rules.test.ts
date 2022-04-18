@@ -1,4 +1,5 @@
 import { PropertyScalar } from "../properties/property-scalar";
+import { groupRules } from "../rules/group-of-properties-rules-definition";
 import { rules, rulesWithDeps } from "../rules/scalar-rules-definition";
 import { TextInterpreter } from "../util/text-interpreter/text-interpreter";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
@@ -157,4 +158,36 @@ test('defining label with text interpretor', () => {
     }));
     
     expect(propA.getLabel()).toBe('Label A');
+});
+
+test('defining group visibility', () => {
+    const [builder] = builderAndRuleEngineFactory();
+
+    const visibleIfPositive = rules<number>(builder => builder.defineVisibility()(self => self.getNonNullValue() > 0));
+
+    const propA = builder.scalar.numberProperty('PROP_A', {}, visibleIfPositive);
+    const propB = builder.scalar.numberProperty('PROP_B', {}, visibleIfPositive);
+
+    const group = builder.group.of('GROUP', {
+        propA,
+        propB,
+    }, groupRules(builder => {
+        builder.defineVisibleIfAllMembersVisible()
+    }));
+    
+    expect(propA.isVisible()).toBe(false);
+    expect(propB.isVisible()).toBe(false);
+    expect(group.isVisible()).toBe(false);
+
+    propA.setValue(1);
+    
+    expect(propA.isVisible()).toBe(true);
+    expect(propB.isVisible()).toBe(false);
+    expect(group.isVisible()).toBe(false);
+
+    propB.setValue(1);
+    
+    expect(propA.isVisible()).toBe(true);
+    expect(propB.isVisible()).toBe(true);
+    expect(group.isVisible()).toBe(true);
 });

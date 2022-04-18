@@ -1,3 +1,5 @@
+import { isPropertyScalar } from "../properties/property-scalar";
+import { isPropertyScalarWithChoices } from "../properties/property-scalar-with-choices";
 import { builderAndRuleEngineFactory } from "./utils/test-utils";
 
 test('empty number property', () => {
@@ -7,6 +9,10 @@ test('empty number property', () => {
         initialValue: 0,
         zeroIsConsideredAsEmpty: true
     });
+    
+    expect(isPropertyScalar(numProp1)).toBe(true);
+    expect(isPropertyScalarWithChoices(numProp1)).toBe(false);
+
     expect(numProp1.isEmpty()).toBe(true);
     numProp1.setValue(1);
     expect(numProp1.isEmpty()).toBe(false);

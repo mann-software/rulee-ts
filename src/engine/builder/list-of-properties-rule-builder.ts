@@ -6,9 +6,9 @@ import { ListOfPropertiesImpl } from "../../properties/list-of-properties-impl";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
 import { AsyncListOfPropertiesValidator } from "../../validators/async-property-validator";
 import { ListOfPropertiesValidator } from "../../validators/property-validator";
-import { AbstractParentPropertyRuleBuilder } from "./abstract-parent-property-rule-builder-impl";
+import { AbstractPropertyRuleBuilder } from "./abstract-property-rule-builder-impl";
 
-export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> extends AbstractParentPropertyRuleBuilder<(D | null)[], ListOfPropertiesImpl<T, D>> {
+export class ListOfPropertiesRuleBuilder<T extends AbstractDataProperty<D>, D> extends AbstractPropertyRuleBuilder<(D | null)[], ListOfPropertiesImpl<T, D>> {
     
     constructor(
         property: ListOfProperties<T, D>,

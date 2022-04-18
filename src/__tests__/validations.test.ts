@@ -304,3 +304,40 @@ test('validator group test', async () => {
     msgs = await group.validate();
     expect(msgs).toStrictEqual([someError]);
 });
+
+test('list valid if all children are valid', async () => {
+    const validIfNotEmpty = rules<string>(builder => 
+        builder.addValidator()(self => self.getDisplayValue().length > 0 ? {text: 'ERR', type: ValidationType.Error} : undefined)
+    )
+    const propA = builder.scalar.stringProperty('PROP_A', { initialValue: 'ABC' }, validIfNotEmpty);
+    const propB = builder.scalar.stringProperty('PROP_B', {}, validIfNotEmpty);
+
+    const group = builder.group.of('GROUP', {
+        propA,
+        propB,
+    }, groupRules(builder => {
+        builder.defineValidIfAllMembersValid(invalidChilds => ({
+            text: invalidChilds.map(child => child.id).join(', '),
+            type: ValidationType.Error,
+        }))
+    }));
+
+    let validationResult = await group.validate();
+    expect(validationResult).toStrictEqual([
+        {text: 'PROP_B', type: ValidationType.Error},
+    ]);
+    expect(group.isValid()).toBe(false);
+
+    const res = await group.validateRecursively();
+    expect(res.getAllMessages()).toStrictEqual([
+        {text: 'PROP_B', type: ValidationType.Error},
+        {text: 'ERR', type: ValidationType.Error},
+    ]);
+    expect(res.isValid()).toBe(false);
+
+    propB.setValue('CDE')
+
+    validationResult = await group.validate();
+    expect(validationResult).toStrictEqual([]);
+    expect(group.isValid()).toBe(true);
+});

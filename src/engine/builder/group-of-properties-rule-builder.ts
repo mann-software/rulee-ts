@@ -6,10 +6,11 @@ import { CrossValidationResult } from "../../validators/cross-validation-result"
 import { CrossValidatorInstance } from "../validation/validator-instance-impl";
 import { PropertyDependencyOptions } from "../../dependency-graph/property-dependency";
 import { AsyncGroupOfPropertiesValidator } from "../../validators/async-property-validator";
-import { AbstractParentPropertyRuleBuilder } from "./abstract-parent-property-rule-builder-impl";
 import { TextInterpreter, TextInterpreterFcn } from "../../util/text-interpreter/text-interpreter";
+import { ValidationMessage } from "../../validators/validation-message";
+import { AbstractPropertyRuleBuilder } from "./abstract-property-rule-builder-impl";
 
-export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> extends AbstractParentPropertyRuleBuilder<PropertyGroupData<T>, GroupOfPropertiesImpl<T>> {
+export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> extends AbstractPropertyRuleBuilder<PropertyGroupData<T>, GroupOfPropertiesImpl<T>> {
 
     constructor(
         property: GroupOfProperties<T>,
@@ -17,10 +18,6 @@ export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> extends Abstr
         textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
         super(property as GroupOfPropertiesImpl<T>, addDependencies, textInterpreters);
-    }
-
-    protected getChildren(): AbstractProperty[] {
-        return this.property.propertiesAsList;
     }
 
     // ------------------
@@ -43,5 +40,21 @@ export class GroupOfPropertiesRuleBuilder<T extends PropertyGroup> extends Abstr
     }
     
     // ------------------
+
+    defineVisibleIfAllMembersVisible() {
+        this.defineVisibility(...this.property.propertiesAsList)((self, ...children) =>
+            children.every(child => child.isVisible())
+        );
+    }
+
+    defineValidIfAllMembersValid(message: (invalidChildren: AbstractProperty[]) => ValidationMessage) {
+        this.addAsyncValidatorInternal(...this.property.propertiesAsList)(async (self, ...children) => {
+            await Promise.all(children.map(child => child.validate()));
+            const invalidChildren = children.filter(child => child.isValid());
+            if (invalidChildren.length > 0) {
+                return message(invalidChildren);
+            }
+        });
+    }
     
 }
