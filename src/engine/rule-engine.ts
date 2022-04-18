@@ -35,14 +35,14 @@ export interface RuleEngine {
      * ensures that the property exists.
      * @param id of the property
      */
-    getPropertyById(id: PropertyId): AbstractProperty | undefined;
+    getPropertyById(id: PropertyId): AbstractDataProperty<unknown> | undefined;
     
     // -----------------------------------------------------------------------
 
     /**
      * Validates all the properties and returns all validation messages that are issued
      */
-    validate(): Promise<ValidationResult>;
+    validateAllProperties(): Promise<ValidationResult>;
 
     /**
      * Clears all validation messages and sets the given messages

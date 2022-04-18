@@ -1,6 +1,6 @@
-import { AsyncPropertyValidator } from "../../index";
 import { AbstractDataProperty } from "../../properties/abstract-data-property";
 import { AbstractProperty } from "../../properties/abstract-property";
+import { AsyncPropertyValidator } from "../../validators/async-property-validator";
 import { CrossValidator } from "../../validators/cross-validator";
 import { PropertyValidator } from "../../validators/property-validator";
 

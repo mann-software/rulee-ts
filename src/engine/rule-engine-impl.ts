@@ -55,13 +55,13 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
         return this.builder;
     }
 
-    getPropertyById(id: string): AbstractDataProperty<unknown> | undefined {
+    getPropertyById(id: PropertyId): AbstractDataProperty<unknown> | undefined {
         return this.propertyMap[id];
     }
     
     // -----------------------------------------------------------------------
     
-    async validate(): Promise<ValidationResult> {
+    async validateAllProperties(): Promise<ValidationResult> {
         await Promise.all(Object.values(this.propertyMap).map(prop => prop.validate()));
         return this.getValidationMessages();
     }
@@ -91,7 +91,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
             }
             return res;
         }, {} as ValidationMessagesMap);
-        return new ValidationResult(map);
+        return new ValidationResult(map, (id) => this.getPropertyById(id)!);
     }
 
     clearValidationResult(): void {

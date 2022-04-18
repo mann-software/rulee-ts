@@ -2,6 +2,8 @@ import { builderAndRuleEngineFactory } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { GroupOfPropertiesTemplate } from "../properties/factory/property-template";
 import { DataTypeToPropertyGroup } from "../properties/abstract-data-property";
+import { isPropertyScalarWithChoices } from "../properties/property-scalar-with-choices";
+import { isPropertyScalar } from "../properties/property-scalar";
 
 type SimpleModel = {
     aString: string;
@@ -49,6 +51,9 @@ beforeEach(() => {
 
 test('group of properties with SimpleModel', () => {
     const group = simpleTemplate('GROUP');
+    
+    expect(isPropertyScalar(group)).toBe(false);
+    expect(isPropertyScalarWithChoices(group)).toBe(false);
 
     group.importData({
         aString: '',

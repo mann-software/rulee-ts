@@ -1,3 +1,4 @@
+import { AbstractDataProperty } from "../properties/abstract-data-property";
 import { AbstractProperty } from "../properties/abstract-property";
 import { PropertyId } from "../properties/property-id";
 import { CrossValidationResult } from "../validators/cross-validation-result";
@@ -26,6 +27,10 @@ export interface RuleEngineUpdateHandler {
      */
     validateValidatorInstances(validators: readonly CrossValidatorInstance<readonly AbstractProperty[]>[]): Promise<CrossValidationResult | 'cancelled'>[];
     /**
+     * See: {@link RuleEngine.getPropertyById}
+     */
+    getPropertyById(id: PropertyId): AbstractDataProperty<unknown> | undefined;
+    /*
      * Recursively removes owned properties
      * @param property owning property
      */
