@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="449px" preserveAspectRatio="none" style="width:453px;height:449px;background:#FFFFFF;" version="1.1" viewBox="0 0 453 449" width="453px" zoomAndPan="magnify"><defs/><g><!--MD5=[3f11c05941065659f742111b76daccf6]
+cluster Your App--><g id="cluster_Your App"><path d="M13.5,12.1191 L127.5,12.1191 A3.75,3.75 0 0 1 130,14.6191 L137,44.8564 L443.5,44.8564 A2.5,2.5 0 0 1 446,47.3564 L446,439.6191 A2.5,2.5 0 0 1 443.5,442.1191 L13.5,442.1191 A2.5,2.5 0 0 1 11,439.6191 L11,14.6191 A2.5,2.5 0 0 1 13.5,12.1191 " fill="#FFFFFF" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="11" x2="137" y1="44.8564" y2="44.8564"/><text fill="#000000" font-family="Verdana" font-size="22" font-weight="bold" lengthAdjust="spacing" textLength="113" x="15" y="36.2373">Your App</text></g><!--MD5=[17a5e3bc5b00d8ed6358866ad396b9ba]
+cluster rulee-ts--><g id="cluster_rulee-ts"><path d="M37.5,120.1191 L137.5,120.1191 A3.75,3.75 0 0 1 140,122.6191 L147,152.8564 L419.5,152.8564 A2.5,2.5 0 0 1 422,155.3564 L422,332.6191 A2.5,2.5 0 0 1 419.5,335.1191 L37.5,335.1191 A2.5,2.5 0 0 1 35,332.6191 L35,122.6191 A2.5,2.5 0 0 1 37.5,120.1191 " fill="#FFFFFF" style="stroke:#000000;stroke-width:1.0;"/><line style="stroke:#000000;stroke-width:1.0;" x1="35" x2="147" y1="152.8564" y2="152.8564"/><text fill="#000000" font-family="Verdana" font-size="22" font-weight="bold" lengthAdjust="spacing" textLength="99" x="39" y="144.2373">rulee-ts</text></g><!--MD5=[76aeba0ab875879ea5d21554d0007a3a]
+entity model--><g id="elem_model"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="82" x="205" y="379.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="267" y="384.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="265" y="386.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="265" y="390.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="42" x="220" y="413.1943">model</text></g><!--MD5=[6a699a515a41fa5022d80998dc7e27dc]
+entity Container--><g id="elem_Container"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="108" x="124" y="57.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="212" y="62.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="210" y="64.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="210" y="68.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="68" x="139" y="91.1943">Container</text></g><!--MD5=[cc612184ab2911faf2d970a75229e779]
+entity UIElement--><g id="elem_UIElement"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="111" x="267.5" y="57.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="358.5" y="62.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="356.5" y="64.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="356.5" y="68.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="71" x="282.5" y="91.1943">UIElement</text></g><!--MD5=[20a56ca77dee38ef8e49a9b4e6ac0635]
+entity ruleengine--><g id="elem_ruleengine"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="112" x="136" y="165.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="228" y="170.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="226" y="172.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="226" y="176.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="72" x="151" y="199.1943">ruleengine</text></g><!--MD5=[1582d3c1de3343544001ec88c55e55e6]
+entity property--><g id="elem_property"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="101" x="195.5" y="272.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="276.5" y="277.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="274.5" y="279.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="274.5" y="283.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="61" x="210.5" y="306.1943">property</text></g><!--MD5=[52f38f83105e4d01312faed08f8fa76c]
+entity rules--><g id="elem_rules"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="74" x="332" y="272.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="386" y="277.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="384" y="279.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="384" y="283.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="34" x="347" y="306.1943">rules</text></g><!--MD5=[4254e7a00a1b46432f99dc4afce120a7]
+entity attributes--><g id="elem_attributes"><rect fill="#FFFFFF" height="47.0146" rx="2.5" ry="2.5" style="stroke:#000000;stroke-width:1.0;" width="109" x="51.5" y="272.1191"/><rect fill="#FFFFFF" height="10" style="stroke:#000000;stroke-width:1.0;" width="15" x="140.5" y="277.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="138.5" y="279.1191"/><rect fill="#FFFFFF" height="2" style="stroke:#000000;stroke-width:1.0;" width="4" x="138.5" y="283.1191"/><text fill="#000000" font-family="Verdana" font-size="14" lengthAdjust="spacing" textLength="69" x="66.5" y="306.1943">attributes</text></g><!--MD5=[b5df87f6ea809666422621af5a5d64b8]
+link ruleengine to property--><g id="link_ruleengine_property"><path d="M203.58,212.1491 C211.86,228.2291 223.03,249.9591 231.83,267.0691 " fill="none" id="ruleengine-to-property" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="234.25,271.7691,233.6896,261.9362,231.9626,267.323,226.5758,265.5961,234.25,271.7691" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[73c4eff34e52cd6f90999f9a0a3b0619]
+link property to rules--><g id="link_property_rules"><path d="M296.93,295.6191 C306.84,295.6191 316.75,295.6191 326.66,295.6191 " fill="none" id="property-to-rules" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="331.84,295.6191,322.84,291.6191,326.84,295.6191,322.84,299.6191,331.84,295.6191" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[389ae4445240cd67f401de86fd25e26c]
+reverse link attributes to property--><g id="link_attributes_property"><path d="M165.83,295.6191 C175.67,295.6191 185.51,295.6191 195.35,295.6191 " fill="none" id="attributes-backto-property" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="160.69,295.6191,169.69,299.6191,165.69,295.6191,169.69,291.6191,160.69,295.6191" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[dd4f19fc4b58bcc525d3e36c01c1b2cb]
+link property to model--><g id="link_property_model"><path d="M246,319.1491 C246,335.0891 246,356.5891 246,373.6291 " fill="none" id="property-to-model" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="246,378.7691,250,369.7691,246,373.7691,242,369.7691,246,378.7691" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[b69d4ebe7a929b553004ab42cc3a4923]
+link Container to ruleengine--><g id="link_Container_ruleengine"><path d="M181,104.3591 C183.14,120.5691 186.03,142.4491 188.32,159.7191 " fill="none" id="Container-to-ruleengine" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="189,164.9191,191.7826,155.4715,188.3429,159.9625,183.852,156.5229,189,164.9191" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[670f189b5f102f052a79bc71ec3b0b12]
+link UIElement to property--><g id="link_UIElement_property"><path d="M314.76,104.4091 C300.49,143.8891 271.24,224.8091 255.89,267.2591 " fill="none" id="UIElement-to-property" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="254.18,271.9891,261.0027,264.8863,255.8807,267.2873,253.4797,262.1652,254.18,271.9891" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[42b4b8854d33a4997940da4129a32fc1]
+link Container to UIElement--><g id="link_Container_UIElement"><path d="M232.09,80.6191 C242.07,80.6191 252.05,80.6191 262.03,80.6191 " fill="none" id="Container-to-UIElement" style="stroke:#000000;stroke-width:1.0;"/><polygon fill="#000000" points="267.25,80.6191,258.25,76.6191,262.25,80.6191,258.25,84.6191,267.25,80.6191" style="stroke:#000000;stroke-width:1.0;"/></g><!--MD5=[812fe140b6e994fc2afd346b68de1614]
+@startuml
+
+!theme plain
+
+package "Your App" {
+
+    package "rulee-ts" {
+      [ruleengine] -down-> [property]
+      [property] -right-> [rules]
+      [property] -left-> [attributes]
+    }
+
+    [property] - -> [model]
+    [Container] -down-> ruleengine
+    [UIElement] -down-> property
+    [Container] -> UIElement
+}
+
+@enduml
+
+@startuml
+
+
+
+
+
+
+
+
+<style>
+  root {
+    BackgroundColor white
+    FontColor black
+    FontName Verdana
+    HyperLinkColor blue
+    LineColor black
+    LineThickness 1
+    Margin 5
+  }
+  caption {
+    LineThickness 0
+  }
+  footer {
+    LineThickness 0
+  }
+  header {
+    LineThickness 0
+  }
+  node {
+    MaximumWidth 300
+  }
+  title {
+    FontSize 22
+    LineThickness 0
+  }
+</style>
+
+skinparam ArrowLollipopColor black
+skinparam BackgroundColor white
+skinparam DefaultFontName Verdana
+skinparam DefaultMonospacedFontName Courier
+skinparam LifelineStrategy nosolid
+skinparam ParticipantPadding 10
+skinparam SequenceLifeLineBorderColor black
+skinparam Shadowing false
+skinparam UseBetaStyle true
+
+skinparam Activity {
+  BackgroundColor white
+  BarColor black
+  BorderColor black
+  FontColor black
+  FontName Verdana
+}
+skinparam Boundary {
+  FontColor black
+}
+skinparam Box {
+  Padding 5
+}
+skinparam CircledCharacter {
+  FontColor black
+  FontName Courier
+  Radius 9
+}
+skinparam Class {
+  BackgroundColor white
+  BorderColor black
+  FontColor black
+  FontName Verdana
+}
+skinparam ClassAttribute {
+  FontColor black
+  FontName Verdana
+}
+skinparam ClassStereotype {
+  FontColor black
+  FontName Verdana
+}
+skinparam Footer {
+  FontColor black
+  FontName Verdana
+}
+skinparam Header {
+  FontColor black
+  FontName Verdana
+}
+skinparam Hyperlink {
+  Color blue
+}
+skinparam IconPackage {
+  Color black
+  BackgroundColor white
+}
+skinparam IconPrivate {
+  Color black
+  BackgroundColor white
+}
+skinparam IconProtected {
+  Color black
+  BackgroundColor white
+}
+skinparam IconPublic {
+  Color black
+  BackgroundColor white
+}
+skinparam Note {
+  FontColor black
+  FontName Verdana
+}
+skinparam Object {
+  BorderColor black
+}
+skinparam Package {
+  BorderColor black
+  FontColor black
+  FontName Verdana
+}
+skinparam State {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam StereotypeA {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam StereotypeC {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam StereotypeE {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam StereotypeI {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam StereotypeN {
+  BackgroundColor white
+  BorderColor black
+}
+skinparam UseCaseStereoType {
+  FontColor black
+  FontName Verdana
+}
+
+package "Your App" {
+
+    package "rulee-ts" {
+      [ruleengine] -down-> [property]
+      [property] -right-> [rules]
+      [property] -left-> [attributes]
+    }
+
+    [property] - -> [model]
+    [Container] -down-> ruleengine
+    [UIElement] -down-> property
+    [Container] -> UIElement
+}
+
+@enduml
+
+PlantUML version 1.2022.7(Mon Aug 22 19:01:30 CEST 2022)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: Cp1252
+Language: de
+Country: DE
+--></g></svg>

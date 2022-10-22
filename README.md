@@ -21,6 +21,25 @@ Feature-rich to make things easy:
 $ npm install rulee-ts
 ```
 
+## Architecture Overview
+
+rulee-ts is based on properties. A property can be a value, group or list - with real state or derived state.
+Each property has various attributes: visibility, readonly, errors/warnings, processing, etc. - adding custom attributes is possible.
+
+You can define composable (sync or async) rules and connect them to one or many properties. 
+The rules can be used to define the derived state or to define the attributes of a property. 
+
+In the end you can connect a property to an UI field. 
+The UI field can get all the information it needs from the property and puts the new value into the property on change. 
+Thanks to an internal dependency graph, all other dependent properties get updated as well.
+
+The rule engine contains all the properties and offers operations like validation, or the import/export of data.
+The rule engine lives in some sort of container of your app, depending on your chosen technology.
+rulee-ts is technology-agnostic with no further dependencies and can be used with react, vue, angular, solid, svelte, and so on.
+
+
+![Overview](./doc/overview.svg)
+
 ## Getting started
 
 Documentation still to be done. For now, see tests in folder: `src/__tests__`

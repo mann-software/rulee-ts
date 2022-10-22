@@ -1,0 +1,19 @@
+@startuml
+
+!theme plain
+
+package "Your App" {
+
+    package "rulee-ts" {
+      [ruleengine] -down-> [property]
+      [property] -right-> [rules]
+      [property] -left-> [attributes]
+    }
+
+    [property] --> [model]
+    [Container] -down-> ruleengine
+    [UIElement] -down-> property
+    [Container] -> UIElement
+}
+
+@enduml
