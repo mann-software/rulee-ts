@@ -65,6 +65,8 @@ export * from "./rules/list-of-properties-rules-definition";
 export * from "./rules/rule";
 export * from "./rules/rules-definition";
 export * from "./rules/scalar-rules-definition";
+export * from "./rules/common/common-rules";
+export * from "./rules/common/common-scalar-rules";
 export * from "./util/assertions/assertion-error";
 export * from "./util/assertions/assertions";
 export * from "./util/logger/logger";

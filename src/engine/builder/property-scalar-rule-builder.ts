@@ -15,7 +15,6 @@ export class PropertyScalarRuleBuilder<T> extends AbstractPropertyRuleBuilder<T,
     
     constructor(
         property: PropertyScalar<T>,
-        private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown, []>,
         addDependencies: (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => void,
         textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn },
     ) {
@@ -71,7 +70,6 @@ export class PropertyScalarRuleBuilder<T> extends AbstractPropertyRuleBuilder<T,
             dependencies: dependencies,
             getValue: fcn
         } as Attribute<boolean>);
-        this.property.addPropertyValidator(this.notEmptyIfRequiredValidator, []);
     }
     
     // ------------------

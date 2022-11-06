@@ -1,5 +1,3 @@
-import { ValidationType } from '../../validators/validation-type';
-import { ValidationMessage } from '../../validators/validation-message';
 import { RuleEngine, createRuleEngine } from '../../engine/rule-engine';
 import { Builder } from '../../engine/builder/builder';
 import { BuilderOptions } from '../../engine/builder/builder-options';
@@ -7,15 +5,16 @@ import { PropertyArrayListCrudAsync } from '../../properties/property-array-list
 import { PropertyScalar } from '../../properties/property-scalar';
 import { executeAfterTime, valueAfterTime } from './timing-utils';
 import { SemanticRulesVersion } from '../../engine/data/rules-version';
+import { ValidationMessage } from '../../validators/validation-message';
+import { ValidationType } from '../../validators/validation-type';
 
-export const emptyButRequiredMessageTestUtil: ValidationMessage = {
+export const emptyButRequiredMessage: ValidationMessage = {
     type: ValidationType.Error,
     text: 'Must not be empty'
 };
 
 const defaultOptions: BuilderOptions = { 
     version: SemanticRulesVersion(1, 0, 0),
-    emptyButRequiredMessage: emptyButRequiredMessageTestUtil,
 };
 
 export const builderAndRuleEngineFactory: (options?: Partial<BuilderOptions>) => [Builder, RuleEngine] = (options?: Partial<BuilderOptions>) => {

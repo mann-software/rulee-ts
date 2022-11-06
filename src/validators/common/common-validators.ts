@@ -34,4 +34,4 @@ export const V = {
          */
         lengthValidator,
     },
-}
+} as const;

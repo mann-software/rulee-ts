@@ -18,7 +18,7 @@ import { ValidationMessagesMap } from "../validators/validation-messages-map";
 import { ValidationResult } from "../validators/validation-result";
 import { PropertyId } from "../properties/property-id";
 import { RuleEngineData } from "./data/rule-engine-data";
-import { RulesVersion } from "./data/rules-version";
+import { RulesVersion, SemanticRulesVersion } from "./data/rules-version";
 import { DataMigrator } from "./data/data-migrator";
 
 export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
@@ -39,7 +39,7 @@ export class RuleEngineImpl implements RuleEngine, RuleEngineUpdateHandler {
 
     constructor(options: BuilderOptions) {
         this.builder = new Builder(options, this, this.dependencyGraph, this.propertyMap);
-        this.version = options.version;
+        this.version = options.version ?? SemanticRulesVersion(0, 0, 0);
         this.dataMigrators = options.dataMigrators;
     }
 

@@ -1,4 +1,4 @@
-import { builderAndRuleEngineFactory, emptyButRequiredMessageTestUtil, setupAsyncCrudList } from "./utils/test-utils";
+import { builderAndRuleEngineFactory, emptyButRequiredMessage, setupAsyncCrudList } from "./utils/test-utils";
 import { Builder } from "../engine/builder/builder";
 import { executeAfterTime, valueAfterTime } from "./utils/timing-utils";
 import { ValidationMessage } from "../validators/validation-message";
@@ -8,6 +8,7 @@ import { rules } from "../rules/scalar-rules-definition";
 import { arrayListRules } from "../rules/array-list-rules-definition";
 import { listOfPropertiesRules } from "../rules/list-of-properties-rules-definition";
 import { groupRules } from "../rules/group-of-properties-rules-definition";
+import { requiredIfVisibleRule } from "../rules/common/common-scalar-rules";
 
 let builder: Builder;
 const someError: ValidationMessage = {
@@ -64,13 +65,12 @@ test('required if visible validation test', async () => {
     });
 
     const prop = builder.scalar.stringProperty('PROP', {}, rules(builder => {
-        builder.setRequiredIfVisible(true)
-            .defineVisibility(propVis)((self, propVis) => propVis.getNonNullValue());
-    }));
+        builder.defineVisibility(propVis)((self, propVis) => propVis.getNonNullValue());
+    }), requiredIfVisibleRule(() => emptyButRequiredMessage));
 
     prop.setValue('');
     let msgs = await prop.validate();
-    expect(msgs).toStrictEqual([emptyButRequiredMessageTestUtil]);
+    expect(msgs).toStrictEqual([emptyButRequiredMessage]);
 
     prop.setValue('Not empty anymore');
     msgs = await prop.validate();

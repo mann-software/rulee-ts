@@ -1,8 +1,8 @@
 import { PropertyScalar, rules, rulesWithDeps, ValidationMessage } from "../../../index";
+import { requiredIfVisibleRule } from "../../../rules/common/common-scalar-rules";
+import { emptyButRequiredMessage } from "../../utils/test-utils";
 
-export const notEmptyRule = rules(builder => {
-    builder.setRequiredIfVisible(true)
-});
+export const notEmptyRule = requiredIfVisibleRule(() => emptyButRequiredMessage);
 
 export const notEmptyIfSomeOtherNotEmpty = (message: ValidationMessage) => rulesWithDeps((builder, ...otherProps: PropertyScalar<unknown>[]) => {
     builder.addValidator(...otherProps)((self, ...dependencies) => {

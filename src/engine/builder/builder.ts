@@ -43,7 +43,6 @@ export class Builder {
         return Object.values(this.propertyMap);
     }
     
-    private readonly notEmptyIfRequiredValidator: PropertyScalarValidator<unknown, []>;
     private readonly defaultEmptyChoiceDisplayValue: string | undefined;
     private readonly defaultBackpressureConfig: BackpressureConfig;
     private readonly textInterpreters: { [textInterpreter in TextInterpreter]?:  TextInterpreterFcn };
@@ -59,10 +58,6 @@ export class Builder {
         private readonly dependencyGraph: DependencyGraph,
         private readonly propertyMap: { [id: string]: AbstractPropertyWithInternals<unknown> }
     ) {
-        this.notEmptyIfRequiredValidator = options.emptyButRequiredMessage instanceof Function 
-            ? V.scalar.notEmptyMsgProvider(options.emptyButRequiredMessage)
-            : V.scalar.notEmpty(options.emptyButRequiredMessage);
-
         if (options.defaultEmptyChoiceDisplayValue) {
             this.defaultEmptyChoiceDisplayValue = options.defaultEmptyChoiceDisplayValue;
         }
@@ -116,7 +111,6 @@ export class Builder {
     private bindPropertyScalar<T>(prop: PropertyScalar<T>): PropertyScalarRuleBuilder<T> {
         return new PropertyScalarRuleBuilder<T>(
             prop,
-            this.notEmptyIfRequiredValidator,
             (from: readonly AbstractProperty[], to: AbstractProperty, options: PropertyDependencyOptions) => this.addDependencies(this.dependencyGraph, from, to, options),
             this.textInterpreters,
         );

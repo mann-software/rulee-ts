@@ -8,15 +8,11 @@ import { RuleEngine } from "../rule-engine";
 
 export interface BuilderOptions {
     /**
-     * Used for validation: Property is empty according its emptyValueFcn but required
-     */
-    emptyButRequiredMessage: ((property: PropertyScalar<unknown>) => ValidationMessage) | ValidationMessage;
-    /**
      * See: {@link RulesVersion}.
      * 
      * You may use {@link SemanticRulesVersion} as a standard implementation.
      */
-    version: RulesVersion;
+    version?: RulesVersion;
     /**
      * Register the data migrators that will be used by the rule engine on {@link RuleEngine.importData}.
      * The rule engine will iterate over the list once and applies every {@link DataMigrator} if it is {@link DataMigrator.acceptsVersion} returns true.

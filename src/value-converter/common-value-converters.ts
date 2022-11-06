@@ -295,4 +295,4 @@ export const C = {
         iso: new IsoDateConverter(),
         german: new GermanDateConverter(),
     }
-}
+} as const;

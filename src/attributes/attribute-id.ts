@@ -14,4 +14,4 @@ export const A: { [attrName: string]: AttributeId<unknown> } = {
     Visible,
     Label,
     InfoText
-};
+} as const;
